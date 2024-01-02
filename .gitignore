@@ -1,0 +1,8 @@
+/node_modules
+.env
+protected.env
+package-lock.json
+.eslintcache
+/log
+.DS_Store
+node_modules
