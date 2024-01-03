@@ -71,7 +71,7 @@ app.use(session({
 }))
 
 
-app.listen(process.env.DATABASE_PORT, ()=>{
+app.listen(process.env.PORT || 6197, ()=>{
     console.log("Connected to backend mysql database!");
 })
 
