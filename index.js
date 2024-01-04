@@ -66,10 +66,12 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
     proxy: true,
+    name: 'HRISUserCookie',
     cookie: {
         secure: true,
         httpOnly: false,
-        expires: 60 * 60 * 24 * 1000, 
+        expires: 60 * 60 * 24 * 1000,
+        sameSite: 'none',
     }
 }))
 
