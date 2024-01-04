@@ -65,7 +65,10 @@ app.use(session({
     secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: true,
+    proxy: true,
     cookie: {
+        secure: true,
+        httpOnly: false,
         expires: 60 * 60 * 24 * 1000, 
     }
 }))
