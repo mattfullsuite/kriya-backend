@@ -63,17 +63,22 @@ app.use(bodyParser.urlencoded({ extended: true}));
 app.use(session({
     key: "userId",
     secret: process.env.SECRET_KEY,
-    resave: false,
+    resave: true,
     saveUninitialized: true,
     proxy: true,
     name: 'HRISUserCookie',
     cookie: {
-        secure: true,
+        //secure: true,
         httpOnly: false,
         expires: 60 * 60 * 24 * 1000,
         //sameSite: 'none',
     }
 }))
+
+app.use(function(req, res, next) {
+    res.set('credentials', 'include');
+    next();
+});
 
 
 app.listen(process.env.PORT || 6197, ()=>{
