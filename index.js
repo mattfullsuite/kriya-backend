@@ -104,7 +104,7 @@ app.get("/login", (req, res) => {
 })
 
 app.post("/processlogin", ProcessLoginHandler);
-app.get('/logout', LogoutHandler)
+app.get('/logout', LogoutHandler);
 
 
 // -------------------- ADMIN METHODS --------------------------//
@@ -478,7 +478,85 @@ app.get("/numofdeptleavestoday" , (req, res) => {
     })
 })
 
+app.get("/numofdeptleavesweek" , (req, res) => {
+    const uid = req.session.user[0].emp_id
+    //const today1 = moment().startOf('week').format("YYYY/MM/DD");
+    const today2 = moment().startOf('week').add('days', 1).format("YYYY/MM/DD");
+    const today3 = moment().startOf('week').add('days', 2).format("YYYY/MM/DD");
+    const today4 = moment().startOf('week').add('days', 3).format("YYYY/MM/DD");
+    const today5 = moment().startOf('week').add('days', 4).format("YYYY/MM/DD");
+    const today6 = moment().startOf('week').add('days', 5).format("YYYY/MM/DD");
+    //const today7 = moment().endOf('week').format("YYYY/MM/DD");
+
+
+    const q = "SELECT * FROM leaves WHERE " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+    
+    db.query(q,
+        [uid, today2, uid, today3, uid, today4, uid, today5, uid, today6],
+        (err,data)=> {
+        if(err) {
+            return console.log(err)
+        }
+
+        return res.json(data)
+    })
+})
+
+
+
 //HR
+
+app.get("/numofallleavestoday" , (req, res) => {
+    const uid = req.session.user[0].emp_id
+    const today = moment().format("YYYY/MM/DD")
+
+    const q = "SELECT * FROM leaves WHERE leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+
+    db.query(q,
+        [today],
+        (err,data)=> {
+        if(err) {
+            return res.json(err)
+        }
+
+        return res.json(data)
+    })
+})
+
+app.get("/numofallleavesweek" , (req, res) => {
+    //const today1 = moment().startOf('week').format("YYYY/MM/DD");
+    const today2 = moment().startOf('week').add('days', 1).format("YYYY/MM/DD");
+    const today3 = moment().startOf('week').add('days', 2).format("YYYY/MM/DD");
+    const today4 = moment().startOf('week').add('days', 3).format("YYYY/MM/DD");
+    const today5 = moment().startOf('week').add('days', 4).format("YYYY/MM/DD");
+    const today6 = moment().startOf('week').add('days', 5).format("YYYY/MM/DD");
+    //const today7 = moment().endOf('week').format("YYYY/MM/DD");
+
+
+    const q = "SELECT * FROM leaves WHERE " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+    
+
+    db.query(q,
+        [today2,today3,today4,today5,today6],
+        (err,data)=> {
+        if(err) {
+            return console.log(err)
+        }
+
+        return res.json(data)
+    })
+})
+
 app.get("/showallleaves", (req, res) => {
     const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id=e.emp_id ORDER BY date_filed DESC"
     
