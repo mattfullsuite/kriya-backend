@@ -321,9 +321,15 @@ app.post("/addHoliday", (req,res) => {
     req.body.h_date] 
 
     db.query(q, [values], (err, data)=> { 
-        if (err) return res.json(err)
-        return res.json("Holiday added!")
+        if(err) {
+            res.send(err)
+        } else {
+            res.send("success")
+        }
+        // if (err) return res.json(err)
+        // return res.json("Holiday added!")
     })
+
 })
 
 app.post("/addcompany", (req,res) => {
