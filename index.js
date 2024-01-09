@@ -1060,8 +1060,13 @@ app.post("/setPTO/:emp_id", (req,res) => {
     const q = "UPDATE emp AS e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = " + req.body.new_pto_balance + " WHERE l.emp_id = ?"
 
     db.query(q, [uid], (err, data) => {
-        if (err) return res.json(err); 
-        return res.json(data);
+        if (err) {
+            res.send(err)
+        }
+        else {
+            res.send("success")
+        }
+
     })
 })
 
