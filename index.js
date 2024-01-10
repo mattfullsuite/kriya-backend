@@ -227,6 +227,21 @@ app.delete("/holiday/:h_id", (req, res) => {
     })
 })
 
+app.delete("/division/:div_id", (req, res) => {
+    const div_id = req.params.div_id;
+    const q = "DELETE FROM division WHERE div_id = ?";
+
+    db.query(q, 
+        [div_id], 
+        (err,data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json("Division #" + div_id + " has been deleted successfully.")
+        }
+    })
+})
+
 app.post('/addEmployee', (req,res) => {
 
     "INSERT INTO `announcements` (`ann_id`, `emp_id`, `ann_title`, `ann_content`, `ann_category`) VALUES (?)";
@@ -328,6 +343,21 @@ app.post("/addHoliday", (req,res) => {
         }
         // if (err) return res.json(err)
         // return res.json("Holiday added!")
+    })
+
+})
+
+app.post("/addDivision", (req,res) => {
+    const q = "INSERT INTO division (`div_name`) VALUES (?) "
+    const values = 
+    [req.body.div_name] 
+
+    db.query(q, [values], (err, data)=> { 
+        if(err) {
+            res.send(err)
+        } else {
+            res.send("success")
+        }
     })
 
 })
@@ -693,6 +723,26 @@ app.post("/returnTempPTO/:leave_id", (req, res) => {
 app.get("/holidays", (req, res) => {
 
     const q = "SELECT * FROM holiday";
+
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+})
+
+app.get("/division", (req, res) => {
+
+    const q = "SELECT * FROM division";
+
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+})
+
+app.get("/department", (req, res) => {
+
+    const q = "SELECT * FROM department";
 
     db.query(q,(err,data)=> {
         if(err) return res.json(err)
