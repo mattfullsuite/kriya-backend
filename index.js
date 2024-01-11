@@ -75,6 +75,11 @@ app.use(session({
     }
 }))
 
+app.use(function(req, res, next) {
+    res.set('credentials', 'include');
+    next();
+});
+
 
 app.listen(process.env.PORT || 6197, ()=>{
     console.log("Connected to backend mysql database!");
@@ -99,7 +104,7 @@ app.get("/login", (req, res) => {
 })
 
 app.post("/processlogin", ProcessLoginHandler);
-app.get('/logout', LogoutHandler)
+app.get('/logout', LogoutHandler);
 
 
 // -------------------- ADMIN METHODS --------------------------//
@@ -222,6 +227,21 @@ app.delete("/holiday/:h_id", (req, res) => {
     })
 })
 
+app.delete("/division/:div_id", (req, res) => {
+    const div_id = req.params.div_id;
+    const q = "DELETE FROM division WHERE div_id = ?";
+
+    db.query(q, 
+        [div_id], 
+        (err,data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json("Division #" + div_id + " has been deleted successfully.")
+        }
+    })
+})
+
 app.post('/addEmployee', (req,res) => {
 
     "INSERT INTO `announcements` (`ann_id`, `emp_id`, `ann_title`, `ann_content`, `ann_category`) VALUES (?)";
@@ -316,9 +336,30 @@ app.post("/addHoliday", (req,res) => {
     req.body.h_date] 
 
     db.query(q, [values], (err, data)=> { 
-        if (err) return res.json(err)
-        return res.json("Holiday added!")
+        if(err) {
+            res.send(err)
+        } else {
+            res.send("success")
+        }
+        // if (err) return res.json(err)
+        // return res.json("Holiday added!")
     })
+
+})
+
+app.post("/addDivision", (req,res) => {
+    const q = "INSERT INTO division (`div_name`) VALUES (?) "
+    const values = 
+    [req.body.div_name] 
+
+    db.query(q, [values], (err, data)=> { 
+        if(err) {
+            res.send(err)
+        } else {
+            res.send("success")
+        }
+    })
+
 })
 
 app.post("/addcompany", (req,res) => {
@@ -467,7 +508,85 @@ app.get("/numofdeptleavestoday" , (req, res) => {
     })
 })
 
+app.get("/numofdeptleavesweek" , (req, res) => {
+    const uid = req.session.user[0].emp_id
+    //const today1 = moment().startOf('week').format("YYYY/MM/DD");
+    const today2 = moment().startOf('week').add('days', 1).format("YYYY/MM/DD");
+    const today3 = moment().startOf('week').add('days', 2).format("YYYY/MM/DD");
+    const today4 = moment().startOf('week').add('days', 3).format("YYYY/MM/DD");
+    const today5 = moment().startOf('week').add('days', 4).format("YYYY/MM/DD");
+    const today6 = moment().startOf('week').add('days', 5).format("YYYY/MM/DD");
+    //const today7 = moment().endOf('week').format("YYYY/MM/DD");
+
+
+    const q = "SELECT * FROM leaves WHERE " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+    
+    db.query(q,
+        [uid, today2, uid, today3, uid, today4, uid, today5, uid, today6],
+        (err,data)=> {
+        if(err) {
+            return console.log(err)
+        }
+
+        return res.json(data)
+    })
+})
+
+
+
 //HR
+
+app.get("/numofallleavestoday" , (req, res) => {
+    const uid = req.session.user[0].emp_id
+    const today = moment().format("YYYY/MM/DD")
+
+    const q = "SELECT * FROM leaves WHERE leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+
+    db.query(q,
+        [today],
+        (err,data)=> {
+        if(err) {
+            return res.json(err)
+        }
+
+        return res.json(data)
+    })
+})
+
+app.get("/numofallleavesweek" , (req, res) => {
+    //const today1 = moment().startOf('week').format("YYYY/MM/DD");
+    const today2 = moment().startOf('week').add('days', 1).format("YYYY/MM/DD");
+    const today3 = moment().startOf('week').add('days', 2).format("YYYY/MM/DD");
+    const today4 = moment().startOf('week').add('days', 3).format("YYYY/MM/DD");
+    const today5 = moment().startOf('week').add('days', 4).format("YYYY/MM/DD");
+    const today6 = moment().startOf('week').add('days', 5).format("YYYY/MM/DD");
+    //const today7 = moment().endOf('week').format("YYYY/MM/DD");
+
+
+    const q = "SELECT * FROM leaves WHERE " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+    
+
+    db.query(q,
+        [today2,today3,today4,today5,today6],
+        (err,data)=> {
+        if(err) {
+            return console.log(err)
+        }
+
+        return res.json(data)
+    })
+})
+
 app.get("/showallleaves", (req, res) => {
     const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id=e.emp_id ORDER BY date_filed DESC"
     
@@ -604,6 +723,26 @@ app.post("/returnTempPTO/:leave_id", (req, res) => {
 app.get("/holidays", (req, res) => {
 
     const q = "SELECT * FROM holiday";
+
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+})
+
+app.get("/division", (req, res) => {
+
+    const q = "SELECT * FROM division";
+
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+})
+
+app.get("/department", (req, res) => {
+
+    const q = "SELECT * FROM department";
 
     db.query(q,(err,data)=> {
         if(err) return res.json(err)
@@ -1053,8 +1192,13 @@ app.post("/setPTO/:emp_id", (req,res) => {
     const q = "UPDATE emp AS e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = " + req.body.new_pto_balance + " WHERE l.emp_id = ?"
 
     db.query(q, [uid], (err, data) => {
-        if (err) return res.json(err); 
-        return res.json(data);
+        if (err) {
+            res.send(err)
+        }
+        else {
+            res.send("success")
+        }
+
     })
 })
 
