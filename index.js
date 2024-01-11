@@ -69,10 +69,10 @@ app.use(session({
     proxy: true,
     name: 'HRISUserCookie',
     cookie: {
-        secure: true,
-        httpOnly: false,
+        //secure: true,
+        //httpOnly: false,
         expires: 60 * 60 * 24 * 1000,
-        sameSite: 'none',
+        //sameSite: 'none',
     }
 }))
 
@@ -345,11 +345,10 @@ app.post("/addHoliday", (req,res) => {
         // if (err) return res.json(err)
         // return res.json("Holiday added!")
     })
-
 })
 
 app.post("/addDivision", (req,res) => {
-    const q = "INSERT INTO division (`div_name`) VALUES (?) "
+    const q = "INSERT INTO `division` (`div_name`) VALUES (?) "
     const values = 
     [req.body.div_name] 
 
@@ -1360,6 +1359,51 @@ app.get("/getAllPositionsInDivision", (req, res) => {
             console.log(err)
         } else {
             res.json(data)
+        }
+    })
+})
+
+app.post("/addNewDivision", (req,res) => {
+    const q = "INSERT INTO division (`div_name`) VALUES (?) "
+    const values = 
+    [req.body.div_name] 
+
+    db.query(q, [values], (err, data)=> { 
+        if (err) {
+            res.send(err)
+        } else {
+            res.send("success")
+        }
+    })
+})
+
+app.post("/addNewDepartment", (req,res) => {
+    const q = "INSERT INTO dept (`div_id`,`dept_name`) VALUES (?) "
+    const values = [
+    req.body.div_id,
+    req.body.dept_name] 
+
+    db.query(q, [values], (err, data)=> { 
+        if(err) {
+            res.send(err)
+        } else {
+            res.send("success")
+        }
+    })
+})
+
+app.post("/addNewPosition", (req,res) => {
+    const q = "INSERT INTO `position` (`dept_id`, `position_name`) VALUES (?) "
+    const values = [
+    req.body.dept_id,
+    req.body.position_name,
+    ] 
+
+    db.query(q, [values], (err, data)=> { 
+        if(err) {
+            console.log(err)
+        } else {
+            res.send("success")
         }
     })
 })
