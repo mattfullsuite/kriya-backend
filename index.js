@@ -19,7 +19,7 @@ const bcrypt = require("bcryptjs");
 const multer = require("multer")
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, __dirname + "/" + "../frontend/public/uploads")
+        cb(null, __dirname + "/" + "../fs-hris/frontend/public/uploads")
     },
 
     filename: (req, file, cb) => {
@@ -68,10 +68,10 @@ app.use(session({
     proxy: true,
     name: 'HRISUserCookie',
     cookie: {
-        secure: true,
+        //secure: true,
         httpOnly: false,
         expires: 60 * 60 * 24 * 1000,
-        sameSite: 'none',
+        //sameSite: 'none',
     }
 }))
 
@@ -1306,6 +1306,7 @@ app.get("/getAllDivisions", (req, res) => {
 app.get("/getAllDepartments", (req, res) => {
 
     const q = "SELECT * FROM dept ORDER BY dept_name ASC"
+    
 
     db.query(q, (err, data) => {
         if (err){
