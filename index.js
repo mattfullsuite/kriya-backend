@@ -1330,7 +1330,7 @@ app.get("/getAllDivisions", (req, res) => {
 
 app.get("/getAllDepartments", (req, res) => {
 
-    const q = "SELECT * FROM dept ASC"
+    const q = "SELECT * FROM dept"
 
     db.query(q, (err, data) => {
         if (err){
