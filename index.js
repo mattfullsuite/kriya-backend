@@ -1330,7 +1330,7 @@ app.get("/getAllDivisions", (req, res) => {
 
 app.get("/getAllDepartments", (req, res) => {
 
-    const q = "(SELECT de.dept_id, de.dept_name, de.manager_id, e.f_name, e.s_name FROM dept AS de INNER JOIN emp AS e ON de.manager_id = e.emp_id) UNION (SELECT dept_id, dept_name, manager_id, Null as f_name, Null as s_name FROM dept WHERE manager_id is NULL)"
+    const q = "SELECT * FROM dept ASC"
 
     db.query(q, (err, data) => {
         if (err){
