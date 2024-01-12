@@ -228,6 +228,7 @@ app.delete("/holiday/:h_id", (req, res) => {
     })
 })
 
+
 app.delete("/division/:div_id", (req, res) => {
     const div_id = req.params.div_id;
     const q = "DELETE FROM division WHERE div_id = ?";
@@ -1060,6 +1061,8 @@ app.post("/addNewEmployee", upload.single("emp_pic"), (req, res)=> {
             res.send("error")
         }
         else {
+            //const q4 = "UPDATE dept SET manager_id = (SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1) WHERE dept_id = " + req.body.dept_id; 
+
             const q2 = "INSERT INTO `leave_credits` (`emp_id`, `leave_balance`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1)," + 0 + ")"
 
             db.query(q2, (err, data2) => {
@@ -1195,6 +1198,22 @@ app.post("/subtractPTO", (req,res) => {
     })
 })
 
+app.post("/makeDeptLead", (req, res) => {
+    const q1 = "UPDATE dept SET manager_id = " + req.body.emp_id + "  WHERE dept_id = " + req.body.dept_id;
+
+    db.query(q1, (err, data) => {
+        if (err) return res.json(err); 
+        return res.json(data);
+    })
+
+    const q2 = "UPDATE emp SET emp_role = 3 WHERE emp_id = " + req.body.emp_id;
+
+    db.query(q2, (err, data) => {
+        if (err) return console.log(err); 
+        return console.log("Successfully set employee to lead role. Please check if dashbaord changed.");
+    })
+})
+
 app.post("/setPTO/:emp_id", (req,res) => {
     const uid = req.params.emp_id
     const q = "UPDATE emp AS e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = " + req.body.new_pto_balance + " WHERE l.emp_id = ?"
@@ -1313,7 +1332,7 @@ app.get("/getAllDivisions", (req, res) => {
 
 app.get("/getAllDepartments", (req, res) => {
 
-    const q = "SELECT * FROM department ORDER BY dept_name ASC"
+    const q = "(SELECT de.dept_id, de.dept_name, de.manager_id, e.f_name, e.s_name FROM dept AS de INNER JOIN emp AS e ON de.manager_id = e.emp_id) UNION (SELECT dept_id, dept_name, manager_id, Null as f_name, Null as s_name FROM dept WHERE manager_id is NULL)"
 
     db.query(q, (err, data) => {
         if (err){
