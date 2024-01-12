@@ -20,7 +20,7 @@ const bcrypt = require("bcryptjs");
 const multer = require("multer")
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, __dirname + "/" + "../frontend/public/uploads")
+        cb(null, __dirname + "/" + "../fs-hris/frontend/public/uploads")
     },
 
     filename: (req, file, cb) => {
@@ -1090,23 +1090,21 @@ app.post("/addNewEmployee", upload.single("emp_pic"), (req, res)=> {
         
             try {
                 let transporter = nodemailer.createTransport({
-                    host: "smtp.elasticemail.com",
-                    port: 2525,
-                    secure: false,
+                    service: "Gmail",
+                    host: "smtp.gmail.com",
+                    port: 465,
+                    secure: true,
                     auth: {
                       user: 'marvin@fullsuite.ph',
-                      pass: '15BC029719F114C8D23A0436E328A510D55E',
+                      pass: 'uggm nyyd ymnb szrx',
                     },
-                    tls: {
-                         ciphers: 'SSLv3'
-                    }
                });
                 transporter.sendMail({
                     from: 'marvin@fullsuite.ph', // sender address
                     to: req.body.work_email, // list of receivers
-                    subject: 'Action required: Temporary password | Fullsuite', // Subject line
+                    subject: 'Action required: Temporary password | FS-HRIS', // Subject line
                     text: tempPassword, // plain text body
-                    html: '<div style="background-color: #363636; box-sizing: border-box;padding: 16px; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 20px;"><img src=".../Fs-logo.png" style="height: 56px; width: 56px" /><h1 style="color: white; font-size: 16px">fullsuite.ph</h1></div><p style="margin: 20px; text-align: justify;">Hi, '+ req.body.f_name +'!, we are happy to have you here at Fullsuite! But first things first, you need to change your password to secure your account. The system has already generated a temporary password to access you account.</p><div style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; text-align: center; margin: 80px 20px;"><p>Your temporary password:</p><h2 style="font-weight: semibold; font-size: 18px; color: #0097b2;">'+ tempPassword +'</h2><button style="margin-top: 40px; background-color: #0097b2; outline: none; border: none; padding: 7px 15px; color: white; border-radius: 5px;">Go to portal</button></div>'
+                    html: `This is you temporary password: ${tempPassword}`
                });
             } catch(e) {
                 console.log("----------------" + e + "----------------")
@@ -1512,21 +1510,19 @@ app.post("/forgot-password", (req, res) => {
 
             try {
                 let transporter = nodemailer.createTransport({
-                    host: "smtp.elasticemail.com",
-                    port: 2525,
-                    secure: false,
+                    service: "Gmail",
+                    host: "smtp.gmail.com",
+                    port: 465,
+                    secure: true,
                     auth: {
                       user: 'marvin@fullsuite.ph',
-                      pass: '15BC029719F114C8D23A0436E328A510D55E',
+                      pass: 'uggm nyyd ymnb szrx',
                     },
-                    tls: {
-                         ciphers: 'SSLv3'
-                    }
                });
                 transporter.sendMail({
                     from: 'marvin@fullsuite.ph', // sender address
                     to: email, // list of receivers
-                    subject: 'Action required: Reset password    | Fullsuite', // Subject line
+                    subject: 'Action required: Reset password | FS-HRIS', // Subject line
                     text: "Reset password", // plain text body
                     html: `This is the link to reset your password ${process.env.ORIGIN_URL}/reset-password/${user_key}`
                });
