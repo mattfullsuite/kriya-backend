@@ -121,7 +121,7 @@ app.get("/myProfile", (req, res) => {
 
 
 app.get("/employeeslist", (req, res) => {
-    const q = "SELECT * FROM emp ORDER BY s_name"
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp ORDER BY s_name"
     db.query(q,(err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
@@ -1484,6 +1484,34 @@ app.get("/getAllPositionsInDivision", (req, res) => {
     const q = "SELECT * FROM position WHERE div_id = ? ORDER BY position_name ASC"
 
     db.query(q, req.body.div_id, (err, data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json(data)
+        }
+    })
+})
+
+app.get("/getOwnEmpDesignation", (req, res) => {
+    const uid = req.session.user[0].emp_id
+
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_designation WHEN e.emp_id = ?"
+
+    db.query(q, uid, (err, data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json(data)
+        }
+    })
+})
+
+app.get("/getUserEmpDesignation/:emp_id", (req, res) => {
+    const id = req.params.emp_id
+
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_designation WHEN e.emp_id = ?"
+
+    db.query(q, id, (err, data) => {
         if (err){
             console.log(err)
         } else {
