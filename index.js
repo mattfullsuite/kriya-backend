@@ -1385,13 +1385,18 @@ app.post("/addNewDivision", (req,res) => {
     const values = 
     [req.body.div_name] 
 
-    db.query(q, [values], (err, data)=> { 
-        if (err) {
-            res.send(err)
-        } else {
-            res.send("success")
-        }
-    })
+    if (!isEmpty(req.body.div_name)){
+
+        db.query(q, [values], (err, data)=> { 
+            if (err) {
+                res.send(err)
+            } else {
+                res.send("success")
+            }
+        })
+    } else {
+        res.send("error")
+    }
 })
 
 app.post("/addNewDepartment", (req,res) => {
@@ -1400,13 +1405,18 @@ app.post("/addNewDepartment", (req,res) => {
     req.body.div_id,
     req.body.dept_name] 
 
-    db.query(q, [values], (err, data)=> { 
-        if(err) {
-            res.send(err)
-        } else {
-            res.send("success")
-        }
-    })
+    if (!isEmpty(req.body.div_id) && !isEmpty(req.body.dept_name)){
+
+        db.query(q, [values], (err, data)=> { 
+            if (err) {
+                res.send(err)
+            } else {
+                res.send("success")
+            }
+        })
+    } else {
+        res.send("error")
+    }
 })
 
 app.post("/addNewPosition", (req,res) => {
@@ -1416,13 +1426,18 @@ app.post("/addNewPosition", (req,res) => {
     req.body.position_name,
     ] 
 
-    db.query(q, [values], (err, data)=> { 
-        if(err) {
-            console.log(err)
-        } else {
-            res.send("success")
-        }
-    })
+    if (!isEmpty(req.body.dept_id) && !isEmpty(req.body.position_name)){
+
+        db.query(q, [values], (err, data)=> { 
+            if (err) {
+                res.send(err)
+            } else {
+                res.send("success")
+            }
+        })
+    } else {
+        res.send("error")
+    }
 })
 
 // -------------------------EMPLOYEE DIRECTORY QUERIES------------------------- //
@@ -1466,6 +1481,20 @@ app.get("/getDepartment", (req, res) => {
         }
     })
 })
+
+app.get("/getManagersInEmpDesignation", (req, res) => {
+    const q = "(SELECT manager_id, dept_id, d.div_id, div_name, dept_name, f_name, s_name FROM dept AS d INNER JOIN emp AS e ON d.manager_id = e.emp_id INNER JOIN division AS di ON d.div_id = di.div_id) UNION (SELECT manager_id, dept_id, d.div_id, div_name, dept_name, Null AS f_name, Null AS s_name FROM dept AS d INNER JOIN division AS di ON d.div_id = di.div_id WHERE d.manager_id IS NULL)";
+
+    db.query(q, (err, data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json(data)
+        }
+    })
+})
+
+//(SELECT manager_id, dept_id, dept_name, f_name, s_name FROM dept AS d INNER JOIN emp AS e ON d.manager_id = e.emp_id) UNION (SELECT manager_id, dept_id, dept_name, Null AS f_name, Null AS s_name FROM dept WHERE manager_id IS NULL)
 
 app.get("/getDirectory", (req, res) => {
     const q = "SELECT * FROM emp INNER JOIN emp_designation ON emp.emp_id = emp_designation.emp_id INNER JOIN position ON emp_designation.position_id = position.position_id INNER JOIN dept ON dept.dept_id = position.dept_id INNER JOIN division ON division.div_id=dept.div_id"
