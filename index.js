@@ -69,10 +69,10 @@ app.use(session({
     proxy: true,
     name: 'HRISUserCookie',
     cookie: {
-        secure: true,
-        httpOnly: false,
+        //secure: true,
+        //httpOnly: false,
         expires: 60 * 60 * 24 * 1000,
-        sameSite: 'none',
+        //sameSite: 'none',
     }
 }))
 
@@ -361,6 +361,16 @@ app.post("/addDivision", (req,res) => {
         }
     })
 
+})
+
+app.delete("/deleteDivision", (req, res) => {
+    
+    const q = "DELETE FROM `division` WHERE div_id = ?";
+
+    db.query(q, [user_id], (err,data) => {
+        if(err) return res.json(err)
+        return res.json("Division has been deleted successfully.")
+    })
 })
 
 app.post("/addcompany", (req,res) => {
@@ -1524,7 +1534,7 @@ app.get("/getAllPositionsInDivision", (req, res) => {
 app.get("/getOwnEmpDesignation", (req, res) => {
     const uid = req.session.user[0].emp_id
 
-    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_designation WHEN e.emp_id = ?"
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id INNER JOIN company AS c ON c.company_id = ed.company_id INNER JOIN client AS cl ON cl.client_id = ed.client_id INNER JOIN position AS p ON p.position_id = ed.position_id INNER JOIN dept AS de ON de.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = de.div_id WHERE e.emp_id = ?"
 
     db.query(q, uid, (err, data) => {
         if (err){
@@ -1538,7 +1548,7 @@ app.get("/getOwnEmpDesignation", (req, res) => {
 app.get("/getUserEmpDesignation/:emp_id", (req, res) => {
     const id = req.params.emp_id
 
-    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_designation WHEN e.emp_id = ?"
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id INNER JOIN company AS c ON c.company_id = ed.company_id INNER JOIN client AS cl ON cl.client_id = ed.client_id INNER JOIN position AS p ON p.position_id = ed.position_id INNER JOIN dept AS de ON de.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = de.div_id WHERE e.emp_id = ?"
 
     db.query(q, id, (err, data) => {
         if (err){
