@@ -59,4 +59,10 @@ function processLogin(req, res) {
     )
 };
 
-module.exports = { HomeHandler, LoginHandler, Logout, processLogin };
+module.exports = 
+{ 
+  HomeHandler, 
+  LoginHandler, 
+  Logout, 
+  processLogin 
+};
