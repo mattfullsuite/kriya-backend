@@ -17,7 +17,11 @@ var db = require("./config.js");
 var moment = require("moment")
 const path = require("path")
 const bcrypt = require("bcryptjs");
-const multer = require("multer")
+const multer = require("multer");
+
+var authentication = require("./routes/authentication.js");
+
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, __dirname + "/" + "../fs-hris/frontend/public/uploads")
@@ -93,19 +97,19 @@ app.listen(process.env.PORT || 6197, ()=>{
 // -------------------- GENERAL METHODS --------------------------//
 
 
+app.use(authentication)
+// app.get('/', HomeHandler);
 
-app.get('/', HomeHandler);
+// app.get("/login", (req, res) => {
+//     if (req.session.user) {
+//         res.send({ loggedIn: true, user: req.session.user });
+//     } else {
+//         res.send({ loggedIn: false });
+//     }
+// })
 
-app.get("/login", (req, res) => {
-    if (req.session.user) {
-        res.send({ loggedIn: true, user: req.session.user });
-    } else {
-        res.send({ loggedIn: false });
-    }
-})
-
-app.post("/processlogin", ProcessLoginHandler);
-app.get('/logout', LogoutHandler);
+// app.post("/processlogin", ProcessLoginHandler);
+// app.get('/logout', LogoutHandler);
 
 
 // -------------------- ADMIN METHODS --------------------------//
@@ -1284,7 +1288,7 @@ app.get("/getProbationaryEmployees", (req, res) => {
 })
 
 app.get("/getPartTimeEmployees", (req, res) => {
-    const q = "SELECT * FROM emp WHERE emp_status = 'PARTTIME'"
+    const q = "SELECT * FROM emp WHERE emp_status = 'PART-TIME'"
 
     db.query(q, (err, data) => {
         if (err){
