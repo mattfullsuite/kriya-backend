@@ -8,11 +8,6 @@ var session = require("express-session")
 var bodyParser = require("body-parser")
 var cron = require('node-cron')
 const nodemailer = require('nodemailer')
-var HomeHandler = require("./handlers/authentication/home.js");
-//var LoginHandler = require( "./handlers/authentication/login.js");
-var ProcessLoginHandler = require("./handlers/authentication/process_login.js")
-var LogoutHandler = require("./handlers/authentication/logout.js");
-var DailyPTOAccrual = require("./handlers/utilities/cron-daily.js")
 var db = require("./config.js");
 var moment = require("moment")
 const path = require("path")
@@ -76,10 +71,10 @@ app.use(session({
     proxy: true,
     name: 'HRISUserCookie',
     cookie: {
-        //secure: true,
-        //httpOnly: false,
+        secure: true,
+        httpOnly: false,
         expires: 60 * 60 * 24 * 1000,
-        //sameSite: 'none',
+        sameSite: 'none',
     }
 }))
 
