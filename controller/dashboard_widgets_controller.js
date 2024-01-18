@@ -14,7 +14,7 @@ function UpcomingBirthdays(req, res) {
 }
 
 function UpcomingAnniversaries(req, res) {
-    const q = "SELECT * FROM emp ORDER BY DAYOFYEAR(dob) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(dob) LIMIT 5;"
+    const q = "SELECT * FROM emp ORDER BY DAYOFYEAR(date_hired) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(date_hired) LIMIT 5;"
 
     db.query(q, (err, data) => {
         if (err){
