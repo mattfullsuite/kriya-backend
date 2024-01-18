@@ -1028,7 +1028,7 @@ app.get("/getApprover", (req, res) => {
 
 app.post("/addNewEmployee", upload.single("emp_pic"), (req, res)=> {
 
-    function generateRandomnString(n) {
+    function generateRandomString(n) {
         let randomString = '';
         let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
 
@@ -1039,9 +1039,9 @@ app.post("/addNewEmployee", upload.single("emp_pic"), (req, res)=> {
         return randomString;
     }
 
-    const tempPassword = generateRandomnString(20)
+    const tempPassword = generateRandomString(20)
     
-    const empKey = generateRandomnString(30)
+    const empKey = generateRandomString(30)
 
     //----- HASHING ALGO -----//
     const salt = bcrypt.genSaltSync(10);
