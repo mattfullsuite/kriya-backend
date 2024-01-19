@@ -71,10 +71,10 @@ app.use(session({
     proxy: true,
     name: 'HRISUserCookie',
     cookie: {
-        secure: true,
-        httpOnly: false,
+        //secure: true,
+        //httpOnly: false,
         expires: 60 * 60 * 24 * 1000,
-        sameSite: 'none',
+        //sameSite: 'none',
     }
 }))
 
@@ -289,10 +289,12 @@ app.get("/employeeProfile/:emp_id", (req, res) => {
         })
 })
 
-app.post("/editEmployee/:emp_id", (req, res)=> {
+app.post("/editEmployee/:emp_id", upload.single("emp_pic"), (req, res)=> {
     const fetchid=req.params.emp_id;
+    const filename =  (req.file === undefined) ? null : req.file.filename;
 
-    //const q = "UPDATE `emp` SET (`emp_id`, `emp_num`, `work_email`, `password`, `f_name`, `m_name`, `s_name`, `emp_role`,`personal_email`, `contact_num`, `dob`, `p_address`, `c_address`, `date_hired`, `date_regularization`,`emp_status`,`sex`,`gender`,`civil_status`) VALUES (?)";
+    console.log(req.body.date_separated);
+
     const q = "UPDATE emp SET " + 
     "`emp_num` = '" + req.body.emp_num +  "'," +
     "`work_email` = '" + req.body.work_email + "'," +
@@ -301,41 +303,40 @@ app.post("/editEmployee/:emp_id", (req, res)=> {
     "`s_name` = '" + req.body.s_name + "'," + 
     "`emp_role` = " + req.body.emp_role + "," + 
     "`personal_email` = '" + req.body.personal_email + "'," +
-    "`contact_num` =" + req.body.contact_num + "," +
+    "`contact_num` = '" + req.body.contact_num + "'," +
     "`dob` = '" + moment(req.body.dob).format("YYYY-MM-DD") + "'," +
     "`p_address`= '" + req.body.p_address + "'," +  
     "`c_address`= '" +  req.body.c_address + "'," +
     "`date_hired` = '" + moment(req.body.date_hired).format("YYYY-MM-DD") + "'," +
     "`date_regularization`='" + moment(req.body.date_regularization).format("YYYY-MM-DD") + "'," +
+    "`date_separated`='" + moment(req.body.date_separated).format("YYYY-MM-DD") + "'," +
     "`emp_status`='" + req.body.emp_status + "'," + 
     "`sex`='" + req.body.sex + "'," +
     "`gender`='" + req.body.gender + "'," +
-    "`civil_status`='" + req.body.civil_status + "'" +
+    "`civil_status`='" + req.body.civil_status + "'," +
+    "`emp_pic`='" + filename + "'" +
     "WHERE `emp_id` = " + fetchid;
 
     db.query(q, (err, data) => {
         if (err) {
             console.log(err)
         }
-        res.json(data);
+        else {
+            const q3 = "UPDATE emp_designation SET " +
+            "`company_id`=" + req.body.company_id + "," + 
+            "`client_id`=" + req.body.client_id + "," +
+            "`position_id`=" + req.body.position_id +
+            " WHERE `emp_id` = " + fetchid;
+        
+            db.query(q3, (err, data3) => {
+                if (err) {
+                    res.send("error")
+                } else {
+                    res.send("success");
+                }
+            })
+        }
     })
-
-    // const designationValues = 
-    // [
-    //     fetchid,
-    //     req.body.company_id,
-    //     req.body.client_id,
-    //     req.body.position_id,
-    // ]
-
-    // //const q3 = "UPDATE `emp_designation` SET (`emp_id`, `company_id`,`div_id`,`dept_id`,`client_id`,`position_id`) VALUES (?)"
-    // const q3 = "UPDATE emp_designation SET emp_id=?,dept_id=?,client_id=?,position_id=?"
-
-    // db.query(q3, [designationValues], (err, data3) => {
-    //     if (err) {console.log(err)};
-    //     console.log("Inserted new designation for new employee.")
-    // })
-
 })
 
 app.post("/addHoliday", (req,res) => {
