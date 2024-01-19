@@ -935,6 +935,7 @@ app.get("/myDepartmentPendingLeaves", (req, res) => {
 /** --------------------- CRON Jobs --------------------------- **/
 
 cron.schedule("0 0 * * *", function () {
+    cronLogs();
     dailyPtoAccrual();
 });
 
@@ -942,7 +943,139 @@ cron.schedule("0 0 1 1 *", function() {
     yearlyAccrual();
 })
 
+// cron.schedule("*/10 * * * * *", function() {
+//     console.log("running a task every 10 second");
+// });
+
+
+function cronLogs() {
+
+    // ---------------------------------------- PROBATIONARY ---------------------------------------------- //
+
+    let get_id;
+
+    const prob_q ="SELECT emp_id FROM emp WHERE emp_status = 'PROBATIONARY' AND date_regularization = CURDATE()";
+
+    db.query(prob_q,(err,data) => {
+        if(err) {
+            return console.log(err)
+        }
+        get_id = data
+        console.log(get_id)
+
+        for (var i = 0; i < get_id.length; i++){
+            console.log(get_id[i].emp_id)
+            var id = get_id[i].emp_id
+
+            const min_q_log = "INSERT INTO pto_logs (`log_type`, `log_desc`, `emp_id`) VALUES (?) "
+
+            let category;
+            let reason;
+
+                        
+            category = "AUTO";
+            reason = "EMP#" + id + " has been given 5 PTO credits for being regularized. Congratulations!"
+
+            const VALUES = [
+                category,
+                reason,
+                id
+            ]
+
+            db.query(min_q_log,[VALUES],(err,data)=> {
+                if(err) {
+                    return console.log(err)
+                }
+                console.log(reason)
+            })
+        }
+    })
+
+    // ---------------------------------------- REGULAR ---------------------------------------------- //
+
+    let reg_array;
+
+    const reg_q ="SELECT emp_id FROM emp WHERE emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()";
+
+    db.query(reg_q,(err,data) => {
+        if(err) {
+            return console.log(err)
+        }
+        reg_array = data
+        console.log(reg_array)
+
+        for (var i = 0; i < reg_array.length; i++){
+            console.log(reg_array[i].emp_id)
+            var id = reg_array[i].emp_id
+
+            const min_q_log = "INSERT INTO pto_logs (`log_type`, `log_desc`, `emp_id`) VALUES (?) "
+
+            let category;
+            let reason;
+                        
+            category = "AUTO";
+            reason = "EMP#" + id + " has been given 0.83 PTO credits because it's PTO accrual day!"
+
+            const VALUES = [
+                category,
+                reason,
+                id
+            ]
+
+            db.query(min_q_log,[VALUES],(err,data)=> {
+                if(err) {
+                    return console.log(err)
+                }
+                console.log("Log done.")
+            })
+        }
+    })
+
+    // ---------------------------------------- TENURE ---------------------------------------------- //
+
+    let tenure_array;
+
+    const tenure_q ="SELECT emp_id FROM emp WHERE emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()";
+
+    db.query(tenure_q,(err,data) => {
+        if(err) {
+            return console.log(err)
+        }
+        tenure_array = data
+        console.log(tenure_array)
+
+        for (var i = 0; i < tenure_array.length; i++){
+            console.log(tenure_array[i].emp_id)
+            var id = tenure_array[i].emp_id
+
+            const min_q_log = "INSERT INTO pto_logs (`log_type`, `log_desc`, `emp_id`) VALUES (?) "
+
+            let category;
+            let reason;
+                        
+            category = "AUTO";
+            reason = "EMP#" + id + " has been given 1.25 PTO credits because it's PTO accrual day!"
+
+            const VALUES = [
+                category,
+                reason,
+                id
+            ]
+
+            db.query(min_q_log,[VALUES],(err,data)=> {
+                if(err) {
+                    return console.log(err)
+                }
+                console.log("Log done.")
+            })
+        }
+    })
+
+}
+
 function yearlyAccrual() { 
+    
+
     const year_q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
     "SET leave_balance = leave_balance + 6 " +
     "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'WORKING_SCHOLAR'"
@@ -953,9 +1086,12 @@ function yearlyAccrual() {
         }
         console.log("Working Scholar yearly accrual done.")
     })
+
+
 }
 
 function dailyPtoAccrual() {
+
 
     const prob_q ="UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
         "SET emp_status = 'REGULAR', leave_balance = leave_balance + 5 " +
@@ -978,6 +1114,8 @@ function dailyPtoAccrual() {
             return console.log(err)
         }
         console.log("Probationary PTO accrual done.")
+
+        
     })
     
     db.query(reg_q,(err,data)=> {
@@ -1121,7 +1259,7 @@ app.post("/addNewEmployee", upload.single("emp_pic"), (req, res)=> {
                     to: req.body.work_email, // list of receivers
                     subject: 'Action required: Temporary password | FS-HRIS', // Subject line
                     text: tempPassword, // plain text body
-                    html: `This is you temporary password: ${tempPassword}`
+                    html: `Hello, suitelifer! This is your temporary password for the HRI system: ${tempPassword}`
                });
             } catch(e) {
                 console.log("----------------" + e + "----------------")
@@ -1231,6 +1369,53 @@ app.post("/makeDeptLead", (req, res) => {
 
 app.post("/setPTO/:emp_id", (req,res) => {
     const uid = req.params.emp_id
+    
+        const oq = "SELECT leave_balance FROM leave_credits WHERE emp_id = " + req.params.emp_id  
+        let ob;
+
+            db.query(oq, (err, data) => {
+
+            if (err) {
+                console.log(err)
+            }
+            else {
+                ob = data[0].leave_balance;
+                
+                const q2 = "INSERT INTO pto_logs (`log_type`, `log_desc`, `hr_id`, `emp_id`) VALUES (?)"
+                //const reason = "EMP#" + req.session.user[0].emp_id + " set PTO balance of EMP#" + req.params.emp_id + " from " + ob + " to " + req.body.new_pto_balance
+
+                let category;
+                let reason;
+
+                if (ob < req.body.new_pto_balance){
+                    let diff = req.body.new_pto_balance - ob
+                    category = "GRANT";
+                    reason = "EMP#" + req.session.user[0].emp_id + " gave " + diff + " pto points to EMP#" + req.params.emp_id + ". (" + ob + " + " + diff + ") = " + req.body.new_pto_balance;
+                } else {
+                    let diff = ob - req.body.new_pto_balance
+                    category = "DIFF";
+                    reason = "EMP#" + req.session.user[0].emp_id + " took away " + diff + " pto points from EMP#" + req.params.emp_id + ". (" + ob + " - " + diff + ") = " + req.body.new_pto_balance;
+                }
+
+                const VALUES = [
+                    category,
+                    reason,
+                    req.session.user[0].emp_id,
+                    req.params.emp_id
+                ]
+
+                db.query(q2, [VALUES], (err, data) => {
+                    if (err) {
+                        console.log(err)
+                    }
+                    else {
+                        console.log(reason)
+                    }
+                })
+            }
+        })
+    
+
     const q = "UPDATE emp AS e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = " + req.body.new_pto_balance + " WHERE l.emp_id = ?"
 
     db.query(q, [uid], (err, data) => {
@@ -1240,8 +1425,8 @@ app.post("/setPTO/:emp_id", (req,res) => {
         else {
             res.send("success")
         }
-
     })
+
 })
 
 app.get("/getUserAvatar", (req, res) => {
