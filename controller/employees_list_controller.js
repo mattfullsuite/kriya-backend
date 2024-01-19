@@ -10,7 +10,7 @@ function EmployeesList(req, res) {
 
 function ViewEmployee(req, res) {
     const emp_id = req.params.emp_id;    
-    const q = "SELECT * FROM emp AS e INNER JOIN leave_credits AS l ON e.emp_id=l.emp_id INNER JOIN emp_designation AS ed ON e.emp_id=ed.emp_id WHERE e.emp_id = ?";
+    const q = "SELECT * FROM emp AS e INNER JOIN leave_credits AS l ON e.emp_id=l.emp_id INNER JOIN emp_designation AS ed ON e.emp_id=ed.emp_id INNER JOIN position AS p ON ed.position_id = p.position_id INNER JOIN dept AS d ON d.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = d.div_id WHERE e.emp_id = ?";
 
     db.query(q, [emp_id], (err,data) => {
         if(err) return res.json(err)
