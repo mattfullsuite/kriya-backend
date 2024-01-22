@@ -928,6 +928,18 @@ app.get("/myDeclinedLeaves", (req, res) => {
 //     })
 // })
 
+app.get("/myPTOHistory", (req, res) => {
+    const uid = req.session.user[0].emp_id
+    //const q = "SELECT *, em.f_name AS hr_name FROM emp AS e INNER JOIN pto_logs AS p ON e.emp_id = p.emp_id INNER JOIN emp AS em ON em.emp_id = p.hr_id OR p.hr_id IS NULL WHERE p.emp_id = ? ORDER BY log_time DESC"
+    const q = "(SELECT log_type, log_time, log_desc, Null AS hr_name FROM emp AS e INNER JOIN pto_logs AS p ON e.emp_id = p.emp_id AND p.hr_id IS NULL WHERE e.emp_id = ?) UNION (SELECT log_type, log_time, log_desc, em.f_name AS hr_name FROM emp AS e INNER JOIN pto_logs AS p ON e.emp_id = p.emp_id INNER JOIN emp AS em ON p.hr_id = em.emp_id WHERE e.emp_id = ?) ORDER BY log_time DESC"
+
+    const values = [uid, uid]
+    db.query(q,[uid,uid], (err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+})
+
 
 app.get("/myDepartmentPendingLeaves", (req, res) => {
 
