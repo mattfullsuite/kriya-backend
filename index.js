@@ -292,43 +292,79 @@ app.get("/employeeProfile/:emp_id", (req, res) => {
 app.post("/editEmployee/:emp_id", upload.single("emp_pic"), (req, res)=> {
     const fetchid=req.params.emp_id;
     const filename =  (req.file === undefined) ? null : req.file.filename;
+    const date_separated = (moment(req.body.date_separated).format("YYYY-MM-DD") === "" || moment(req.body.date_separated).format("YYYY-MM-DD") === "Invalid date") ? moment(null)._d : moment(req.body.date_separated).format("YYYY-MM-DD");
 
-    console.log(req.body.date_separated);
+    console.log(date_separated);
 
-    const q = "UPDATE emp SET " + 
-    "`emp_num` = '" + req.body.emp_num +  "'," +
-    "`work_email` = '" + req.body.work_email + "'," +
-    "`f_name` = '" + req.body.f_name + "'," +
-    "`m_name` = '" + req.body.m_name + "'," + 
-    "`s_name` = '" + req.body.s_name + "'," + 
-    "`emp_role` = " + req.body.emp_role + "," + 
-    "`personal_email` = '" + req.body.personal_email + "'," +
-    "`contact_num` = '" + req.body.contact_num + "'," +
-    "`dob` = '" + moment(req.body.dob).format("YYYY-MM-DD") + "'," +
-    "`p_address`= '" + req.body.p_address + "'," +  
-    "`c_address`= '" +  req.body.c_address + "'," +
-    "`date_hired` = '" + moment(req.body.date_hired).format("YYYY-MM-DD") + "'," +
-    "`date_regularization`='" + moment(req.body.date_regularization).format("YYYY-MM-DD") + "'," +
-    "`date_separated`='" + moment(req.body.date_separated).format("YYYY-MM-DD") + "'," +
-    "`emp_status`='" + req.body.emp_status + "'," + 
-    "`sex`='" + req.body.sex + "'," +
-    "`gender`='" + req.body.gender + "'," +
-    "`civil_status`='" + req.body.civil_status + "'," +
-    "`emp_pic`='" + filename + "'" +
-    "WHERE `emp_id` = " + fetchid;
+    const values1 = [
+        req.body.emp_num,
+        req.body.work_email,
+        req.body.f_name,
+        req.body.m_name,
+        req.body.s_name,
+        req.body.emp_role,
+        req.body.personal_email,
+        req.body.contact_num,
+        moment(req.body.dob).format("YYYY-MM-DD"),
+        req.body.p_address,
+        req.body.c_address,
+        moment(req.body.date_hired).format("YYYY-MM-DD"),
+        moment(req.body.date_regularization).format("YYYY-MM-DD"),
+        date_separated,
+        req.body.emp_status,
+        req.body.sex,
+        req.body.gender,
+        req.body.civil_status,
+        filename,
+        fetchid
+    ]
 
-    db.query(q, (err, data) => {
+    const values2 = [
+        req.body.company_id,
+        req.body.client_id,
+        req.body.position_id,
+        fetchid
+    ]
+
+    // const q = "UPDATE emp SET " + 
+    // "`emp_num` = '" + req.body.emp_num +  "'," +
+    // "`work_email` = '" + req.body.work_email + "'," +
+    // "`f_name` = '" + req.body.f_name + "'," +
+    // "`m_name` = '" + req.body.m_name + "'," + 
+    // "`s_name` = '" + req.body.s_name + "'," + 
+    // "`emp_role` = " + req.body.emp_role + "," + 
+    // "`personal_email` = '" + req.body.personal_email + "'," +
+    // "`contact_num` = '" + req.body.contact_num + "'," +
+    // "`dob` = '" + moment(req.body.dob).format("YYYY-MM-DD") + "'," +
+    // "`p_address`= '" + req.body.p_address + "'," +  
+    // "`c_address`= '" +  req.body.c_address + "'," +
+    // "`date_hired` = '" + moment(req.body.date_hired).format("YYYY-MM-DD") + "'," +
+    // "`date_regularization`='" + moment(req.body.date_regularization).format("YYYY-MM-DD") + "'," +
+    // "`date_separated`='" + moment(req.body.date_separated).format("YYYY-MM-DD") + "'," +
+    // "`emp_status`='" + req.body.emp_status + "'," + 
+    // "`sex`='" + req.body.sex + "'," +
+    // "`gender`='" + req.body.gender + "'," +
+    // "`civil_status`='" + req.body.civil_status + "'," +
+    // "`emp_pic`='" + filename + "'" +
+    // "WHERE `emp_id` = " + fetchid;
+
+    const q = "UPDATE emp SET emp_num = ?, work_email = ?, f_name = ?, m_name = ? , s_name = ?, emp_role = ?, personal_email = ?, contact_num = ?, dob = ?, p_address = ?, c_address = ?, date_hired = ?, date_regularization = ?, date_separated = ?, emp_status = ?, sex = ?, gender = ?, civil_status =?, emp_pic = ? WHERE emp_id = ?";
+
+
+    db.query(q, values1, (err, data) => {
         if (err) {
             console.log(err)
         }
         else {
-            const q3 = "UPDATE emp_designation SET " +
-            "`company_id`=" + req.body.company_id + "," + 
-            "`client_id`=" + req.body.client_id + "," +
-            "`position_id`=" + req.body.position_id +
-            " WHERE `emp_id` = " + fetchid;
+            // const q3 = "UPDATE emp_designation SET " +
+            // "`company_id`=" + req.body.company_id + "," + 
+            // "`client_id`=" + req.body.client_id + "," +
+            // "`position_id`=" + req.body.position_id +
+            // " WHERE `emp_id` = " + fetchid;
+
+            const q3 = "UPDATE emp_designation SET company_id = ?, client_id = ?, position_id = ? WHERE emp_id = ?"
         
-            db.query(q3, (err, data3) => {
+            db.query(q3, values2, (err, data3) => {
                 if (err) {
                     res.send("error")
                 } else {
