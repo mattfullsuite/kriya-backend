@@ -1833,7 +1833,70 @@ app.post("/forgot-password", (req, res) => {
                     to: email, // list of receivers
                     subject: 'Action required: Reset password | FS-HRIS', // Subject line
                     text: "Reset password", // plain text body
-                    html: `This is the link to reset your password ${process.env.ORIGIN_URL}/reset-password/${user_key}`
+                    html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" lang="en">
+
+                    <head></head>
+                      
+                      <body bgcolor="#F5F8FA" style="width: 100%; margin: auto 0; padding:0; font-family:Lato, sans-serif; font-size:18px; color:#33475B; word-break:break-word">
+                        
+                  <div id="email" style="margin: auto;width: 600px;background-color: white;">
+                    
+                  
+                           <table role="presentation" width="100%">
+                              <tr>
+                           
+                                <td bgcolor="#0097B2" align="center" style="color: white;vertical-align: top;">
+                              
+                               <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/2-2.png" width="100%" align="middle">
+                                  
+                              
+                              </td> 
+                  
+                  
+                          </tr></table>
+                    
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="10px" style="padding: 30px 30px 30px 60px;">
+                       <tr>
+                         <td style="vertical-align: top;">
+                          <h2 style="font-size: 28px;font-weight: 900;"> Reset Password</h2>
+                              
+                              <p style="font-weight: 100;">
+                                This is the link to reset your password: ${process.env.ORIGIN_URL}/reset-password/${user_key}
+                              </p>
+                  
+                  
+                              <br><br><br>
+                              <h3>Cheers!</h3>
+                              <h2 style="font-size: 28px;font-weight: 900;">the <span style="color: #0097B2">f</span>ull<span style="color: #0097B2">s</span>uite HRIS team.</h2>
+                            </td> 
+                            </tr>
+                                   </table>
+                    
+                       
+                          <!--Footer Row-->
+                    <table role="presentation" bgcolor="#EAF0F6" width="100%" style="margin-top: 50px;">
+                        <tr>
+                            <td align="center" style="padding: 30px 30px;vertical-align: top;">
+                  
+                                <p style="font-size: 11px;font-weight: 100;">166-C Military Cutoff Road, Baguio City, Benguet
+                                  Purok 2, Poblacion, Lianga, Surigao del Sur</p>
+                                
+                     
+                            </td>
+                            </tr>
+                        </table>
+                  
+                        <table role="presentation" width="100%">
+                          <tr>
+                       
+                          
+                           <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/3-1-1.png" height="200px" width="100%" align="middle">
+                  
+                      </tr></table>
+                    
+                        </div>
+                      </body>
+                        </html>`
                });
             } catch(e) {
                 console.log("----------------" + e + "----------------")

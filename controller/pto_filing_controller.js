@@ -1,5 +1,6 @@
 var db = require("../config.js");
 var isEmpty = require('lodash.isempty');
+var moment = require('moment')
 
 function FileLeave(req, res){
 
@@ -123,6 +124,26 @@ function AllMyPendingLeaves(req, res) {
     })
 }
 
+function BlockMyPendingLeaves(req, res) {
+    const uid = req.session.user[0].emp_id
+    const q = "SELECT leave_from, leave_to FROM leaves WHERE leave_status = 0 AND requester_id = ?"
+
+    db.query(q,uid, (err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
+function BlockMyApprovedLeaves(req, res) {
+    const uid = req.session.user[0].emp_id
+    const q = "SELECT leave_from, leave_to FROM leaves WHERE leave_status = 1 AND requester_id = ?"
+
+    db.query(q,uid, (err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
 function AllMyApprovedLeaves(req, res) {
     const uid = req.session.user[0].emp_id
     const q = "SELECT * FROM leaves WHERE leave_status = 1 AND requester_id = ?"
@@ -142,4 +163,7 @@ module.exports = {
     ApproveLeave,
     RejectLeave,
     ReturnTemporaryPTO,
+    BlockMyPendingLeaves,
+    BlockMyApprovedLeaves,
+
 }
