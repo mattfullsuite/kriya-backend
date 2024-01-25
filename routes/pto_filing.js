@@ -8,6 +8,8 @@ var imports =  {
     ApproveLeave,
     RejectLeave,
     ReturnTemporaryPTO,
+    BlockMyPendingLeaves,
+    BlockMyApprovedLeaves,
 } = require( "../controller/pto_filing_controller.js");
 
 const router = express.Router()
@@ -18,6 +20,8 @@ router.get("/getAllApprovers", AllApprovers);
 router.get("/holidays", AllHolidays);
 router.get("/myPendingLeaves", AllMyPendingLeaves);
 router.get("/myApprovedLeaves", AllMyApprovedLeaves);
+router.get("/blockPendingLeaves", BlockMyPendingLeaves);
+router.get("/blockApprovedLeaves", BlockMyApprovedLeaves);
 
 router.post("/approveleave/:leave_id", ApproveLeave);
 router.post("/rejectleave/:leave_id", RejectLeave);
