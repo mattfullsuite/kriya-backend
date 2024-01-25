@@ -291,10 +291,8 @@ app.get("/employeeProfile/:emp_id", (req, res) => {
 
 app.post("/editEmployee/:emp_id", upload.single("emp_pic"), (req, res)=> {
     const fetchid=req.params.emp_id;
-    const filename =  (req.file === undefined) ? null : req.file.filename;
+    // const filename =  (req.file === undefined) ? null : req.file.filename;
     const date_separated = (moment(req.body.date_separated).format("YYYY-MM-DD") === "" || moment(req.body.date_separated).format("YYYY-MM-DD") === "Invalid date") ? moment(null)._d : moment(req.body.date_separated).format("YYYY-MM-DD");
-
-    console.log(date_separated);
 
     const values1 = [
         req.body.emp_num,
@@ -315,7 +313,7 @@ app.post("/editEmployee/:emp_id", upload.single("emp_pic"), (req, res)=> {
         req.body.sex,
         req.body.gender,
         req.body.civil_status,
-        filename,
+        // filename,
         fetchid
     ]
 
@@ -348,7 +346,7 @@ app.post("/editEmployee/:emp_id", upload.single("emp_pic"), (req, res)=> {
     // "`emp_pic`='" + filename + "'" +
     // "WHERE `emp_id` = " + fetchid;
 
-    const q = "UPDATE emp SET emp_num = ?, work_email = ?, f_name = ?, m_name = ? , s_name = ?, emp_role = ?, personal_email = ?, contact_num = ?, dob = ?, p_address = ?, c_address = ?, date_hired = ?, date_regularization = ?, date_separated = ?, emp_status = ?, sex = ?, gender = ?, civil_status =?, emp_pic = ? WHERE emp_id = ?";
+    const q = "UPDATE emp SET emp_num = ?, work_email = ?, f_name = ?, m_name = ? , s_name = ?, emp_role = ?, personal_email = ?, contact_num = ?, dob = ?, p_address = ?, c_address = ?, date_hired = ?, date_regularization = ?, date_separated = ?, emp_status = ?, sex = ?, gender = ?, civil_status =? WHERE emp_id = ?";
 
 
     db.query(q, values1, (err, data) => {
