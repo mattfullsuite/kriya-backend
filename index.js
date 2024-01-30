@@ -18,6 +18,7 @@ var authentication = require("./routes/authentication.js");
 var dashboardwidgets = require("./routes/dashboard_widgets.js");
 var ptofiling = require("./routes/pto_filing.js");
 var employeeslist = require("./routes/employees_list.js");
+var requests = require("./routes/requests.js");
 
 
 const storage = multer.diskStorage({
@@ -71,10 +72,10 @@ app.use(session({
     proxy: true,
     name: 'HRISUserCookie',
     cookie: {
-        secure: true,
-        httpOnly: false,
+        //secure: true,
+        //httpOnly: false,
         expires: 60 * 60 * 24 * 1000,
-        sameSite: 'none',
+        //sameSite: 'none',
     }
 }))
 
@@ -98,6 +99,7 @@ app.use(authentication)
 app.use(dashboardwidgets)
 app.use(ptofiling)
 app.use(employeeslist)
+app.use(requests)
 
 // -------------------- END OF CLEAN CODES --------------------------//
 
@@ -822,7 +824,7 @@ app.get("/getHolidays", (req, res) => {
 app.post("/ptoProbationary", (req, res) => {
     var currDate = "2024-02-29";
     const q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET emp_status = 'REGULAR', leave_balance = leave_balance + 5 " +
+    "SET emp_status = 'Regular', leave_balance = leave_balance + 5 " +
      "WHERE emp_status = 'PROBATIONARY' AND date_regularization = CURDATE()"
     
     db.query(q,(err,data)=> {
@@ -839,7 +841,7 @@ app.post("/ptoProbationary", (req, res) => {
 app.post("/ptoRegular", (req, res) => {
     const q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
     "SET leave_balance = leave_balance + 0.83 " +
-     "WHERE emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()"
+     "WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()"
     
     db.query(q,(err,data)=> {
         if(err) {
@@ -854,7 +856,7 @@ app.post("/ptoRegular", (req, res) => {
 app.post("/ptoTenure", (req, res) => {
     const q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
     "SET leave_balance = leave_balance + 1.25 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()"
+    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()"
     
     db.query(q,(err,data)=> {
         if(err) {
@@ -884,7 +886,7 @@ app.post("/ptoRefresh", (req, res) => {
 app.post("/ptoTenure", (req, res) => {
     const q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
     "SET leave_balance = leave_balance + 1.25 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()"
+    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()"
     
     db.query(q,(err,data)=> {
         if(err) {
@@ -1044,7 +1046,7 @@ function cronLogs() {
 
     let reg_array;
 
-    const reg_q ="SELECT emp_id FROM emp WHERE emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()";
+    const reg_q ="SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
 
     db.query(reg_q,(err,data) => {
         if(err) {
@@ -1084,7 +1086,7 @@ function cronLogs() {
 
     let tenure_array;
 
-    const tenure_q ="SELECT emp_id FROM emp WHERE emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()";
+    const tenure_q ="SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
 
     db.query(tenure_q,(err,data) => {
         if(err) {
@@ -1127,7 +1129,7 @@ function yearlyAccrual() {
 
     const year_q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
     "SET leave_balance = leave_balance + 6 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'WORKING_SCHOLAR'"
+    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time'"
 
     db.query(year_q,(err,data)=> {
         if(err) {
@@ -1143,20 +1145,20 @@ function dailyPtoAccrual() {
 
 
     const prob_q ="UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-        "SET emp_status = 'REGULAR', leave_balance = leave_balance + 5 " +
-        "WHERE emp_status = 'PROBATIONARY' AND date_regularization = CURDATE()";
+        "SET emp_status = 'Regular', leave_balance = leave_balance + 5 " +
+        "WHERE emp_status = 'Probationary' AND date_regularization = CURDATE()";
 
     const reg_q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
         "SET leave_balance = leave_balance + 0.83 " +
-        "WHERE emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()"
+        "WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()"
 
     const tenure_q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
         "SET leave_balance = leave_balance + 1.25 " +
-        "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'REGULAR' AND LAST_DAY(CURDATE()) = CURDATE()"
+        "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()"
 
     const scholar_q = "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
         "SET leave_balance = leave_balance + 0.625 " +
-        "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'WORKING_SCHOLAR' AND LAST_DAY(CURDATE()) = CURDATE()"
+        "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()"
     
     db.query(prob_q,(err,data) => {
         if(err) {
