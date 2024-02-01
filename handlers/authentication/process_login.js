@@ -6,7 +6,7 @@ module.exports = function processLogin(req, res) {
   const password = req.body.password;
 
   db.query(
-    "SELECT * FROM emp WHERE work_email = ?",
+    "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE e.work_email = ?",
     [work_email],
     (err, result) => {
       if (err) {
