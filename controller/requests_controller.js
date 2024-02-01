@@ -25,9 +25,10 @@ function SubmitComplaint(req, res) {
 
 function AllHR(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM emp WHERE emp_role = 1"
+    const cid = req.session.user[0].company_id
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id WHERE emp_role = 1 AND company_id = ? "
 
-    db.query(q,[uid],
+    db.query(q,[cid],
         (err,data)=> {
         if(err) { return res.json(err) }
         return res.json(data)

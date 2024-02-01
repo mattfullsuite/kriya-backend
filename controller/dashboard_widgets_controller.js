@@ -2,9 +2,11 @@ var db = require("../config.js");
 var moment = require("moment")
 
 function UpcomingBirthdays(req, res) {
-    const q = "SELECT * FROM emp ORDER BY DAYOFYEAR(dob) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(dob) LIMIT 5;"
 
-    db.query(q, (err, data) => {
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id WHERE company_id = ? ORDER BY DAYOFYEAR(dob) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(dob) LIMIT 5;"
+
+    db.query(q, [cid], (err, data) => {
         if (err){
             console.log(err)
         } else {
@@ -14,9 +16,10 @@ function UpcomingBirthdays(req, res) {
 }
 
 function UpcomingAnniversaries(req, res) {
-    const q = "SELECT * FROM emp ORDER BY DAYOFYEAR(date_hired) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(date_hired) LIMIT 5;"
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE company_id=? ORDER BY DAYOFYEAR(date_hired) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(date_hired) LIMIT 5;"
 
-    db.query(q, (err, data) => {
+    db.query(q, [cid], (err, data) => {
         if (err){
             console.log(err)
         } else {
@@ -42,6 +45,7 @@ function CurrentUserPTO(req, res) {
 
 function NumberOfLeavesToday(req, res) {
     const uid = req.session.user[0].emp_id
+    const cid = req.session.user[0].emp_id
     const today = moment().format("YYYY/MM/DD")
 
     const q = "SELECT * FROM leaves WHERE leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
@@ -83,9 +87,10 @@ function NumberOfLeavesWeek(req, res) {
 }
 
 function NumberOfEmployees(req, res) {
-    const q = "SELECT * FROM emp"
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ?"
 
-    db.query(q, (err, data) => {
+    db.query(q, cid, (err, data) => {
         if (err){
             console.log(err)
         } else {
@@ -95,9 +100,10 @@ function NumberOfEmployees(req, res) {
 }
 
 function NumberOfRegularEmployees(req, res) {
-    const q = "SELECT * FROM emp WHERE emp_status = 'REGULAR'"
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE e.emp_status = 'REGULAR' AND em.company_id = ?"
 
-    db.query(q, (err, data) => {
+    db.query(q, cid, (err, data) => {
         if (err){
             console.log(err)
         } else {
@@ -107,9 +113,10 @@ function NumberOfRegularEmployees(req, res) {
 }
 
 function NumberOfProbationaryEmployees(req, res) {
-    const q = "SELECT * FROM emp WHERE emp_status = 'PROBATIONARY'"
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE e.emp_status = 'PROBATIONARY' AND em.company_id = ?"
 
-    db.query(q, (err, data) => {
+    db.query(q, cid, (err, data) => {
         if (err){
             console.log(err)
         } else {
@@ -119,9 +126,10 @@ function NumberOfProbationaryEmployees(req, res) {
 }
 
 function NumberOfPartTimeEmployees(req, res) {
-    const q = "SELECT * FROM emp WHERE emp_status = 'PART-TIME'"
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE e.emp_status = 'PART-TIME' AND em.company_id = ?"
 
-    db.query(q, (err, data) => {
+    db.query(q, cid, (err, data) => {
         if (err){
             console.log(err)
         } else {
