@@ -95,7 +95,7 @@ function ReturnTemporaryPTO(req, res) {
 
 function AllApprovers(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM emp JOIN dept ON emp_id = manager_id WHERE emp_role = 3 AND emp_id != ?"
+    const q = "SELECT * FROM emp JOIN dept ON emp_id = manager_id JOIN division ON dept.div_id = division.div_id WHERE emp.emp_role = 3 AND emp.emp_id != ?"
 
     db.query(q,[uid],
         (err,data)=> {
