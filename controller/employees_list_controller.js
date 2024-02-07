@@ -1,7 +1,7 @@
 var db = require("../config.js");
 
 function EmployeesList(req, res) {
-    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp ORDER BY s_name"
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp WHERE date_separated IS NULL ORDER BY s_name"
     db.query(q,(err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
@@ -18,7 +18,52 @@ function ViewEmployee(req, res) {
     })
 }
 
+function AllEmployees(req,res){
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp WHERE date_separated IS NULL ORDER BY s_name"
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
+function ProbationaryEmployees(req,res){
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp WHERE date_separated IS NULL AND emp_status = 'Probationary' ORDER BY s_name"
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
+function RegularEmployees(req,res){
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp WHERE date_separated IS NULL AND emp_status = 'Regular' ORDER BY s_name"
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
+function PartTimeEmployees(req,res){
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp WHERE date_separated IS NULL AND emp_status = 'Part-time' ORDER BY s_name"
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
+function DeactivatedAccounts(req, res) {
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp WHERE date_separated IS NOT NULL ORDER BY s_name"
+    db.query(q,(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
 module.exports = {
     EmployeesList,
     ViewEmployee,
+    AllEmployees,
+    RegularEmployees, 
+    PartTimeEmployees,
+    DeactivatedAccounts,
+    ProbationaryEmployees,
 }

@@ -30,7 +30,7 @@ function processLogin(req, res) {
     const password = req.body.password;
   
     db.query(
-      "SELECT * FROM emp WHERE work_email = ?",
+      "SELECT * FROM emp WHERE work_email = ? AND date_separated IS NULL",
       [work_email],
       (err, result) => {
         if (err) {
