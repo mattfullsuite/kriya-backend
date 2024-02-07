@@ -2,7 +2,7 @@ var db = require("../config.js");
 var moment = require("moment")
 
 function UpcomingBirthdays(req, res) {
-    const q = "SELECT * FROM emp ORDER BY DAYOFYEAR(dob) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(dob) LIMIT 5;"
+    const q = "SELECT * FROM emp WHERE date_separated IS NULL ORDER BY DAYOFYEAR(dob) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(dob) LIMIT 5;"
 
     db.query(q, (err, data) => {
         if (err){
@@ -14,7 +14,7 @@ function UpcomingBirthdays(req, res) {
 }
 
 function UpcomingAnniversaries(req, res) {
-    const q = "SELECT * FROM emp ORDER BY DAYOFYEAR(date_hired) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(date_hired) LIMIT 5;"
+    const q = "SELECT * FROM emp WHERE date_separated IS NULL ORDER BY DAYOFYEAR(date_hired) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(date_hired) LIMIT 5;"
 
     db.query(q, (err, data) => {
         if (err){
@@ -83,7 +83,7 @@ function NumberOfLeavesWeek(req, res) {
 }
 
 function NumberOfEmployees(req, res) {
-    const q = "SELECT * FROM emp"
+    const q = "SELECT * FROM emp WHERE date_separated IS NULL"
 
     db.query(q, (err, data) => {
         if (err){
@@ -95,7 +95,7 @@ function NumberOfEmployees(req, res) {
 }
 
 function NumberOfRegularEmployees(req, res) {
-    const q = "SELECT * FROM emp WHERE emp_status = 'REGULAR'"
+    const q = "SELECT * FROM emp WHERE emp_status = 'REGULAR' AND date_separated IS NULL"
 
     db.query(q, (err, data) => {
         if (err){
@@ -107,7 +107,7 @@ function NumberOfRegularEmployees(req, res) {
 }
 
 function NumberOfProbationaryEmployees(req, res) {
-    const q = "SELECT * FROM emp WHERE emp_status = 'PROBATIONARY'"
+    const q = "SELECT * FROM emp WHERE emp_status = 'PROBATIONARY' AND date_separated IS NULL"
 
     db.query(q, (err, data) => {
         if (err){
@@ -119,7 +119,7 @@ function NumberOfProbationaryEmployees(req, res) {
 }
 
 function NumberOfPartTimeEmployees(req, res) {
-    const q = "SELECT * FROM emp WHERE emp_status = 'PART-TIME'"
+    const q = "SELECT * FROM emp WHERE emp_status = 'PART-TIME' AND date_separated IS NULL"
 
     db.query(q, (err, data) => {
         if (err){
