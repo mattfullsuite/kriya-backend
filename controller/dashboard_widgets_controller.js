@@ -4,7 +4,7 @@ var moment = require("moment")
 function UpcomingBirthdays(req, res) {
 
     var cid = req.session.user[0].company_id
-    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id WHERE company_id = ? WHERE date_separated IS NULL ORDER BY DAYOFYEAR(dob) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(dob) LIMIT 5;"
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id WHERE company_id = ? AND date_separated IS NULL ORDER BY DAYOFYEAR(dob) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(dob) LIMIT 5;"
 
     db.query(q, [cid], (err, data) => {
         if (err){
@@ -17,7 +17,7 @@ function UpcomingBirthdays(req, res) {
 
 function UpcomingAnniversaries(req, res) {
     var cid = req.session.user[0].company_id
-    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE company_id=? WHERE date_separated IS NULL ORDER BY DAYOFYEAR(date_hired) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(date_hired) LIMIT 5;"
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE company_id=? AND date_separated IS NULL ORDER BY DAYOFYEAR(date_hired) < DAYOFYEAR(CURDATE()) , DAYOFYEAR(date_hired) LIMIT 5;"
 
     db.query(q, [cid], (err, data) => {
         if (err){
@@ -88,7 +88,7 @@ function NumberOfLeavesWeek(req, res) {
 
 function NumberOfEmployees(req, res) {
     var cid = req.session.user[0].company_id
-    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? WHERE date_separated IS NULL"
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND date_separated IS NULL"
 
     db.query(q, cid, (err, data) => {
         if (err){
