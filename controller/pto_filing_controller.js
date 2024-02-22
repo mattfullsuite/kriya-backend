@@ -399,7 +399,8 @@ function ReturnTemporaryPTO(req, res) {
 function AllApprovers(req, res) {
     const uid = req.session.user[0].emp_id
     const cid = req.session.user[0].company_id
-    const q = "SELECT * FROM emp AS e JOIN dept ON e.emp_id = manager_id INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id JOIN division ON dept.div_id = division.div_id WHERE emp.e.emp.emp_id != ? AND company_id = ? ORDER BY emp.f_name"
+    //const q = "SELECT * FROM emp AS e INNER JOIN dept AS d ON e.emp_id = d.manager_id INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN division AS di ON d.div_id = di.div_id WHERE e.emp_id != ? AND company_id = ? ORDER BY e.f_name"
+    const q = "SELECT * FROM emp AS e INNER JOIN dept AS d ON e.emp_id = d.manager_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE e.emp_id != ? AND company_id = ? ORDER BY e.f_name"
 
     db.query(q,[uid, cid],
         (err,data)=> {
