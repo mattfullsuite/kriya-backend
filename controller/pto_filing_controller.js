@@ -398,9 +398,10 @@ function ReturnTemporaryPTO(req, res) {
 
 function AllApprovers(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM emp JOIN dept ON emp_id = manager_id JOIN division ON dept.div_id = division.div_id WHERE emp.emp_role = 3 AND emp.emp_id != ? ORDER BY emp.f_name"
+    const cid = req.session.user[0].company_id
+    const q = "SELECT * FROM emp AS e JOIN dept ON e.emp_id = manager_id INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id JOIN division ON dept.div_id = division.div_id WHERE emp.e.emp.emp_id != ? AND company_id = ? ORDER BY emp.f_name"
 
-    db.query(q,[uid],
+    db.query(q,[uid, cid],
         (err,data)=> {
         if(err) { return res.json(err) }
         return res.json(data)
@@ -408,10 +409,11 @@ function AllApprovers(req, res) {
 }
 
 function AllHolidays(req, res) {
+    const cid = req.session.user[0].company_id;
 
-    const q = "SELECT * FROM holiday";
+    const q = "SELECT * FROM holiday WHERE company_id = ?";
 
-    db.query(q,(err,data)=> {
+    db.query(q, cid, (err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })
@@ -468,5 +470,4 @@ module.exports = {
     ReturnTemporaryPTO,
     BlockMyPendingLeaves,
     BlockMyApprovedLeaves,
-
 }
