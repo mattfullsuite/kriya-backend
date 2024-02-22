@@ -1,14 +1,7 @@
 var db = require("../config.js");
 const bcrypt = require("bcryptjs");
 
-function HomeHandler(req, res) {
-
-    res.json("Hi hmmm ano kaya dito?")
-  
-    res.end();
-};
-
-function LoginHandler(req, res) {
+function AdminLoginHandler(req, res) {
     if (req.session.user) {
         res.send({ loggedIn: true, user: req.session.user });
     } else {
@@ -16,7 +9,7 @@ function LoginHandler(req, res) {
     }
 }
 
-function Logout(req, res) {
+function AdminLogout(req, res) {
     if (req.session.user) {
       res.clearCookie('userId');
       res.clearCookie('HRISUserCookie');
@@ -25,13 +18,13 @@ function Logout(req, res) {
     }
 };
 
-function processLogin(req, res) {
+function AdminLogin(req, res) {
     const work_email = req.body.work_email;
     const password = req.body.password;
   
     db.query(
       //"SELECT * FROM emp WHERE work_email = ?",
-      "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE e.work_email = ? AND e.emp_role != 0",
+      "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE e.work_email = ? AND e.emp_role = 0",
       [work_email],
       (err, result) => {
         if (err) {
@@ -62,8 +55,7 @@ function processLogin(req, res) {
 
 module.exports = 
 { 
-  HomeHandler, 
-  LoginHandler, 
-  Logout, 
-  processLogin 
+  AdminLoginHandler, 
+  AdminLogout, 
+  AdminLogin 
 };
