@@ -148,6 +148,17 @@ function YourOwnLeaves(req, res) {
     })
 }
 
+function CheckIfOnlineUserIsManager(req, res) {
+    const uid = req.session.user[0].emp_id
+
+    const q = "SELECT * FROM emp INNER JOIN dept ON emp_id = manager_id WHERE emp_id = ?"
+    
+    db.query(q,[uid],(err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
 module.exports = { 
     UpcomingBirthdays, 
     UpcomingAnniversaries, 
@@ -159,4 +170,5 @@ module.exports = {
     NumberOfProbationaryEmployees,
     NumberOfPartTimeEmployees,
     YourOwnLeaves,
+    CheckIfOnlineUserIsManager,
 }

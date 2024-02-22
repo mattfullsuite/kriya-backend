@@ -22,6 +22,7 @@ var requests = require("./routes/requests.js");
 var announcements = require("./routes/announcements.js");
 var preferences = require("./routes/preferences.js");
 var directory = require("./routes/directory.js");
+var administrator = require("./routes/administrator.js")
 
 
 const storage = multer.diskStorage({
@@ -77,10 +78,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      //secure: true,
-      //httpOnly: false,
+      secure: true,
+      httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
-      //sameSite: 'none',
+      sameSite: 'none',
     },
   })
 );
@@ -108,6 +109,8 @@ app.use(requests)
 app.use(announcements)
 app.use(preferences)
 app.use(directory)
+
+app.use(administrator)
 
 // -------------------- END OF CLEAN CODES --------------------------//
 
