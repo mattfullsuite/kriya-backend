@@ -159,8 +159,6 @@ function ApproveLeave(req, res) {
         if (err){
             console.log(err)
         } else {
-            // res.json("Leave #" + leave_id + "has been updated successfully.");
-
             q2 = "SELECT leave_type, leave_reason, requester_id FROM leaves WHERE leave_id = ?";
 
             db.query(q2, leave_id, (err, data2) => {
@@ -256,6 +254,7 @@ function ApproveLeave(req, res) {
                                 }); } catch(e) {
                                     console.log(e);
                                 }
+                                res.json("Leave #" + leave_id + "has been updated successfully.");
                         }
                     })
                 }
@@ -274,8 +273,6 @@ function RejectLeave(req, res) {
         if (err){
             console.log(err)
         } else {
-            //res.json("Leave #" + leave_id + "has been updated successfully.")
-
             q2 = "SELECT leave_type, leave_reason, requester_id FROM leaves WHERE leave_id = ?";
 
             db.query(q2, leave_id, (err, data2) => {
@@ -371,6 +368,8 @@ function RejectLeave(req, res) {
                                 }); } catch(e) {
                                     console.log(e);
                                 }
+
+                                res.json("Leave #" + leave_id + "has been updated successfully.")
                         }
                     })
                 }
