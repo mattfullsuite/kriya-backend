@@ -10,6 +10,7 @@ var imports =  {
     NumberOfProbationaryEmployees,
     NumberOfPartTimeEmployees,
     YourOwnLeaves,
+    CheckIfOnlineUserIsManager
 } = require( "../controller/dashboard_widgets_controller.js");
 
 const router = express.Router()
@@ -24,5 +25,6 @@ router.get("/getRegularEmployees", NumberOfRegularEmployees);
 router.get("/getProbationaryEmployees", NumberOfProbationaryEmployees);
 router.get("/getPartTimeEmployees", NumberOfPartTimeEmployees);
 router.get("/showallmyleaves", YourOwnLeaves);
+router.get("/checkIfManager", CheckIfOnlineUserIsManager);
 
 module.exports = router;
