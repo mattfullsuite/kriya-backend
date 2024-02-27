@@ -23,6 +23,7 @@ var announcements = require("./routes/announcements.js");
 var preferences = require("./routes/preferences.js");
 var directory = require("./routes/directory.js");
 var administrator = require("./routes/administrator.js")
+var hierarchy = require("./routes/hierarchy.js")
 
 
 const storage = multer.diskStorage({
@@ -111,6 +112,7 @@ app.use(preferences)
 app.use(directory)
 
 app.use(administrator)
+app.use(hierarchy)
 
 // -------------------- END OF CLEAN CODES --------------------------//
 
@@ -489,11 +491,26 @@ app.get("/showapproveddepartmentleaves", (req, res) => {
   });
 });
 
-app.get("/showpendingdepartmentleaveslimited", (req, res) => {
+app.get("/showpendingleaveslimited", (req, res) => {
   const uid = req.session.user[0].emp_id;
 
   const q =
     "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id=e.emp_id WHERE leave_status = 0 AND approver_id = ? ORDER BY date_filed DESC LIMIT 3";
+
+  db.query(q, [uid], (err, data) => {
+    if (err) {
+      return res.json(err);
+    }
+
+    return res.json(data);
+  });
+});
+
+app.get("/showpendingdepartmentleaveslimited", (req, res) => {
+  const uid = req.session.user[0].emp_id;
+
+  const q =
+    "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id=e.emp_id WHERE leave_status = 0 AND approver_id = ? ORDER BY date_filed DESC LIMIT 10";
 
   db.query(q, [uid], (err, data) => {
     if (err) {

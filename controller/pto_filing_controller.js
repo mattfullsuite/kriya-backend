@@ -6,6 +6,7 @@ var nodemailer = require('nodemailer')
 function FileLeave(req, res){
 
     const uid = req.session.user[0].emp_id;
+    const sid = req.session.user[0].superior_id
 
     const q = "INSERT INTO leaves (`requester_id`, `leave_type`, `leave_reason`, `leave_from`, `leave_to`, `leave_status`, `approver_id`, `use_pto_points`) VALUES (?)" 
     const values = [
@@ -15,11 +16,12 @@ function FileLeave(req, res){
         req.body.leave_from,
         req.body.leave_to,
         0, //pending
-        req.body.approver_id,//JHex
+        //req.body.approver_id,//JHex
+        sid,
         req.body.use_pto_points,
     ]
 
-    if (!isEmpty(req.body.leave_type) && !isEmpty(req.body.leave_from) && !isEmpty(req.body.leave_to) && !isEmpty(req.body.approver_id)){
+    if (!isEmpty(req.body.leave_type) && !isEmpty(req.body.leave_from) && !isEmpty(req.body.leave_to)){
 
         db.query(q, [values], (err, data) => {
             if(err) {
@@ -42,7 +44,7 @@ function FileLeave(req, res){
 
         const q2 = "SELECT work_email FROM emp WHERE emp_id = ?";
 
-        db.query(q2, [req.body.approver_id], (err, data) => {
+        db.query(q2, [sid], (err, data) => {
             if (err) return console.log(err); 
 
             else {
