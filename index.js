@@ -14,6 +14,27 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
 
+var imports =  {
+  OpenAI,
+  Configuration,
+} = require("openai");
+
+const openai = new OpenAI({
+  apiKey: process.env.API_KEY // This is also the default, can be omitted
+});
+
+
+// async function tryai() {
+//   const completion = await openai.completions.create({
+//     model: "gpt-3.5-turbo",
+//     prompt: "Denmark loves Marvin",
+//     max_tokens: 30,
+//   });
+//   console.log(completion.choices[0].text);
+// }
+
+// tryai();
+
 var authentication = require("./routes/authentication.js");
 var dashboardwidgets = require("./routes/dashboard_widgets.js");
 var ptofiling = require("./routes/pto_filing.js");
@@ -24,6 +45,12 @@ var preferences = require("./routes/preferences.js");
 var directory = require("./routes/directory.js");
 var administrator = require("./routes/administrator.js")
 var hierarchy = require("./routes/hierarchy.js")
+var superadmindashboard = require("./routes/superadmin_dashboard.js")
+var admindashboard = require("./routes/admin_dashboard.js")
+var reports = require("./routes/reports.js")
+var module_mytimeandattendance = require("./routes/mytimeandattendance.js")
+
+var ai = require("./routes/ai_generation.js")
 
 
 const storage = multer.diskStorage({
@@ -61,7 +88,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: [process.env.ORIGIN_URL],
+    origin: [process.env.ORIGIN_URL, "https://geolocation-db.com/"],
     methods: ["GET", "POST", "DELETE", "OPTIONS"],
     credentials: true,
   })
@@ -79,10 +106,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
-      httpOnly: false,
+      //secure: true,
+      //httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: 'none',
+      //sameSite: 'none',
     },
   })
 );
@@ -113,6 +140,12 @@ app.use(directory)
 
 app.use(administrator)
 app.use(hierarchy)
+app.use(superadmindashboard)
+app.use(admindashboard)
+app.use(reports)
+app.use(module_mytimeandattendance)
+
+app.use(ai)
 
 // -------------------- END OF CLEAN CODES --------------------------//
 

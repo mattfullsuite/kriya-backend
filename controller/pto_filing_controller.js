@@ -2,11 +2,28 @@ var db = require("../config.js");
 var isEmpty = require('lodash.isempty');
 var moment = require('moment');
 var nodemailer = require('nodemailer')
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+
+
+// async function generateReason(leave_type) {
+//   // For text-only input, use the gemini-pro model
+//   const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+
+//   const prompt = "Create a short leave reason for ." + leave_type
+
+//   const result = await model.generateContent(prompt);
+//   const response = await result.response;
+//   const text = response.text();
+//   console.log(text);
+// }
 
 function FileLeave(req, res){
 
     const uid = req.session.user[0].emp_id;
-    const sid = req.session.user[0].superior_id
+    const sid = req.session.user[0].superior_id;
 
     const q = "INSERT INTO leaves (`requester_id`, `leave_type`, `leave_reason`, `leave_from`, `leave_to`, `leave_status`, `approver_id`, `use_pto_points`) VALUES (?)" 
     const values = [
@@ -472,4 +489,5 @@ module.exports = {
     ReturnTemporaryPTO,
     BlockMyPendingLeaves,
     BlockMyApprovedLeaves,
+    //GenerateReason,
 }

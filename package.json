@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.3.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
@@ -18,15 +19,22 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
+    "geoip-lite": "^1.4.10",
     "hbs": "^4.2.0",
+    "ip": "^2.0.1",
     "jsonwebtoken": "^9.0.2",
     "lodash.isempty": "^4.4.0",
     "moment": "^2.29.4",
     "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
     "node-cron": "^3.0.3",
+    "node-geoip": "^1.0.1",
     "nodemailer": "^6.9.7",
     "nodemon": "^3.0.2",
+    "openai": "^4.29.0",
+    "os": "^0.1.2",
+    "quick-local-ip": "^1.0.7",
+    "request-ip": "^3.3.0",
     "server": "^1.0.38"
   }
 }
