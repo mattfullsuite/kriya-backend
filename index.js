@@ -86,9 +86,10 @@ db.connect((error) => {
 
 app.use(express.json());
 
+//"https://geolocation-db.com/"
 app.use(
   cors({
-    origin: [process.env.ORIGIN_URL, "https://geolocation-db.com/"],
+    origin: [process.env.ORIGIN_URL],
     methods: ["GET", "POST", "DELETE", "OPTIONS"],
     credentials: true,
   })
