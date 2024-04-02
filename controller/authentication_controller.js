@@ -32,14 +32,14 @@ function Logout(req, res) {
 function processLogin(req, res) {
     const work_email = req.body.work_email;
     const password = req.body.password;
-    const latitude = req.body.latitude;
-    const longitude = req.body.longitude;
-    const country = req.body.country;
-    const ipAddress = req.body.ipAddress;
-    const city = req.body.city;
-    const postal = req.body.postal;
+    // const latitude = req.body.latitude;
+    // const longitude = req.body.longitude;
+    // const country = req.body.country;
+    // const ipAddress = req.body.ipAddress;
+    // const city = req.body.city;
+    // const postal = req.body.postal;
 
-    console.log(latitude + " , " + longitude + " , " + country + " , " + ipAddress)
+    //console.log(latitude + " , " + longitude + " , " + country + " , " + ipAddress)
     //let ipa = req.headers['x-original-forwarded-for']
     // var clientIp = requestIp.getClientIp(req)
 
@@ -66,18 +66,19 @@ function processLogin(req, res) {
                 console.log(req.session.user);
                 res.send(result[0]);
 
-                const a = "INSERT INTO auth_logs (`log_type`, `log_desc`,`emp_id`,`ip_address`, `latitude`, `longitude`, `country_code`, `city`, `postal`) VALUES (?)";
+                //const a = "INSERT INTO auth_logs (`log_type`, `log_desc`,`emp_id`,`ip_address`, `latitude`, `longitude`, `country_code`, `city`, `postal`) VALUES (?)";
+                const a = "INSERT INTO auth_logs (`log_type`, `log_desc`,`emp_id`) VALUES (?)";
 
                 const values = [
                   "SUCCESS",
                   result[0].f_name + " " + result[0].s_name + " has successfully logged in to the system.",
                   result[0].emp_id,
-                  (ipAddress != null) ? ipAddress : ip.address(),
-                  longitude,
-                  latitude,
-                  country,
-                  city,
-                  postal,
+                  // (ipAddress != null) ? ipAddress : ip.address(),
+                  // longitude,
+                  // latitude,
+                  // country,
+                  // city,
+                  // postal,
                 ]
 
                 //console.log(ip.address())
@@ -91,22 +92,24 @@ function processLogin(req, res) {
               } else {
                 res.send("error");
 
-                const a = "INSERT INTO auth_logs (`log_type`,`log_desc`,`ip_address`, `latitude`, `longitude`, `country_code`, `city`, `postal`) VALUES (?)";
+                //const a = "INSERT INTO auth_logs (`log_type`,`log_desc`,`ip_address`, `latitude`, `longitude`, `country_code`, `city`, `postal`) VALUES (?)";
+                const a = "INSERT INTO auth_logs (`log_type`,`log_desc`) VALUES (?)";
+                
 
                 const values = [
                   "FAIL",
                   "Failed attempt to log in using " + work_email,
-                  (ipAddress != null) ? ipAddress : ip.address(),
-                  longitude,
-                  latitude,
-                  country,
-                  city,
-                  postal,
+                  // (ipAddress != null) ? ipAddress : ip.address(),
+                  // longitude,
+                  // latitude,
+                  // country,
+                  // city,
+                  // postal,
                 ]
 
                 db.query(a, [values], (err, data) => {
                   if (err) console.log(err);
-                  console.log("There is an unauthorized log in for " + work_email + " on " + (ipAddress != null) ? ipAddress : ip.address());
+                  //console.log("There is an unauthorized log in for " + work_email + " on " + (ipAddress != null) ? ipAddress : ip.address());
                 });
               }
             }
