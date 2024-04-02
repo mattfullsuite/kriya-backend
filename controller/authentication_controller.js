@@ -1,9 +1,9 @@
 var db = require("../config.js");
 const bcrypt = require("bcryptjs");
-var ip = require('ip');
-var geoip = require('geoip-lite');
+//var ip = require('ip');
+//var geoip = require('geoip-lite');
 const express = require('express')
-const requestIp = require('request-ip')
+//const requestIp = require('request-ip')
 
 function HomeHandler(req, res) {
 

@@ -14,14 +14,14 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
 
-var imports =  {
-  OpenAI,
-  Configuration,
-} = require("openai");
+// var imports =  {
+//   OpenAI,
+//   Configuration,
+// } = require("openai");
 
-const openai = new OpenAI({
-  apiKey: process.env.API_KEY // This is also the default, can be omitted
-});
+// const openai = new OpenAI({
+//   apiKey: process.env.API_KEY // This is also the default, can be omitted
+// });
 
 
 // async function tryai() {
@@ -50,7 +50,7 @@ var admindashboard = require("./routes/admin_dashboard.js")
 var reports = require("./routes/reports.js")
 var module_mytimeandattendance = require("./routes/mytimeandattendance.js")
 
-var ai = require("./routes/ai_generation.js")
+//var ai = require("./routes/ai_generation.js")
 
 
 const storage = multer.diskStorage({
@@ -146,7 +146,7 @@ app.use(admindashboard)
 app.use(reports)
 app.use(module_mytimeandattendance)
 
-app.use(ai)
+//app.use(ai)
 
 // -------------------- END OF CLEAN CODES --------------------------//
 
