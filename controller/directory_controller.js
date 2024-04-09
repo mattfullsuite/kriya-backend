@@ -13,18 +13,18 @@ function GetDirectory(req, res) {
     })
 }
 
-// function GetDirectory(req, res) {
-//     const cid = req.session.user[0].company_id
-//     const q = "SELECT emp_id, f_name, s_name, superior_id FROM emp WHERE date_separated IS NULL"
+function GetDirectory2(req, res) {
+    const cid = req.session.user[0].company_id
+    const q = "SELECT emp_id, f_name, s_name, superior_id FROM emp WHERE date_separated IS NULL"
 
-//     db.query(q, (err, data) => {
-//         if (err){
-//             console.log(err)
-//         } else {
-//             res.json(data)
-//         }
-//     })
-// }
+    db.query(q, (err, data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json(data)
+        }
+    })
+}
 
 function GetDivision(req, res) {
     const cid = req.session.user[0].company_id
@@ -53,6 +53,7 @@ function GetDepartment(req, res) {
 
 module.exports = { 
     GetDirectory,
+    GetDirectory2,
     GetDivision,
     GetDepartment,
 }
