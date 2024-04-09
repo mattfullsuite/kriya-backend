@@ -49,6 +49,7 @@ var superadmindashboard = require("./routes/superadmin_dashboard.js")
 var admindashboard = require("./routes/admin_dashboard.js")
 var reports = require("./routes/reports.js")
 var module_mytimeandattendance = require("./routes/mytimeandattendance.js")
+var module_mypayroll = require("./routes/company.js")
 
 //var ai = require("./routes/ai_generation.js")
 
@@ -107,10 +108,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
-      httpOnly: false,
+      //secure: true,
+      //httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: 'none',
+      //sameSite: 'none',
     },
   })
 );
@@ -145,6 +146,7 @@ app.use(superadmindashboard)
 app.use(admindashboard)
 app.use(reports)
 app.use(module_mytimeandattendance)
+app.use(module_mypayroll)
 
 //app.use(ai)
 
