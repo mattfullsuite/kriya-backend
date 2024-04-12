@@ -23,7 +23,6 @@ const multer = require("multer");
 //   apiKey: process.env.API_KEY // This is also the default, can be omitted
 // });
 
-
 // async function tryai() {
 //   const completion = await openai.completions.create({
 //     model: "gpt-3.5-turbo",
@@ -43,22 +42,22 @@ var requests = require("./routes/requests.js");
 var announcements = require("./routes/announcements.js");
 var preferences = require("./routes/preferences.js");
 var directory = require("./routes/directory.js");
-var administrator = require("./routes/administrator.js")
-var hierarchy = require("./routes/hierarchy.js")
-var superadmindashboard = require("./routes/superadmin_dashboard.js")
-var admindashboard = require("./routes/admin_dashboard.js")
-var reports = require("./routes/reports.js")
-var module_mytimeandattendance = require("./routes/mytimeandattendance.js")
-var module_mypayroll = require("./routes/company.js")
+var administrator = require("./routes/administrator.js");
+var hierarchy = require("./routes/hierarchy.js");
+var superadmindashboard = require("./routes/superadmin_dashboard.js");
+var admindashboard = require("./routes/admin_dashboard.js");
+var reports = require("./routes/reports.js");
+var module_mytimeandattendance = require("./routes/mytimeandattendance.js");
+var module_mypayroll = require("./routes/company.js");
+var module_mypayroll_payslip = require("./routes/payslip.js");
 
 //var ai = require("./routes/ai_generation.js")
 
-
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null,  "https://www.tseksuite.com/uploads")
-        //cb(null, __dirname + "/uploads")
-    },
+  destination: (req, file, cb) => {
+    cb(null, "https://www.tseksuite.com/uploads");
+    //cb(null, __dirname + "/uploads")
+  },
 
   filename: (req, file, cb) => {
     cb(null, Date.now().toString() + path.extname(file.originalname));
@@ -131,22 +130,23 @@ app.listen(process.env.PORT || 6197, () => {
 
 app.use(authentication);
 
-//Dashboard 
-app.use(dashboardwidgets)
-app.use(ptofiling)
-app.use(employeeslist)
-app.use(requests)
-app.use(announcements)
-app.use(preferences)
-app.use(directory)
+//Dashboard
+app.use(dashboardwidgets);
+app.use(ptofiling);
+app.use(employeeslist);
+app.use(requests);
+app.use(announcements);
+app.use(preferences);
+app.use(directory);
 
-app.use(administrator)
-app.use(hierarchy)
-app.use(superadmindashboard)
-app.use(admindashboard)
-app.use(reports)
-app.use(module_mytimeandattendance)
-app.use(module_mypayroll)
+app.use(administrator);
+app.use(hierarchy);
+app.use(superadmindashboard);
+app.use(admindashboard);
+app.use(reports);
+app.use(module_mytimeandattendance);
+app.use(module_mypayroll);
+app.use(module_mypayroll_payslip);
 
 //app.use(ai)
 
@@ -273,8 +273,8 @@ app.delete("/announcements/:ann_id", (req, res) => {
 //     const h_id = req.params.h_id;
 //     const q = "DELETE FROM holiday WHERE h_id = ?";
 
-//     db.query(q, 
-//         [h_id], 
+//     db.query(q,
+//         [h_id],
 //         (err,data) => {
 //         if (err){
 //             console.log(err)
@@ -283,7 +283,6 @@ app.delete("/announcements/:ann_id", (req, res) => {
 //         }
 //     })
 // })
-
 
 app.delete("/division/:div_id", (req, res) => {
   const div_id = req.params.div_id;
@@ -425,12 +424,12 @@ app.post("/editEmployee/:emp_id", upload.single("emp_pic"), (req, res) => {
 // app.post("/addHoliday", (req,res) => {
 //     const cid = req.session.user[0].company_id;
 //     const q = "INSERT INTO holiday (`h_name`, `h_date`, `company_id`) VALUES (?) "
-//     const values = 
-//     [req.body.h_name, 
+//     const values =
+//     [req.body.h_name,
 //     req.body.h_date,
-//     cid] 
+//     cid]
 
-//     db.query(q, [values], (err, data)=> { 
+//     db.query(q, [values], (err, data)=> {
 //         if(err) {
 //             res.send(err)
 //         } else {
@@ -894,17 +893,15 @@ app.get("/department", (req, res) => {
 });
 
 app.get("/getHolidays", (req, res) => {
-    const cid = req.session.user[0].company_id;
+  const cid = req.session.user[0].company_id;
 
-    const q = "SELECT h_date FROM holiday WHERE company_id = ?";
+  const q = "SELECT h_date FROM holiday WHERE company_id = ?";
 
-    db.query(q,(err,data)=> {
-        if(err) return res.json(err)
-        return res.json(data)
-    })
-})
-
-
+  db.query(q, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
 
 //ptoprobi
 
@@ -1766,7 +1763,7 @@ app.get("/getAllCompanies", (req, res) => {
 // app.get("/getAllDivisions", (req, res) => {
 //     const cid = req.session.user[0].company_id;
 
-//     const q = "SELECT * FROM division WHERE company_id = ? ORDER BY div_name ASC" 
+//     const q = "SELECT * FROM division WHERE company_id = ? ORDER BY div_name ASC"
 
 //     db.query(q, cid, (err, data) => {
 //         if (err){
@@ -1776,7 +1773,6 @@ app.get("/getAllCompanies", (req, res) => {
 //         }
 //     })
 // })
-
 
 // app.get("/getAllDepartments", (req, res) => {
 
@@ -1820,53 +1816,48 @@ app.get("/getAllPositionsInDivision", (req, res) => {
   const q =
     "SELECT * FROM position WHERE div_id = ? ORDER BY position_name ASC";
 
-    db.query(q, req.body.div_id, (err, data) => {
-        if (err){
-            console.log(err)
-        } else {
-            res.json(data)
-        }
-    })
-})
-
-app.post("/addNewCompany", (req,res) => {
-    const q = "INSERT INTO company (`company_name`) VALUES (?) "
-    const values = 
-    [req.body.company_name] 
-
-    if (!isEmpty(req.body.company_name)){
-
-        db.query(q, [values], (err, data)=> { 
-            if (err) {
-                res.send(err)
-            } else {
-                res.send("success")
-            }
-        })
+  db.query(q, req.body.div_id, (err, data) => {
+    if (err) {
+      console.log(err);
     } else {
-        res.send("error")
+      res.json(data);
     }
+  });
 });
 
-app.post("/addNewDivision", (req,res) => {
-    const cid = req.session.user[0].company_id
-    const q = "INSERT INTO division (`div_name`, `company_id`) VALUES (?) "
-    const values = 
-    [req.body.div_name,
-    cid] 
+app.post("/addNewCompany", (req, res) => {
+  const q = "INSERT INTO company (`company_name`) VALUES (?) ";
+  const values = [req.body.company_name];
 
-    if (!isEmpty(req.body.div_name)){
+  if (!isEmpty(req.body.company_name)) {
+    db.query(q, [values], (err, data) => {
+      if (err) {
+        res.send(err);
+      } else {
+        res.send("success");
+      }
+    });
+  } else {
+    res.send("error");
+  }
+});
 
-        db.query(q, [values], (err, data)=> { 
-            if (err) {
-                res.send(err)
-            } else {
-                res.send("success")
-            }
-        })
-    } else {
-        res.send("error")
-    }
+app.post("/addNewDivision", (req, res) => {
+  const cid = req.session.user[0].company_id;
+  const q = "INSERT INTO division (`div_name`, `company_id`) VALUES (?) ";
+  const values = [req.body.div_name, cid];
+
+  if (!isEmpty(req.body.div_name)) {
+    db.query(q, [values], (err, data) => {
+      if (err) {
+        res.send(err);
+      } else {
+        res.send("success");
+      }
+    });
+  } else {
+    res.send("error");
+  }
 });
 
 app.post("/addNewDepartment", (req, res) => {

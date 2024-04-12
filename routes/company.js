@@ -1,22 +1,13 @@
-// import express from "express";
-// import uploadMulter from "../utils/multerFileHandler.js";
-// import {
-//   createCompany,
-//   readCompanyAll,
-//   updateCompany,
-//   deleteCompany,
-//   getAllCompanies,
-// } from "../controller/company_controller.js";
-
 var express = require("express");
-var imports =  {
-//     createCompany,
-//   readCompanyAll,
-//   updateCompany,
-//   deleteCompany,
+var imports = ({
+  //     createCompany,
+  //   readCompanyAll,
+  //   updateCompany,
+  //   deleteCompany,
   getAllCompanies,
+  getCompanyInfo,
   getAllPayItems,
-} = require( "../controller/company_controller.js");
+} = require("../controller/company_controller.js"));
 
 const router = express.Router();
 
@@ -25,7 +16,7 @@ const router = express.Router();
 // router.patch("/company/edit/:id", uploadMulter.single("logo"), updateCompany);
 // router.delete("/company/remove/:id", deleteCompany);
 
-router.get("/mp-getcompanies", getAllCompanies);
-router.get("/mp-getcompanypayitems", getAllPayItems);
-
+router.get("/mp-getCompanies", getAllCompanies);
+router.get("/mp-getCompany", getCompanyInfo);
+router.get("/mp-getCompanyPayItems", getAllPayItems);
 module.exports = router;

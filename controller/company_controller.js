@@ -3,6 +3,7 @@
 // import checkAuthorization from "../utils/authorization.js";
 // import cloudinary from "../utils/cloudinary.js";
 // import fs from "fs";
+var axios = require("axios");
 
 var db = require("../config.js");
 // var imports = {sanitizeObject} = require ("../utils/sanitize.js")
@@ -11,25 +12,28 @@ var db = require("../config.js");
 // var fs = require("fs");
 
 function getAllCompanies(req, res) {
-    const uid = req.session.user[0].emp_id
+  const uid = req.session.user[0].emp_id;
 
-    const q = "SELECT * FROM company_assignments AS ca INNER JOIN company AS c ON ca.company_id = c.company_id"
-    
-    db.query(q,(err,data)=> {
-        if(err) return res.json(err)
-        return res.json(data)
-    })
+  const q =
+    "SELECT * FROM company_assignments AS ca INNER JOIN company AS c ON ca.company_id = c.company_id";
+
+  db.query(q, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
 }
 
 function getAllPayItems(req, res) {
-    var cid = req.session.user[0].company_id
+  var cid = req.session.user[0].company_id;
 
-    const q = "SELECT * FROM pay_items WHERE company_id = " + cid
-    
-    db.query(q, (err,data)=> {
-        if(err) return res.json(err)
-        return res.json(data)
-    })
+  const q =
+    "SELECT pay_item_name, pay_item_category FROM pay_items WHERE company_id = " +
+    cid;
+
+  db.query(q, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
 }
 
 // const uploadImage = async (imagePath, company_name) => {
@@ -128,28 +132,17 @@ function getAllPayItems(req, res) {
 //   }
 // };
 
-// const readCompanyInfo = async (req, res) => {
-//   if (checkAuthorization(req.headers)) {
-//     const { id } = req.params;
+const getCompanyInfo = async (req, res) => {
+  var cid = req.session.user[0].company_id;
+  const { id } = req.params;
 
-//     db.query(
-//       "SELECT * FROM company WHERE id = ?",
-//       [id],
-//       (error, results, fields) => {
-//         const rows = results;
+  const q = "SELECT * FROM company WHERE company_id = " + cid;
 
-//         if (rows) {
-//           //res.sendStatus(200);
-//           res.json({ rows });
-//         } else {
-//           res.sendStatus(500);
-//         }
-//       }
-//     );
-//   } else {
-//     res.sendStatus(401);
-//   }
-// };
+  db.query(q, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+};
 
 // // add condition for null logo don't update logo
 // const updateCompany = async (req, res) => {
@@ -210,12 +203,12 @@ function getAllPayItems(req, res) {
 //   }
 // };
 
-module.exports =  {
-//   createCompany,
-//   readCompanyAll,
-//   readCompanyInfo,
-//   updateCompany,
-//   deleteCompany,
+module.exports = {
+  //   createCompany,
+  //   readCompanyAll,
+  getCompanyInfo,
+  //   updateCompany,
+  //   deleteCompany,
   getAllCompanies,
   getAllPayItems,
 };
