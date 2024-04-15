@@ -48,8 +48,8 @@ var superadmindashboard = require("./routes/superadmin_dashboard.js");
 var admindashboard = require("./routes/admin_dashboard.js");
 var reports = require("./routes/reports.js");
 var module_mytimeandattendance = require("./routes/mytimeandattendance.js");
-var module_mypayroll = require("./routes/company.js");
-var module_mypayroll_payslip = require("./routes/payslip.js");
+var module_mypayroll_payslip = require("./routes/manage_payroll/payslip.js");
+var module_pay_items = require("./routes/manage_payroll/pay_item.js");
 
 //var ai = require("./routes/ai_generation.js")
 
@@ -90,7 +90,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: [process.env.ORIGIN_URL],
-    methods: ["GET", "POST", "DELETE", "OPTIONS"],
+    methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
@@ -145,8 +145,8 @@ app.use(superadmindashboard);
 app.use(admindashboard);
 app.use(reports);
 app.use(module_mytimeandattendance);
-app.use(module_mypayroll);
 app.use(module_mypayroll_payslip);
+app.use(module_pay_items);
 
 //app.use(ai)
 
