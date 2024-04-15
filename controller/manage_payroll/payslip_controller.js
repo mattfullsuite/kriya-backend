@@ -1,6 +1,6 @@
 // Imports
 var axios = require("axios");
-var db = require("../config.js");
+var db = require("../../config.js");
 
 const createPayslip = (req, res) => {
   const data = req.body;
