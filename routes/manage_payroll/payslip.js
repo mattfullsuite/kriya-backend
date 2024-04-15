@@ -1,7 +1,9 @@
 var express = require("express");
 const router = express.Router();
 
-const { createPayslip } = require("../controller/payslip_conroller");
+const {
+  createPayslip,
+} = require("../../controller/manage_payroll/payslip_controller");
 
 var imports = {
   createPayslip,
