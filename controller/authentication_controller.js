@@ -49,7 +49,7 @@ function processLogin(req, res) {
   
     db.query(
       //"SELECT * FROM emp WHERE work_email = ? AND date_separated IS NULL",
-      "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE e.work_email = ? AND e.emp_role != 0 AND date_separated IS NULL",
+      "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN dept AS d ON d.dept_id = p.dept_id INNER JOIN company AS c ON c.company_id = em.company_id WHERE e.work_email = ? AND e.emp_role != 0 AND date_separated IS NULL",
       [work_email],
       (err, result) => {
         if (err) {
