@@ -24,9 +24,9 @@ function getAllCompanies(req, res) {
 function getAllPayItems(req, res) {
     var cid = req.session.user[0].company_id
 
-    const q = "SELECT * FROM pay_items WHERE company_id = " + cid
+    const q = "SELECT * FROM pay_items AS p JOIN company AS c ON c.company_id = p.company_id WHERE c.company_id = ?"
     
-    db.query(q, (err,data)=> {
+    db.query(q, cid, (err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })

@@ -4,7 +4,7 @@ var moment = require("moment");
 function CurrentUserPTO(req, res) {
     const uid = req.session.user[0].emp_id
     const q = "SELECT * FROM `leave_credits` AS l INNER JOIN `emp` AS e ON l.emp_id = e.emp_id WHERE e.emp_id = ?"
-8
+
     db.query(q,
         [uid],
         (err,data)=> {
