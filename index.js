@@ -50,6 +50,7 @@ var admindashboard = require("./routes/admin_dashboard.js")
 var reports = require("./routes/reports.js")
 var module_mytimeandattendance = require("./routes/mytimeandattendance.js")
 var module_mypayroll = require("./routes/company.js")
+var module_myteam = require("./routes/myteam.js")
 
 //var ai = require("./routes/ai_generation.js")
 
@@ -147,6 +148,7 @@ app.use(admindashboard)
 app.use(reports)
 app.use(module_mytimeandattendance)
 app.use(module_mypayroll)
+app.use(module_myteam)
 
 //app.use(ai)
 
