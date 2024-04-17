@@ -14,6 +14,7 @@ var imports =  {
     NumberOfLeavesForPastThreeWeeks,
     ShowAllDepartmentLeavesExceptPending,
     ShowAllDepartmentLeavesOfTeam,
+    CheckIfDownline,
 } = require("../controller/myteam_controller.js");
 
 const router = express.Router()
@@ -38,5 +39,8 @@ router.get("/mt-getDepartmentLeavesPastThreeWeeks", NumberOfLeavesForPastThreeWe
 //DepartmentLeaves
 router.get("/mt-getAllDepartmentLeaves", ShowAllDepartmentLeavesExceptPending);
 router.get("/mt-getAllDepartmentLeavesOfTeam", ShowAllDepartmentLeavesOfTeam);
+
+//Downline
+router.get("/mt-checkDownline", CheckIfDownline);
 
 module.exports = router;
