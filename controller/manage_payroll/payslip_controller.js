@@ -34,7 +34,7 @@ const createPayslip = (req, res) => {
   });
 
   const query = db.query(
-    `INSERT INTO payslip (company_id, employee_id, last_name, first_name, middle_name, email, net_salary, dates, payables, totals) VALUES ?;`,
+    `INSERT INTO payslip (company_id, emp_num, last_name, first_name, middle_name, email, net_salary, dates, payables, totals) VALUES ?;`,
     [dataProcessed],
     async (error, response) => {
       if (error) {
@@ -74,6 +74,16 @@ const generatePDF = async (data) => {
   return result;
 };
 
+const getUserPayslip = (req, res) => {
+  const uid = req.session.user[0].emp_num;
+  const q = "SELECT * FROM payslip WHERE emp_num = ? ORDER BY created_at";
+  db.query(q, [uid], (err, rows) => {
+    if (err) return res.json(err);
+    return res.status(200).json(rows);
+  });
+};
+
 module.exports = {
   createPayslip,
+  getUserPayslip,
 };
