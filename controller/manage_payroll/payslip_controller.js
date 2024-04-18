@@ -83,7 +83,19 @@ const getUserPayslip = (req, res) => {
   });
 };
 
+const getUserYTD = (req, res) => {
+  const uid = req.session.user[0].emp_num;
+  const q =
+    "SELECT `emp_num`, SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `ytd_earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `ytd_deductions`, SUM(`net_salary`) as `ytd_net_salary` FROM `payslip` WHERE `emp_num` = ? GROUP BY `emp_num`";
+
+  db.query(q, [uid], (err, rows) => {
+    if (err) return res.json(err);
+    return res.status(200).json(rows);
+  });
+};
+
 module.exports = {
   createPayslip,
   getUserPayslip,
+  getUserYTD,
 };
