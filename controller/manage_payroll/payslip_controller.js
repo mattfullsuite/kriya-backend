@@ -13,6 +13,8 @@ const createPayslip = (req, res) => {
       "First Name": firstName,
       "Middle Name": middleName,
       Email,
+      "Job Title": jobTitle,
+      "Hire Date": hireDate,
       Dates,
       "Pay Items": payItems,
       Totals,
@@ -60,12 +62,6 @@ const generatePDF = async (data) => {
   const result = await axios
     .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data)
     .then(function (response) {
-      // console.log(response.status);
-      // if (response.status == 200) {
-      //   console.log(true);
-      // } else {
-      //   console.log(false);
-      // }
       return response.status;
     })
     .catch(function (error) {
@@ -86,7 +82,7 @@ const getUserPayslip = (req, res) => {
 const getUserYTD = (req, res) => {
   const uid = req.session.user[0].emp_num;
   const q =
-    "SELECT `emp_num`, SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `ytd_earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `ytd_deductions`, SUM(`net_salary`) as `ytd_net_salary` FROM `payslip` WHERE `emp_num` = ? GROUP BY `emp_num`";
+    "SELECT YEAR(NOW()) as 'year', SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `deductions`, SUM(`net_salary`) as `net_salary` FROM `payslip` WHERE `emp_num` = 'OCCI-0308' AND SUBSTRING(JSON_EXTRACT(`dates`, '$.Payment'), 2,4) = YEAR(NOW()) GROUP BY `emp_num`";
 
   db.query(q, [uid], (err, rows) => {
     if (err) return res.json(err);
