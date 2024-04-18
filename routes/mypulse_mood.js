@@ -13,6 +13,5 @@ router.get("/mp-getMostRecentMood", GetMostRecentMood);
 router.get("/mp-getMoodsForDay", GetMoodsForDay);
 router.get("/mp-getMoodForWeek", GetMoodsForWeek);
 router.get("/mp-getMoodLastWeek", GetMoodsLastWeek);
-router.get("/mp-")
 
 module.exports = router;
