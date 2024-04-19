@@ -34,6 +34,19 @@ function GetLimitedAttendance(req, res) {
     })
 }
 
+function GetAttendance(req, res) {
+    const unum = req.session.user[0].emp_num
+    const q = "SELECT * FROM attendance WHERE employee_id = ? ORDER BY date";
+
+    db.query(q, [unum], (err, data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json(data)
+        }
+    })
+}
+
 function GetUndertimeAttendance(req, res){
     const unum = req.session.user[0].emp_num
     const q = "SELECT * FROM attendance WHERE employee_id = ? ORDER BY date DESC LIMIT 5";
@@ -47,10 +60,25 @@ function GetUndertimeAttendance(req, res){
     })
 }
 
+function GetMyLeaves(req, res){
+    const uid = req.session.user[0].emp_id
+    const q = "SELECT leave_id, leave_from, leave_to, use_pto_points FROM leaves WHERE requester_id = ?";
+
+    db.query(q, [uid], (err, data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json(data)
+        }
+    })
+}
+
 
 module.exports = {
     InsertAttendanceIntoDatabase,
     GetLimitedAttendance,
     GetUndertimeAttendance,
+    GetAttendance,
+    GetMyLeaves,
 };
 
