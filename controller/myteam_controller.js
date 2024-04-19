@@ -218,6 +218,19 @@ function ShowAllDepartmentLeavesOfTeam(req, res){
     });
 }
 
+function CheckIfDownline(req, res){
+    const uid = req.session.user[0].emp_id;
+
+    const q = "SELECT * FROM emp WHERE superior_id = ?"
+
+    db.query(q, [uid], (err, data) => {
+        if (err) {
+          return res.json(err);
+        }
+        return res.json(data);
+    });
+}
+
 
 
 
@@ -236,4 +249,5 @@ module.exports = {
     NumberOfLeavesForPastThreeWeeks,
     ShowAllDepartmentLeavesExceptPending,
     ShowAllDepartmentLeavesOfTeam,
+    CheckIfDownline,
 };
