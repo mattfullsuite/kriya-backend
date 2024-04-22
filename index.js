@@ -702,24 +702,24 @@ app.get("/numofdeptleavesweek", (req, res) => {
 //     })
 // })
 
-app.get("/showallleaves", (req, res) => {
-  const q =
-    "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id=e.emp_id ORDER BY date_filed DESC";
+// app.get("/showallleaves", (req, res) => {
+//   const q =
+//     "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id=e.emp_id ORDER BY date_filed DESC";
 
-  db.query(q, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
+//   db.query(q, (err, data) => {
+//     if (err) return res.json(err);
+//     return res.json(data);
+//   });
+// });
 
-app.get("/showpendingleaves", (req, res) => {
-  const q =
-    "SELECT * FROM leaves INNER JOIN emp ON requester_id=emp_id WHERE leave_status = 0 ORDER BY date_filed DESC";
-  db.query(q, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
+// app.get("/showpendingleaves", (req, res) => {
+//   const q =
+//     "SELECT * FROM leaves INNER JOIN emp ON requester_id=emp_id WHERE leave_status = 0 ORDER BY date_filed DESC";
+//   db.query(q, (err, data) => {
+//     if (err) return res.json(err);
+//     return res.json(data);
+//   });
+// });
 
 // app.get("/showallmyleaves", (req, res) => {
 //     const uid = req.session.user[0].emp_id
@@ -731,15 +731,15 @@ app.get("/showpendingleaves", (req, res) => {
 //     })
 // })
 
-app.get("/getApproverDetails", (req, res) => {
-  const uid = req.session.user[0].emp_id;
-  const q = "SELECT * FROM emp WHERE emp_role = 3";
+// app.get("/getApproverDetails", (req, res) => {
+//   const uid = req.session.user[0].emp_id;
+//   const q = "SELECT * FROM emp WHERE emp_role = 3";
 
-  db.query(q, [uid], (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
+//   db.query(q, [uid], (err, data) => {
+//     if (err) return res.json(err);
+//     return res.json(data);
+//   });
+// });
 
 app.get("/showalldeptleaves", (req, res) => {
   const uid = req.session.user[0].emp_id;
@@ -765,23 +765,23 @@ app.get("showselectedleave/:leave_id", (req, res) => {
   });
 });
 
-app.get("/showapprovedleaves", (req, res) => {
-  const q =
-    "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id WHERE leave_status = 1 ORDER BY date_filed DESC";
-  db.query(q, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
+// app.get("/showapprovedleaves", (req, res) => {
+//   const q =
+//     "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id WHERE leave_status = 1 ORDER BY date_filed DESC";
+//   db.query(q, (err, data) => {
+//     if (err) return res.json(err);
+//     return res.json(data);
+//   });
+// });
 
-app.get("/showrejectedleaves", (req, res) => {
-  const q =
-    "SELECT * FROM leaves INNER JOIN emp ON requester_id=emp_id WHERE leave_status = 2 ORDER BY date_filed DESC";
-  db.query(q, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
+// app.get("/showrejectedleaves", (req, res) => {
+//   const q =
+//     "SELECT * FROM leaves INNER JOIN emp ON requester_id=emp_id WHERE leave_status = 2 ORDER BY date_filed DESC";
+//   db.query(q, (err, data) => {
+//     if (err) return res.json(err);
+//     return res.json(data);
+//   });
+// });
 
 app.get("/showTitles", (req, res) => {
   const uid = req.session.user[0].emp_id;
