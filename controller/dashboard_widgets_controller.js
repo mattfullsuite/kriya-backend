@@ -31,7 +31,7 @@ function UpcomingAnniversaries(req, res) {
 function CurrentUserPTO(req, res) {
     const uid = req.session.user[0].emp_id
     const q = "SELECT * FROM `leave_credits` AS l INNER JOIN `emp` AS e ON l.emp_id = e.emp_id WHERE e.emp_id = ?"
-8
+
     db.query(q,
         [uid],
         (err,data)=> {
@@ -159,6 +159,76 @@ function CheckIfOnlineUserIsManager(req, res) {
     })
 }
 
+function DisplayAllLeaves(req, res) {
+    const cid = req.session.user[0].company_id
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? ORDER BY date_filed DESC"
+
+    db.query(q, [cid], (err, data) => {
+        if (err) return res.json(err);
+        return res.json(data);
+   });
+}
+
+function DisplayAllPendingLeaves(req, res) {
+    const cid = req.session.user[0].company_id
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND leave_status = 0 ORDER BY date_filed DESC"
+
+    db.query(q, [cid], (err, data) => {
+        if (err) return res.json(err);
+        return res.json(data);
+   });
+}
+
+function DisplayAllApprovedLeaves(req, res) {
+    const cid = req.session.user[0].company_id
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND leave_status = 1 ORDER BY date_filed DESC"
+
+    db.query(q, [cid], (err, data) => {
+        if (err) return res.json(err);
+        return res.json(data);
+   });
+}
+
+function DisplayAllDeclinedLeaves(req, res) {
+    const cid = req.session.user[0].company_id
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND leave_status = 2 ORDER BY date_filed DESC"
+
+    db.query(q, [cid], (err, data) => {
+        if (err) return res.json(err);
+        return res.json(data);
+   });
+}
+
+function GetApproverDetailsOnModal(req, res){
+    const q = "SELECT * FROM emp";
+      
+    db.query(q, (err, data) => {
+        if (err) return res.json(err);
+        return res.json(data);
+    })
+}
+
+
+
+// app.get("/showallleaves", (req, res) => {
+//     const q =
+//       "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id=e.emp_id ORDER BY date_filed DESC";
+  
+//     db.query(q, (err, data) => {
+//       if (err) return res.json(err);
+//       return res.json(data);
+//     });
+//   });
+  
+//   app.get("/showpendingleaves", (req, res) => {
+//     const q =
+//       "SELECT * FROM leaves INNER JOIN emp ON requester_id=emp_id WHERE leave_status = 0 ORDER BY date_filed DESC";
+//     db.query(q, (err, data) => {
+//       if (err) return res.json(err);
+//       return res.json(data);
+//     });
+//   });
+
 module.exports = { 
     UpcomingBirthdays, 
     UpcomingAnniversaries, 
@@ -171,4 +241,9 @@ module.exports = {
     NumberOfPartTimeEmployees,
     YourOwnLeaves,
     CheckIfOnlineUserIsManager,
+    DisplayAllLeaves,
+    DisplayAllPendingLeaves,
+    DisplayAllApprovedLeaves,
+    DisplayAllDeclinedLeaves,
+    GetApproverDetailsOnModal,
 }
