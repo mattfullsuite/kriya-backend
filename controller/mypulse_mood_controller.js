@@ -14,7 +14,15 @@ function InsertMoodEntry(req, res) {
         if (err){
             console.log(err)
         } else {
-            console.log("Added.")
+            const q = "SELECT * FROM pulse_mood WHERE mood_entry_id = ?";
+
+            db.query(q, [data.insertId], (err, data) => {
+                if(err) {
+                    console.log(err)}
+                else {
+                    res.json(data);
+                }
+            })
         }
     })
 }
