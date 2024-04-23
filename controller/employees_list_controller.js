@@ -20,40 +20,45 @@ function ViewEmployee(req, res) {
 }
 
 function AllEmployees(req,res){
-    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id WHERE date_separated IS NULL ORDER BY s_name"
-    db.query(q,(err,data)=> {
+    var cid = req.session.user[0].company_id
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND date_separated IS NULL ORDER BY s_name"
+    db.query(q,cid,(err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })
 }
 
 function ProbationaryEmployees(req,res){
-    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id WHERE date_separated IS NULL AND emp_status = 'Probationary' ORDER BY s_name"
-    db.query(q,(err,data)=> {
+    var cid = req.session.user[0].company_id
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND date_separated IS NULL AND emp_status = 'Probationary' ORDER BY s_name"
+    db.query(q,cid,(err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })
 }
 
 function RegularEmployees(req,res){
-    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id WHERE date_separated IS NULL AND emp_status = 'Regular' ORDER BY s_name"
-    db.query(q,(err,data)=> {
+    var cid = req.session.user[0].company_id
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND date_separated IS NULL AND emp_status = 'Regular' ORDER BY s_name"
+    db.query(q,cid,(err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })
 }
 
 function PartTimeEmployees(req,res){
-    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id WHERE date_separated IS NULL AND emp_status = 'Part-time' ORDER BY s_name"
-    db.query(q,(err,data)=> {
+    var cid = req.session.user[0].company_id
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND date_separated IS NULL AND emp_status = 'Part-time' ORDER BY s_name"
+    db.query(q,cid,(err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })
 }
 
 function DeactivatedAccounts(req, res) {
-    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id WHERE date_separated IS NOT NULL ORDER BY s_name"
-    db.query(q,(err,data)=> {
+    var cid = req.session.user[0].company_id
+    const q = "SELECT *, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id =? AND date_separated IS NOT NULL ORDER BY s_name"
+    db.query(q,cid,(err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })
