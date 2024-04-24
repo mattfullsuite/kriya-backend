@@ -53,6 +53,7 @@ var module_pay_items = require("./routes/manage_payroll/pay_item.js");
 var module_myteam = require("./routes/myteam.js");
 var module_mypulse_mood = require("./routes/mypulse_mood.js");
 var module_myattendance = require("./routes/attendance.js");
+var module_mypulse_survey = require("./routes/pulse_survey.js");
 
 //var ai = require("./routes/ai_generation.js")
 
@@ -110,8 +111,8 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
-      httpOnly: false,
+      // secure: true,
+      // httpOnly: false,
       secure: true,
       httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
@@ -157,6 +158,7 @@ app.use(module_pay_items);
 app.use(module_myteam);
 app.use(module_mypulse_mood);
 app.use(module_myattendance);
+app.use(module_mypulse_survey);
 
 //app.use(ai)
 
