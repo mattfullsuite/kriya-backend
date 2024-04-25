@@ -72,7 +72,8 @@ const generatePDF = async (data) => {
 
 const getUserPayslip = (req, res) => {
   const uid = req.session.user[0].emp_num;
-  const q = "SELECT * FROM payslip WHERE emp_num = ? ORDER BY created_at";
+  const q =
+    "SELECT * FROM payslip WHERE emp_num = ? ORDER BY JSON_EXTRACT(`dates`, '$.Payment') DESC";
   db.query(q, [uid], (err, rows) => {
     if (err) return res.json(err);
     return res.status(200).json(rows);
@@ -82,7 +83,9 @@ const getUserPayslip = (req, res) => {
 const getUserYTD = (req, res) => {
   const uid = req.session.user[0].emp_num;
   const q =
-    "SELECT YEAR(NOW()) as 'year', SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `deductions`, SUM(`net_salary`) as `net_salary` FROM `payslip` WHERE `emp_num` = 'OCCI-0308' AND SUBSTRING(JSON_EXTRACT(`dates`, '$.Payment'), 2,4) = YEAR(NOW()) GROUP BY `emp_num`";
+    "SELECT YEAR(NOW()) as 'year', SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `deductions`, SUM(`net_salary`) as `net_salary` FROM `payslip` WHERE `emp_num` = '" +
+    uid +
+    "' AND SUBSTRING(JSON_EXTRACT(`dates`, '$.Payment'), 2,4) = YEAR(NOW()) GROUP BY `emp_num`";
 
   db.query(q, [uid], (err, rows) => {
     if (err) return res.json(err);
