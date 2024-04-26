@@ -83,9 +83,7 @@ const getUserPayslip = (req, res) => {
 const getUserYTD = (req, res) => {
   const uid = req.session.user[0].emp_num;
   const q =
-    "SELECT YEAR(NOW()) as 'year', SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `deductions`, SUM(`net_salary`) as `net_salary` FROM `payslip` WHERE `emp_num` = '" +
-    uid +
-    "' AND SUBSTRING(JSON_EXTRACT(`dates`, '$.Payment'), 2,4) = YEAR(NOW()) GROUP BY `emp_num`";
+    "SELECT YEAR(NOW()) as 'year', SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `deductions`, SUM(`net_salary`) as `net_salary` FROM `payslip` WHERE `emp_num` = ? AND SUBSTRING(JSON_EXTRACT(`dates`, '$.Payment'), 2,4) = YEAR(NOW()) GROUP BY `emp_num`";
 
   db.query(q, [uid], (err, rows) => {
     if (err) return res.json(err);
