@@ -45,13 +45,13 @@ function CurrentUserPTO(req, res) {
 
 function NumberOfLeavesToday(req, res) {
     const uid = req.session.user[0].emp_id
-    const cid = req.session.user[0].emp_id
+    const cid = req.session.user[0].company_id
     const today = moment().format("YYYY/MM/DD")
 
-    const q = "SELECT * FROM leaves WHERE leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp_designation AS em ON l.requester_id = em.emp_id WHERE l.leave_status = 1 AND ? BETWEEN l.leave_from AND l.leave_to AND em.company_id = ?"
 
     db.query(q,
-        [today],
+        [today, cid],
         (err,data)=> {
         if(err) {
             return res.json(err)
@@ -62,21 +62,22 @@ function NumberOfLeavesToday(req, res) {
 }
 
 function NumberOfLeavesWeek(req, res) {
+    const cid = req.session.user[0].company_id;
     const today2 = moment().startOf('week').add('days', 1).format("YYYY/MM/DD");
     const today3 = moment().startOf('week').add('days', 2).format("YYYY/MM/DD");
     const today4 = moment().startOf('week').add('days', 3).format("YYYY/MM/DD");
     const today5 = moment().startOf('week').add('days', 4).format("YYYY/MM/DD");
     const today6 = moment().startOf('week').add('days', 5).format("YYYY/MM/DD");
 
-    const q = "SELECT * FROM leaves WHERE " + 
-    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
-    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
-    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
-    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
-    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp_designation AS em ON l.requester_id = em.emp_id WHERE " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to AND em.company_id = ? OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to AND em.company_id = ? OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to AND em.company_id = ? OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to AND em.company_id = ? OR " + 
+    "leave_status = 1 AND ? BETWEEN leave_from AND leave_to AND em.company_id = ?"
 
     db.query(q,
-        [today2,today3,today4,today5,today6],
+        [today2,cid, today3,cid, today4,cid, today5,cid, today6, cid],
         (err,data)=> {
         if(err) {
             return console.log(err)

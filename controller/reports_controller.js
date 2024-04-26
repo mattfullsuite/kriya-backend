@@ -2,48 +2,52 @@ var db = require("../config.js");
 var moment = require("moment");
 
 function GetAllLeaves(req, res){
-    const q = "SELECT * FROM leaves INNER JOIN emp ON requester_id = emp_id"
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ?"
 
-    db.query(q, (err,data)=> {
+    db.query(q, cid, (err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })
 }
 
 function GetAllPaidLeaves(req, res){
-    const q = "SELECT * FROM leaves INNER JOIN emp ON requester_id = emp_id WHERE use_pto_points > 0"
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE l.use_pto_points > 0 AND em.company_id = ?"
 
-    db.query(q, (err,data)=> {
+    db.query(q, cid, (err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
     })
 }
 
 function GetAllBetweenDateLeaves(req, res){
+    var cid = req.session.user[0].company_id
     const lf = req.body.leave_from;
     const lt = req.body.leave_to;
 
     console.log(lf)
     console.log(lt)
 
-    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id WHERE (leave_from > ?) AND (leave_to < ?)"
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE (leave_from > ?) AND (leave_to < ?) AND em.company_id = ?"
 
-    db.query(q, [lf, lt], (err,data)=> {
+    db.query(q, [lf, lt, cid], (err,data)=> {
         if(err) console.log("err " + err)
         return res.json(data)
     }) 
 }
 
 function GetAllPaidBetweenDateLeaves(req, res){
+    var cid = req.session.user[0].company_id
     const lf = req.body.leave_from;
     const lt = req.body.leave_to;
 
     console.log(lf)
     console.log(lt)
 
-    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id WHERE (leave_from > ?) AND (leave_to < ?) AND use_pto_points > 0"
+    const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE (leave_from > ?) AND (leave_to < ?) AND use_pto_points > 0 AND em.company_id = ?"
 
-    db.query(q, [lf, lt], (err,data)=> {
+    db.query(q, [lf, lt, cid], (err,data)=> {
         if(err) console.log("err " + err)
         return res.json(data)
     }) 
