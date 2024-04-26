@@ -110,10 +110,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
-      httpOnly: false,
+      // secure: true,
+      // httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: "none",
+      // sameSite: "none",
     },
   })
 );
@@ -470,16 +470,16 @@ app.delete("/deleteDivision", (req, res) => {
   });
 });
 
-app.post("/addcompany", (req, res) => {
-  const q =
-    "INSERT INTO company (`company_id`, `company_name`, `company_loc`) VALUES (?) ";
-  const values = [2, "TeeTalkPH", "Baguio City"];
+// app.post("/addcompany", (req, res) => {
+//   const q =
+//     "INSERT INTO company (`company_id`, `company_name`, `company_loc`) VALUES (?) ";
+//   const values = [2, "TeeTalkPH", "Baguio City"];
 
-  db.query(q, [values], (err, data) => {
-    if (err) return res.json(err);
-    return res.json("Company has been created successfully!");
-  });
-});
+//   db.query(q, [values], (err, data) => {
+//     if (err) return res.json(err);
+//     return res.json("Company has been created successfully!");
+//   });
+// });
 
 app.get("/showdirectory", (req, res) => {
   const q =
@@ -1833,22 +1833,22 @@ app.get("/getAllPositionsInDivision", (req, res) => {
   });
 });
 
-app.post("/addNewCompany", (req, res) => {
-  const q = "INSERT INTO company (`company_name`) VALUES (?) ";
-  const values = [req.body.company_name];
+// app.post("/addNewCompany", (req, res) => {
+//   const q = "INSERT INTO company (`company_name`) VALUES (?) ";
+//   const values = [req.body.company_name];
 
-  if (!isEmpty(req.body.company_name)) {
-    db.query(q, [values], (err, data) => {
-      if (err) {
-        res.send(err);
-      } else {
-        res.send("success");
-      }
-    });
-  } else {
-    res.send("error");
-  }
-});
+//   if (!isEmpty(req.body.company_name)) {
+//     db.query(q, [values], (err, data) => {
+//       if (err) {
+//         res.send(err);
+//       } else {
+//         res.send("success");
+//       }
+//     });
+//   } else {
+//     res.send("error");
+//   }
+// });
 
 app.post("/addNewDivision", (req, res) => {
   const cid = req.session.user[0].company_id;
