@@ -19,6 +19,7 @@ const createPayslip = (req, res) => {
       "Pay Items": payItems,
       Totals,
       "Net Pay": netPay,
+      generated_by,
     } = items;
 
     return [
@@ -32,11 +33,11 @@ const createPayslip = (req, res) => {
       JSON.stringify(Dates),
       JSON.stringify(payItems),
       JSON.stringify(Totals),
+      generated_by,
     ];
   });
-
   const query = db.query(
-    `INSERT INTO payslip (company_id, emp_num, last_name, first_name, middle_name, email, net_salary, dates, payables, totals) VALUES ?;`,
+    `INSERT INTO payslip (company_id, emp_num, last_name, first_name, middle_name, email, net_salary, dates, payables, totals, generated_by) VALUES ?;`,
     [dataProcessed],
     async (error, response) => {
       if (error) {
