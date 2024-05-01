@@ -4,13 +4,15 @@ var imports =  {
     GetDirectory2,
     GetDivision,
     GetDepartment,
+    GetDownlineCount,
 } = require( "../controller/directory_controller.js");
 
 const router = express.Router()
 
 router.get("/getDirectory", GetDirectory);
-router.get("/getDirectory2", GetDirectory2);
 router.get("/getDivision", GetDivision);
-router.get("/getDepartment", GetDepartment)
+router.get("/getDepartment", GetDepartment);
+router.get("/getDownlineCount", GetDownlineCount);
+
 
 module.exports = router;
