@@ -44,13 +44,14 @@ const createPayslip = (req, res) => {
         console.error(error);
         response.sendStatus(500);
       } else {
-        const result = await generatePDF(data);
-        console.log(result);
-        if (result == 200) {
-          res.status(200).json(result);
-        } else {
-          res.status(500).json({ "Error PDF: ": result });
-        }
+        response.sendStatus(200);
+        // const result = await generatePDF(data);
+        // console.log(result);
+        // if (result == 200) {
+        //   res.status(200).json(result);
+        // } else {
+        //   res.status(500).json({ "Error PDF: ": result });
+        // }
       }
     }
   );
@@ -84,7 +85,7 @@ const getUserPayslip = (req, res) => {
 const getUserYTD = (req, res) => {
   const uid = req.session.user[0].emp_num;
   const q =
-    "SELECT YEAR(NOW()) as 'year', SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `deductions`, SUM(`net_salary`) as `net_salary` FROM `payslip` WHERE `emp_num` = ? AND SUBSTRING(JSON_EXTRACT(`dates`, '$.Payment'), 2,4) = YEAR(NOW()) GROUP BY `emp_num`";
+    "SELECT YEAR(NOW()) as 'year', SUM(JSON_EXTRACT(`totals`, '$.Earnings')) as `earnings`, SUM(JSON_EXTRACT(`totals`, '$.Deductions')) as `deductions`, SUM(`net_salary`) as `net_salary` FROM `payslip` WHERE `emp_num` = ? AND SUBSTRING(JSON_EXTRACT(`dates`, '$.To'), 2,4) = YEAR(NOW()) GROUP BY `emp_num`";
 
   db.query(q, [uid], (err, rows) => {
     if (err) return res.json(err);
