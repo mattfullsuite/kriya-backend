@@ -54,6 +54,7 @@ var module_myteam = require("./routes/myteam.js");
 var module_mypulse_mood = require("./routes/mypulse_mood.js");
 var module_myattendance = require("./routes/attendance.js");
 var module_mypulse_survey = require("./routes/pulse_survey.js");
+var module_overtime = require("./routes/overtime.js");
 
 //var ai = require("./routes/ai_generation.js")
 
@@ -111,10 +112,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
-      httpOnly: false,
+      // secure: true,
+      // httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: "none",
+      // sameSite: "none",
     },
   })
 );
@@ -157,6 +158,7 @@ app.use(module_myteam);
 app.use(module_mypulse_mood);
 app.use(module_myattendance);
 app.use(module_mypulse_survey);
+app.use(module_overtime);
 
 //app.use(ai)
 
