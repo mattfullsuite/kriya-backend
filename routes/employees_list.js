@@ -7,6 +7,9 @@ var imports =  {
     RegularEmployees, 
     PartTimeEmployees,
     ProbationaryEmployees,
+    AllEmployeesList,
+    NewEmployeesList,
+    SeparatedEmployeesList,
 } = require( "../controller/employees_list_controller.js");
 
 const router = express.Router()
@@ -18,5 +21,8 @@ router.get("/allEmployees", AllEmployees);
 router.get("/regularEmployees", RegularEmployees);
 router.get("/parttimeEmployees", PartTimeEmployees);
 router.get("/probationaryEmployees", ProbationaryEmployees);
+router.get("/em-allEmployees", AllEmployeesList);
+router.get("/em-newEmployees", NewEmployeesList);
+router.get("/em-separatedEmployees", SeparatedEmployeesList)
 
 module.exports = router;
