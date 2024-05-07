@@ -93,8 +93,38 @@ const getUserYTD = (req, res) => {
   });
 };
 
+const getAllPaySlipGroups = (req, res) => {
+  const uid = req.session.user[0].emp_num;
+  const compID = req.session.user[0].company_id;
+  const q =
+    "SELECT DISTINCT DATE_FORMAT(`created_at`, '%m/%d/%Y %H:%i:%s' ) AS `created_at`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `date_from`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `date_to`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `date_payment`, `source`  FROM payslip WHERE company_id = " +
+    compID +
+    " GROUP BY `created_at`, `date_from`, `date_to`, `date_payment`, `source` ORDER BY `created_at` DESC;";
+
+  db.query(q, [uid], (err, rows) => {
+    if (err) return res.json(err);
+    return res.status(200).json(rows);
+  });
+};
+
+const getAllPaySlip = (req, res) => {
+  const uid = req.session.user[0].emp_num;
+  const compID = req.session.user[0].company_id;
+  const q =
+    "SELECT e.emp_num, CONCAT(e.f_name,' ', e.m_name,' ', e.s_name) AS 'emp_name',e.work_email,  e.date_hired, ps.dates, ps.payables, ps.totals, ps.net_salary, CONCAT(e2.f_name, ' ', e2.m_name, ' ', e2.s_name) AS `generated_by`, ps.source, DATE_FORMAT(ps.`created_at`, '%m/%d/%Y %H:%i:%s') AS 'created_at' FROM `payslip` ps INNER JOIN emp e ON e.emp_num = ps.emp_num INNER JOIN `emp` e2 on e2.emp_num = ps.generated_by WHERE company_id = " +
+    compID +
+    " ORDER BY `created_at` DESC;";
+
+  db.query(q, [uid], (err, rows) => {
+    if (err) return res.json(err);
+    return res.status(200).json(rows);
+  });
+};
+
 module.exports = {
   createPayslip,
   getUserPayslip,
   getUserYTD,
+  getAllPaySlipGroups,
+  getAllPaySlip,
 };
