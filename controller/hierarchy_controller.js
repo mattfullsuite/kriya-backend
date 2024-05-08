@@ -37,7 +37,7 @@ function GetInferiorAndSuperior(req, res) {
 function GetOwnSuperior(req, res){
     const uid = req.session.user[0].emp_id
 
-    const q = "SELECT a.emp_id, a.superior_id, b.emp_id, b.f_name, b.s_name FROM emp AS a INNER JOIN emp AS b ON a.superior_id = b.emp_id WHERE a.emp_id = ?"
+    const q = "SELECT a.emp_id, a.emp_pic, a.superior_id, b.emp_id, b.f_name, b.s_name FROM emp AS a INNER JOIN emp AS b ON a.superior_id = b.emp_id WHERE a.emp_id = ?"
 
     db.query(q, [uid], (err, data) => {
         if (err){
