@@ -3,7 +3,7 @@ var db = require("../config.js");
 function GetAllActiveSurveys(req, res) {
   var uid = req.session.user[0].emp_id;
   const q =
-    "SELECT * FROM pulse_survey WHERE pulse_survey_id not in (SELECT survey_id FROM pulse_survey_answers WHERE respondent_id = ?)";
+    "SELECT * FROM pulse_survey WHERE pulse_survey_id not in (SELECT survey_id FROM pulse_survey_answers WHERE respondent_id = ?) AND survey_status = 1";
 
   db.query(q, uid, (err, data) => {
     if (err) {
