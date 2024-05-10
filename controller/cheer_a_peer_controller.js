@@ -127,7 +127,19 @@ function GetPeers(req, res) {
     });
 }
 
+//SELECT (SELECT COUNT(cheerer_id) FROM cheer_post WHERE cheerer_id = 1) AS total_given, (SELECT COUNT(peer_id) FROM cheer_post WHERE cheerer_id = 1) AS total_received, (SELECT SUM(heartbits_given) FROM cheer_post WHERE peer_id = 1) AS total_points FROM cheer_post GROUP BY total_points
+function GetMyTotals(req, res) {
+    const uid = req.session.user[0].emp_id;
+    const q = "SELECT (SELECT COUNT(cheerer_id) FROM cheer_post WHERE cheerer_id = ?) AS total_given, (SELECT COUNT(peer_id) FROM cheer_post WHERE peer_id = ?) AS total_received, (SELECT SUM(heartbits_given) FROM cheer_post WHERE cheerer_id = ?) AS total_points FROM cheer_post GROUP BY total_points"
 
+    db.query(q, [uid, uid, uid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
 
 
 
@@ -137,4 +149,5 @@ module.exports = {
     GetRecentCheers,
     GetPeers,
     GetMostRecentCheer,
+    GetMyTotals,
 }
