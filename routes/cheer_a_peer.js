@@ -5,6 +5,7 @@ var imports =  {
     GetRecentCheers,
     GetPeers,
     GetMostRecentCheer,
+    GetMyTotals,
 } = require( "../controller/cheer_a_peer_controller.js");
 
 const router = express.Router()
@@ -14,5 +15,6 @@ router.post("/cap-cheerAPeer", CreateACheerPost);
 router.get("/cap-getRecentCheers", GetRecentCheers);
 router.get("/cap-getPeers", GetPeers);
 router.get("/cap-getMostRecentCheer", GetMostRecentCheer);
+router.get("/cap-getTotals", GetMyTotals);
 
 module.exports = router;
