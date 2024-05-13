@@ -79,11 +79,19 @@ function CreateACheerPost(req, res) {
     db.query(q, 
         [values], 
         (err,data) => {
-        if (err){
-           console.log(err)
-        } else {
-           console.log(data)
-        }
+
+            try {
+                if (err){
+                    console.log("error");
+                   res.send("error")
+                } else {
+                    console.log("success");
+                   res.send("success")
+                }
+            }catch(e) {
+                res.send("error");
+            }
+
     })
 
 }
