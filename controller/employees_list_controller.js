@@ -2,7 +2,8 @@ var db = require("../config.js");
 
 function EmployeesList(req, res) {
     var cid = req.session.user[0].company_id
-    const q = `SELECT *, s.f_name AS superior_f_name, s.s_name AS superior.s_name, CONCAT(f_name, m_name, s_name, emp_num, work_email, c_address, contact_num) AS searchable FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND date_separated IS NULL ORDER BY e.s_name`
+    const q = `SELECT *, s.f_name AS superior_f_name, s.s_name AS superior_s_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, e.work_email, e.c_address, e.contact_num) AS searchable FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL ORDER BY e.s_name`
+
     db.query(q,cid,(err,data)=> {
         if(err) return res.json(err)
         return res.json(data)
