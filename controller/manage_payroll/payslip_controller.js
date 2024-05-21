@@ -100,10 +100,36 @@ const getAllPaySlip = (req, res) => {
   });
 };
 
+// Last Pay Run
+
+// Get Offboarding Employees
+const getOffBoardingEmployees = (req, res) => {
+  const compID = req.session.user[0].company_id;
+  const q =
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL AND e.m_name != '', LEFT(e.m_name, 1), 'N/A'), '.', ' ', e.s_name) AS name, e.emp_num, e.date_hired, e.date_separated, ec.base_pay, rp.recent_payment FROM emp e INNER JOIN emp_compensation ec ON ec.emp_num = e.emp_num INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id LEFT JOIN (SELECT p.emp_num, MAX(JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.Payment'))) AS recent_payment FROM payslip p WHERE SUBSTRING(JSON_EXTRACT(p.dates, '$.To'), 2, 4) = YEAR(NOW()) GROUP BY p.emp_num) rp ON e.emp_num = rp.emp_num WHERE ed.company_id = ? AND e.date_separated > NOW() ORDER BY e.date_separated DESC;";
+  db.query(q, compID, (err, rows) => {
+    if (err) return res.json(err);
+    return res.status(200).json(rows);
+  });
+};
+
+const getEmployeePayslipCurrentYear = async (req, res) => {
+  const { empID } = req.params;
+  const compID = req.session.user[0].company_id;
+  const q =
+    "SELECT e.emp_num, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL and e.m_name != '', LEFT(e.m_name, 1), 'N/A'), '.', ' ',e.s_name) AS 'name', p.dates, p.payables, p.totals, p.net_salary, p.source FROM `payslip` p INNER JOIN emp e ON e.emp_num = p.emp_num INNER JOIN emp_designation ed on ed.emp_id = e.emp_id WHERE ed.company_id = ? AND e.emp_num = ? AND SUBSTRING(JSON_EXTRACT(p.`dates`, '$.To'), 2,4) = YEAR(NOW()) ORDER BY JSON_EXTRACT(p.`dates`, '$.Payment') DESC";
+  db.query(q, [compID, empID], (err, rows) => {
+    if (err) return res.json(err);
+    return res.status(200).json(rows);
+  });
+};
+
 module.exports = {
   createPayslip,
   getUserPayslip,
   getUserYTD,
   getAllPaySlipGroups,
   getAllPaySlip,
+  getEmployeePayslipCurrentYear,
+  getOffBoardingEmployees,
 };
