@@ -1,5 +1,6 @@
 var express = require("express");
 var imports =  {
+    GetAllEmployeesOfCompany,
     SubmitComplaint,
     SubmitAnonymousComplaint,
     AllHR,
@@ -7,6 +8,7 @@ var imports =  {
 
 const router = express.Router()
 
+router.get("/req-allemployees", GetAllEmployeesOfCompany);
 router.post("/submitComplaint", SubmitComplaint);
 router.post("/submitAnonymousComplaint", SubmitAnonymousComplaint);
 router.get("/getAllHR", AllHR);
