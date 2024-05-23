@@ -21,6 +21,23 @@ function InsertAttendanceIntoDatabase(req, res) {
     console.log("Successfully added everything in database!");
 }
 
+function ChangeValuesInDatabase(req, res) {
+
+    const q = "SELECT * FROM attendance"
+
+    data.map((d) => {
+        db.query(q, [d], (err, data) => {
+            if (err){
+                console.log(err)
+            } else {
+                console.log("Added.")
+            }
+        })
+    })
+    
+    console.log("Successfully added everything in database!");
+}
+
 function GetLimitedAttendance(req, res) {
     const unum = req.session.user[0].emp_num
     const q = "SELECT * FROM attendance WHERE employee_id = ? ORDER BY date DESC LIMIT 5";
