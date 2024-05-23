@@ -4,7 +4,7 @@ var moment = require("moment");
 function GetDepartmentLeaves(req, res) {
     const uid = req.session.user[0].emp_id
     const q = "SELECT * FROM `leave_credits` AS l INNER JOIN `emp` AS e ON l.emp_id = e.emp_id WHERE e.emp_id = ?"
-8
+
     db.query(q,
         [uid],
         (err,data)=> {
@@ -218,6 +218,127 @@ function ShowAllDepartmentLeavesOfTeam(req, res){
     });
 }
 
+function ModifiedShowAllDownlineLeaves(req, res){
+    //const uid = req.session.user[0].emp_id
+    const uid = 101
+
+    const q = 
+    `(SELECT  e1.f_name AS f1,
+		e1.s_name AS s1,
+		c1.leave_balance AS c1,
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 0 AND requester_id = e1.emp_id) AS p1, 
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 1 AND requester_id = e1.emp_id) AS a1, 
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 2 AND requester_id = e1.emp_id) AS d1
+FROM    emp e
+        LEFT JOIN emp AS e1
+            ON  e.emp_id = e1.superior_id
+		LEFT JOIN leaves AS l1
+			ON e1.emp_id = l1.requester_id
+		LEFT JOIN leave_credits AS c1
+			ON e1.emp_id = c1.emp_id
+WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e1.f_name IS NOT NULL
+GROUP   BY f1, s1, c1, p1, a1, d1)
+
+
+UNION
+
+
+(SELECT  e2.f_name AS f1,
+		e2.s_name AS s1,
+		c2.leave_balance AS c1,
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 0 AND requester_id = e2.emp_id) AS p1, 
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 1 AND requester_id = e2.emp_id) AS a1, 
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 2 AND requester_id = e2.emp_id) AS d1
+FROM    emp e
+        LEFT JOIN emp AS e1
+            ON  e.emp_id = e1.superior_id
+		LEFT JOIN leaves AS l1
+			ON e1.emp_id = l1.requester_id
+		LEFT JOIN leave_credits AS c1
+			ON e1.emp_id = c1.emp_id
+                LEFT JOIN emp AS e2
+                    ON  e1.emp_id = e2.superior_id
+                LEFT JOIN leaves AS l2
+                    ON e2.emp_id = l2.requester_id
+                LEFT JOIN leave_credits AS c2
+                    ON e2.emp_id = c2.emp_id
+WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e2.date_separated IS NULL AND e2.f_name IS NOT NULL
+GROUP BY f1, s1, c1, p1, a1, d1)
+
+UNION 
+
+(SELECT e3.f_name AS f1,
+		e3.s_name AS s1,
+		c3.leave_balance AS c1,
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 0 AND requester_id = e3.emp_id) AS p1, 
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 1 AND requester_id = e3.emp_id) AS a1, 
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 2 AND requester_id = e3.emp_id) AS d1
+FROM    emp e
+        LEFT JOIN emp AS e1
+            ON  e.emp_id = e1.superior_id
+		LEFT JOIN leaves AS l1
+			ON e1.emp_id = l1.requester_id
+		LEFT JOIN leave_credits AS c1
+			ON e1.emp_id = c1.emp_id
+                LEFT JOIN emp AS e2
+                    ON  e1.emp_id = e2.superior_id
+                LEFT JOIN leaves AS l2
+                    ON e2.emp_id = l2.requester_id
+                LEFT JOIN leave_credits AS c2
+                    ON e2.emp_id = c2.emp_id
+                        LEFT JOIN emp AS e3
+                            ON  e2.emp_id = e3.superior_id
+                        LEFT JOIN leaves AS l3
+                            ON e3.emp_id = l3.requester_id
+                        LEFT JOIN leave_credits AS c3
+                            ON e3.emp_id = c3.emp_id
+WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e2.date_separated IS NULL AND e3.date_separated IS NULL AND e3.f_name IS NOT NULL
+GROUP BY f1, s1, c1, p1, a1, d1)
+
+UNION 
+
+(SELECT e4.f_name AS f1,
+		e4.s_name AS s1,
+		c4.leave_balance AS c1,
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 0 AND requester_id = e4.emp_id) AS p1, 
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 1 AND requester_id = e4.emp_id) AS a1, 
+		(SELECT COUNT(*) FROM leaves WHERE leave_status = 2 AND requester_id = e4.emp_id) AS d1
+FROM    emp e
+        LEFT JOIN emp AS e1
+            ON  e.emp_id = e1.superior_id
+		LEFT JOIN leaves AS l1
+			ON e1.emp_id = l1.requester_id
+		LEFT JOIN leave_credits AS c1
+			ON e1.emp_id = c1.emp_id
+                LEFT JOIN emp AS e2
+                    ON  e1.emp_id = e2.superior_id
+                LEFT JOIN leaves AS l2
+                    ON e2.emp_id = l2.requester_id
+                LEFT JOIN leave_credits AS c2
+                    ON e2.emp_id = c2.emp_id
+                        LEFT JOIN emp AS e3
+                            ON  e2.emp_id = e3.superior_id
+                        LEFT JOIN leaves AS l3
+                            ON e3.emp_id = l3.requester_id
+                        LEFT JOIN leave_credits AS c3
+                            ON e3.emp_id = c3.emp_id
+                                LEFT JOIN emp AS e4
+                                    ON  e3.emp_id = e4.superior_id
+                                LEFT JOIN leaves AS l4
+                                    ON e4.emp_id = l4.requester_id
+                                LEFT JOIN leave_credits AS c4
+                                    ON e4.emp_id = c4.emp_id
+WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e2.date_separated IS NULL AND e3.date_separated IS NULL AND e4.date_separated IS NULL AND e4.f_name IS NOT NULL
+GROUP   BY f1, s1, c1, p1, a1, d1)`
+
+    db.query(q, [uid, uid, uid, uid], (err, data) => {
+        if (err) {
+            return res.json(err);
+        }
+            return res.json(data);
+        });
+}
+
 function CheckIfDownline(req, res){
     const uid = req.session.user[0].emp_id;
 
@@ -229,6 +350,81 @@ function CheckIfDownline(req, res){
         }
         return res.json(data);
     });
+}
+
+function ModifiedTeamOOOToday(req, res){
+    const uid = 101
+
+    const q = 
+    `(SELECT  e1.*, l1.*
+        FROM    emp e
+                LEFT JOIN emp AS e1
+                    ON  e.emp_id = e1.superior_id
+                LEFT JOIN leaves AS l1
+                    ON e1.emp_id = l1.requester_id
+        WHERE e.emp_id = 101 AND l1.leave_from = CURDATE() || l1.leave_to = CURDATE())
+        
+        UNION
+        
+        (SELECT  e2.*, l2.*
+        FROM    emp e
+                LEFT JOIN emp AS e1
+                    ON  e.emp_id = e1.superior_id
+                LEFT JOIN leaves AS l1
+                    ON e1.emp_id = l1.requester_id
+                        LEFT JOIN emp AS e2
+                            ON  e1.emp_id = e2.superior_id
+                        LEFT JOIN leaves AS l2
+                            ON e2.emp_id = l2.requester_id
+        WHERE e.emp_id = 101 AND l2.leave_from = CURDATE() || l2.leave_to = CURDATE())
+        
+        UNION 
+        
+        (SELECT  e3.*, l3.*
+        FROM    emp e
+                LEFT JOIN emp AS e1
+                    ON  e.emp_id = e1.superior_id
+                LEFT JOIN leaves AS l1
+                    ON e1.emp_id = l1.requester_id
+                        LEFT JOIN emp AS e2
+                            ON  e1.emp_id = e2.superior_id
+                        LEFT JOIN leaves AS l2
+                            ON e2.emp_id = l2.requester_id
+                            LEFT JOIN emp AS e3
+                                ON  e2.emp_id = e3.superior_id
+                            LEFT JOIN leaves AS l3
+                                ON e3.emp_id = l3.requester_id
+        WHERE e.emp_id = 101 AND l3.leave_from = CURDATE() || l3.leave_to = CURDATE())
+        
+        UNION 
+        
+        (SELECT  e4.*, l4.*
+        FROM    emp e
+                LEFT JOIN emp AS e1
+                    ON  e.emp_id = e1.superior_id
+                LEFT JOIN leaves AS l1
+                    ON e1.emp_id = l1.requester_id
+                        LEFT JOIN emp AS e2
+                            ON  e1.emp_id = e2.superior_id
+                        LEFT JOIN leaves AS l2
+                            ON e2.emp_id = l2.requester_id
+                            LEFT JOIN emp AS e3
+                                ON  e2.emp_id = e3.superior_id
+                            LEFT JOIN leaves AS l3
+                                ON e3.emp_id = l3.requester_id
+                                    LEFT JOIN emp AS e4
+                                        ON  e3.emp_id = e4.superior_id
+                                    LEFT JOIN leaves AS l4
+                                        ON e4.emp_id = l4.requester_id
+        WHERE e.emp_id = 101 AND l4.leave_from = CURDATE() || l4.leave_to = CURDATE())`
+
+        db.query(q, [uid, uid, uid, uid], (err, data) => {
+            if (err) {
+                return res.json(err);
+            }
+                return res.json(data);
+            }
+        );
 }
 
 
@@ -250,4 +446,8 @@ module.exports = {
     ShowAllDepartmentLeavesExceptPending,
     ShowAllDepartmentLeavesOfTeam,
     CheckIfDownline,
+
+
+    ModifiedShowAllDownlineLeaves,
+    ModifiedTeamOOOToday,
 };
