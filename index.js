@@ -84,6 +84,7 @@ const app = express();
     database: process.env.DATABASE,
 })**/
 
+
 db.connect((error) => {
   if (error) {
     console.log(error);
@@ -1090,9 +1091,14 @@ app.get("/myDepartmentPendingLeaves", (req, res) => {});
 /** --------------------- CRON Jobs --------------------------- **/
 
 cron.schedule("0 0 * * *", function () {
+  giveMonthlyHeartbits();
+});
+
+cron.schedule("0 0 * * *", function () {
   cronLogs();
   dailyPtoAccrual();
 });
+
 
 cron.schedule("0 0 1 1 *", function () {
   yearlyAccrual();
@@ -1101,6 +1107,25 @@ cron.schedule("0 0 1 1 *", function () {
 // cron.schedule("*/10 * * * * *", function() {
 //     console.log("running a task every 10 second");
 // });
+
+// ---------------------------------------- CHEER A PEER ---------------------------------------------- //
+function giveMonthlyHeartbits() {
+  const q2 = "UPDATE heartbits SET `heartbits_balance` = 100 WHERE LAST_DAY(CURDATE()) = CURDATE()"
+  //AND LAST_DAY(CURDATE()) = CURDATE()
+  //UPDATE attendance SET `hours_logged` = CAST(CAST(`time_out` AS time) - CAST(`time_in` AS time) AS time) WHERE time_in IS NOT NULL AND time_out IS NOT NULL 
+                
+    db.query(q2, 
+      (err,data) => {
+    if (err){
+      res.send("error");
+      console.log("Not the end of the month.")
+    } else {
+      console.log("Updated all heartbits to 100.")
+    }
+  }) 
+}
+
+
 
 function cronLogs() {
   // ---------------------------------------- PROBATIONARY ---------------------------------------------- //
@@ -1381,6 +1406,18 @@ app.post("/addNewEmployee", upload.single("emp_pic"), (req, res) => {
         }
         console.log("Inserted leave credits for new employee.");
       });
+
+      const aq = "INSERT INTO heartbits (`emp_id`, `heartbits_balance`, `total_heartbits`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), 100, 0)"
+
+      db.query(aq,  
+        (err,data) => {
+        if (err){
+            console.log(err)
+        } else {
+            console.log("done")
+        }
+    })
+
 
       const designationValues = [
         req.body.company_id,
