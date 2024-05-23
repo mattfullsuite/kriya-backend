@@ -1,7 +1,7 @@
 var db = require("../config.js");
 function GetDirectory(req, res) {
     const cid = req.session.user[0].company_id
-    const q = "SELECT * FROM emp INNER JOIN emp_designation ON emp.emp_id = emp_designation.emp_id INNER JOIN position ON emp_designation.position_id = position.position_id INNER JOIN dept ON dept.dept_id = position.dept_id INNER JOIN division ON division.div_id=dept.div_id WHERE emp_designation.company_id = ?"
+    const q = "SELECT * FROM emp INNER JOIN emp_designation ON emp.emp_id = emp_designation.emp_id INNER JOIN position ON emp_designation.position_id = position.position_id INNER JOIN dept ON dept.dept_id = position.dept_id INNER JOIN division ON division.div_id=dept.div_id WHERE emp_designation.company_id = ? AND emp.date_separated IS NULL"
 
     db.query(q, cid, (err, data) => {
         if (err){

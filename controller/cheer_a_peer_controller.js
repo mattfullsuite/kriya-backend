@@ -1,6 +1,20 @@
 var db = require("../config.js");
 
+function CreateHeartbitsForAllInactiveEmployees(req, res) {
+    const aq = "INSERT INTO heartbits (`emp_id`, `heartbits_balance`, `total_heartbits`) SELECT emp_id, 100, 0 FROM emp WHERE emp_id NOT IN (SELECT DISTINCT e.emp_id FROM emp AS e INNER JOIN heartbits AS h ON e.emp_id = h.emp_id)"
+
+    db.query(aq,  
+        (err,data) => {
+        if (err){
+            console.log(err)
+        } else {
+            console.log("done")
+        }
+    })
+}
+
 function GetMyHeartbitsData(req, res) {
+
     const uid = req.session.user[0].emp_id
     const q = "SELECT * FROM heartbits WHERE emp_id = ?"
 
@@ -17,10 +31,10 @@ function GetMyHeartbitsData(req, res) {
             console.log(data.length)
             if (data.length == 0){
                 const uid = req.session.user[0].emp_id
-                const q2 = "INSERT INTO heartbits (`emp_id`, `heartbits_balance`) VALUES (?)"
+                const q2 = "INSERT INTO heartbits (`emp_id`, `heartbits_balance`, `total_heartbits`) VALUES (?)"
                 console.log(2);
 
-                const values = [uid,0]
+                const values = [uid,100,0]
                 
                 db.query(q2, 
                     [values], 
@@ -79,16 +93,34 @@ function CreateACheerPost(req, res) {
     db.query(q, 
         [values], 
         (err,data) => {
-
             try {
                 if (err){
-                    console.log("error");
+                   console.log("error");
                    res.send("error")
                 } else {
-                    console.log("success");
-                   res.send("success")
+                   console.log("success");
+                //    res.send("success")
+                   const cheerer_q = "UPDATE heartbits SET `heartbits_balance` = `heartbits_balance` - " + req.body.heartbits_given + " WHERE emp_id = " + uid;
+
+                   db.query(cheerer_q, (err, data) => {
+                        if (err) {
+                            console.log("error");
+                        } else {
+                            console.log(data);
+                        }
+                    })
+
+                    const peer_q = "UPDATE heartbits SET `total_heartbits` = `total_heartbits` + " + req.body.heartbits_given + " WHERE emp_id = " + req.body.peer_id;
+
+                    db.query(peer_q, (err, data) => {
+                        if (err) {
+                            console.log("error");
+                        } else {
+                            res.send("success");
+                        }
+                    })
                 }
-            }catch(e) {
+            } catch(e) {
                 res.send("error");
             }
 
@@ -114,6 +146,23 @@ function GetRecentCheers(req, res) {
     const q = "SELECT * FROM cheer_post AS c INNER JOIN emp AS e ON c.cheerer_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id WHERE c.peer_id = ? ORDER BY c.cheer_post_id DESC LIMIT 4"
 
     db.query(q, [uid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data)
+        }
+    })
+}
+
+function GetCheersPost(req, res) {
+    const cid = req.session.user[0].company_id;
+    const q = `SELECT c.*, ch.f_name AS cheerer_f_name, ch.s_name AS cheerer_s_name, p.position_name AS cheerer_job, pe.f_name AS peer_f_name, pe.s_name AS peer_s_name, p2.position_name AS peer_job FROM cheer_post AS c INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id 
+
+    INNER JOIN emp AS pe ON c.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id 
+    
+    WHERE em.company_id = ? ORDER BY c.cheer_post_id DESC`
+
+    db.query(q, [cid], (err, data) => {
         if (err) {
             res.send("error");
         } else {
@@ -149,13 +198,101 @@ function GetMyTotals(req, res) {
     });
 }
 
+function AddCommentToCheerPost(req, res) {
+    const uid = req.session.user[0].emp_id;
+    const q = "INSERT INTO cheer_comments (`cheer_post_id`, `commenter_id`, `cheer_comment`) VALUES (?)"
+
+    const values = [
+        req.body.cheer_post_id,
+        uid,
+        req.body.cheer_comment
+    ]
+
+    db.query(q, [values], (err, data) => {
+        if (err) {
+            res.send("error");
+            console.log(err);
+        } else {
+            res.json(data);
+            console.log(data)
+        }
+    });
+}
+
+function LikeACheerPost(req, res) {
+    const uid = req.session.user[0].emp_id;
+    const q = "INSERT INTO cheer_likes (`cheer_post_id`, `liker_id`) VALUES (?)"
+
+    const values = [
+        req.body.post_id,
+        uid
+    ]
+
+    db.query(q, [values], (err, data) => {
+        if (err) {
+            res.send("error");
+            console.log(err);
+        } else {
+            res.json(data);
+            console.log(data)
+        }
+    });
+}
+
+function CheckIfLikedAlready(req, res){
+    const uid = req.session.user[0].emp_id;
+    const q = "SELECT cheer_post_id FROM cheer_likes WHERE liker_id = ?"
+
+    db.query(q, [uid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+function UnlikeACheerPost(req, res) {
+    const uid = req.session.user[0].emp_id;
+    const post_id = req.body.post_id;
+    const q = "DELETE FROM cheer_likes WHERE cheer_post_id = " + post_id + "  AND liker_id = " + uid;
+  
+    db.query(q, (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        //res.json("success");
+        console.log(data)
+      }
+    });
+}
+
+function GetAllComments(req, res){
+    const q = "SELECT * FROM cheer_comments INNER JOIN emp ON emp_id = commenter_id"
+
+    db.query(q, (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
 
 
 module.exports = { 
+    CreateHeartbitsForAllInactiveEmployees,
     GetMyHeartbitsData,
     CreateACheerPost,
     GetRecentCheers,
     GetPeers,
     GetMostRecentCheer,
     GetMyTotals,
+    AddCommentToCheerPost,
+    GetCheersPost,
+    LikeACheerPost,
+    CheckIfLikedAlready,
+    UnlikeACheerPost,
+    GetAllComments,
 }
