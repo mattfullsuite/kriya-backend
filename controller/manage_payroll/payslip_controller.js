@@ -100,10 +100,115 @@ const getAllPaySlip = (req, res) => {
   });
 };
 
+// Last Pay Run
+
+// Get Offboarding Employees
+const getOffBoardingEmployees = (req, res) => {
+  const compID = req.session.user[0].company_id;
+  const q =
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL AND e.m_name != '', LEFT(e.m_name, 1), 'N/A'), '.', ' ', e.s_name) AS name, e.emp_num, e.date_hired, e.date_separated, ec.base_pay, rp.recent_payment FROM emp e INNER JOIN emp_compensation ec ON ec.emp_num = e.emp_num INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id LEFT JOIN (SELECT p.emp_num, MAX(JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.Payment'))) AS recent_payment FROM payslip p WHERE SUBSTRING(JSON_EXTRACT(p.dates, '$.To'), 2, 4) = YEAR(NOW()) GROUP BY p.emp_num) rp ON e.emp_num = rp.emp_num WHERE ed.company_id = ? AND e.date_separated > NOW() ORDER BY e.date_separated DESC;";
+  db.query(q, compID, (err, rows) => {
+    if (err) return res.json(err);
+    return res.status(200).json(rows);
+  });
+};
+
+// Pay Items YTD
+
+const getAllPayItems = async (compID) => {
+  return new Promise((resolve, reject) => {
+    const q = "SELECT * FROM pay_items WHERE company_id = ?";
+    db.query(q, [compID], (err, data) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(data);
+    });
+  });
+};
+
+const getEmployeePayslipCurrentYear = async (req, res) => {
+  const { empID } = req.params;
+  const compID = req.session.user[0].company_id;
+
+  const payItems = await getAllPayItems(compID);
+
+  const q =
+    "SELECT e.emp_num, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL and e.m_name != '', LEFT(e.m_name, 1), 'N/A'), '.', ' ',e.s_name) AS 'name', p.dates, p.payables, p.totals, p.net_salary, p.source FROM `payslip` p INNER JOIN emp e ON e.emp_num = p.emp_num INNER JOIN emp_designation ed on ed.emp_id = e.emp_id WHERE ed.company_id = ? AND e.emp_num = ? AND SUBSTRING(JSON_EXTRACT(p.`dates`, '$.To'), 2,4) = YEAR(NOW()) ORDER BY JSON_EXTRACT(p.`dates`, '$.Payment') DESC";
+  db.query(q, [compID, empID], (err, rows) => {
+    if (err) return res.json(err);
+    const processedData = appendPayItemValues(tranformData(rows), payItems);
+    console.log("processed data: ", processedData);
+    return res.status(200).json(processedData);
+  });
+};
+
+const appendPayItemValues = (payItemYTD, payItems) => {
+  payItems.forEach((payItem) => {
+    delete payItem.pay_items_id;
+    delete payItem.company_id;
+    delete payItem.created_at;
+    if (payItem.pay_item_name in payItemYTD) {
+      payItem["amount"] = parseFloat(payItemYTD[payItem.pay_item_name]).toFixed(
+        2
+      );
+      return;
+    }
+    payItem["amount"] = 0.0;
+  });
+  return payItems;
+};
+
+const tranformData = (data) => {
+  const transformedData = [];
+  // Array
+  data.forEach((record) => {
+    const newObject = {};
+    // In each object flatten the payables
+    Object.keys(record).forEach((key) => {
+      if (key == "payables") {
+        const dataObject = JSON.parse(record[key]);
+        Object.keys(dataObject).forEach((keyLevel1) => {
+          if (key == "payables") {
+            const categories = dataObject[keyLevel1];
+            Object.keys(categories).forEach((payItem) => {
+              newObject[payItem] = categories[payItem];
+            });
+          }
+          // newObject[keyLevel1] = dataObject[keyLevel1];
+        });
+      }
+      if (key == "emp_num") {
+        newObject[key] = record[key];
+      }
+    });
+    transformedData.push(newObject);
+  });
+
+  // return transformedData;
+  return getSumPayItems(transformedData);
+};
+
+const getSumPayItems = (data) => {
+  return data.reduce((acc, record) => {
+    Object.keys(record).forEach((key) => {
+      if (key != "emp_num") {
+        if (!acc[key]) {
+          acc[key] = 0.0;
+        }
+        acc[key] += parseFloat(record[key]);
+      }
+    });
+    return acc;
+  }, {});
+};
+
 module.exports = {
   createPayslip,
   getUserPayslip,
   getUserYTD,
   getAllPaySlipGroups,
   getAllPaySlip,
+  getEmployeePayslipCurrentYear,
+  getOffBoardingEmployees,
 };
