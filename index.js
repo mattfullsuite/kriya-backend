@@ -58,6 +58,7 @@ var module_overtime = require("./routes/overtime.js");
 var module_cheer_a_peer = require("./routes/cheer_a_peer.js");
 var module_company_pulse = require("./routes/company_pulse.js");
 var module_applicant_tracking = require("./routes/applicant_tracking.js");
+var dispute = require("./routes/dispute.js");
 
 //var ai = require("./routes/ai_generation.js")
 
@@ -83,7 +84,6 @@ const app = express();
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE,
 })**/
-
 
 db.connect((error) => {
   if (error) {
@@ -166,6 +166,9 @@ app.use(module_overtime);
 app.use(module_cheer_a_peer);
 app.use(module_company_pulse);
 app.use(module_applicant_tracking);
+
+//dispute
+app.use(dispute);
 
 //app.use(ai)
 
@@ -1099,7 +1102,6 @@ cron.schedule("0 0 * * *", function () {
   dailyPtoAccrual();
 });
 
-
 cron.schedule("0 0 1 1 *", function () {
   yearlyAccrual();
 });
@@ -1110,22 +1112,20 @@ cron.schedule("0 0 1 1 *", function () {
 
 // ---------------------------------------- CHEER A PEER ---------------------------------------------- //
 function giveMonthlyHeartbits() {
-  const q2 = "UPDATE heartbits SET `heartbits_balance` = 100 WHERE LAST_DAY(CURDATE()) = CURDATE()"
+  const q2 =
+    "UPDATE heartbits SET `heartbits_balance` = 100 WHERE LAST_DAY(CURDATE()) = CURDATE()";
   //AND LAST_DAY(CURDATE()) = CURDATE()
-  //UPDATE attendance SET `hours_logged` = CAST(CAST(`time_out` AS time) - CAST(`time_in` AS time) AS time) WHERE time_in IS NOT NULL AND time_out IS NOT NULL 
-                
-    db.query(q2, 
-      (err,data) => {
-    if (err){
+  //UPDATE attendance SET `hours_logged` = CAST(CAST(`time_out` AS time) - CAST(`time_in` AS time) AS time) WHERE time_in IS NOT NULL AND time_out IS NOT NULL
+
+  db.query(q2, (err, data) => {
+    if (err) {
       res.send("error");
-      console.log("Not the end of the month.")
+      console.log("Not the end of the month.");
     } else {
-      console.log("Updated all heartbits to 100.")
+      console.log("Updated all heartbits to 100.");
     }
-  }) 
+  });
 }
-
-
 
 function cronLogs() {
   // ---------------------------------------- PROBATIONARY ---------------------------------------------- //
@@ -1407,17 +1407,16 @@ app.post("/addNewEmployee", upload.single("emp_pic"), (req, res) => {
         console.log("Inserted leave credits for new employee.");
       });
 
-      const aq = "INSERT INTO heartbits (`emp_id`, `heartbits_balance`, `total_heartbits`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), 100, 0)"
+      const aq =
+        "INSERT INTO heartbits (`emp_id`, `heartbits_balance`, `total_heartbits`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), 100, 0)";
 
-      db.query(aq,  
-        (err,data) => {
-        if (err){
-            console.log(err)
+      db.query(aq, (err, data) => {
+        if (err) {
+          console.log(err);
         } else {
-            console.log("done")
+          console.log("done");
         }
-    })
-
+      });
 
       const designationValues = [
         req.body.company_id,
