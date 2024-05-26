@@ -160,7 +160,7 @@ function GetCheersPost(req, res) {
 
     INNER JOIN emp AS pe ON c.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id 
     
-    WHERE em.company_id = ? ORDER BY c.cheer_post_id DESC`
+    WHERE em.company_id = ? ORDER BY rand()`
 
     db.query(q, [cid], (err, data) => {
         if (err) {
@@ -213,8 +213,16 @@ function AddCommentToCheerPost(req, res) {
             res.send("error");
             console.log(err);
         } else {
-            res.json(data);
-            console.log(data)
+            const q = "SELECT * FROM cheer_comments INNER JOIN emp ON emp_id = commenter_id WHERE cheer_comments_id = LAST_INSERT_ID()";
+
+
+            db.query(q,[], (err, data) => {
+                if (err) {
+                    res.send("error");
+                } else {
+                    res.json(data);
+                }
+            })
         }
     });
 }
@@ -275,6 +283,7 @@ function GetAllComments(req, res){
             res.send("error");
         } else {
             res.json(data);
+            console.log(data);
         }
     });
 }
