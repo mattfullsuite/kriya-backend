@@ -58,6 +58,9 @@ var module_overtime = require("./routes/overtime.js");
 var module_cheer_a_peer = require("./routes/cheer_a_peer.js");
 var module_company_pulse = require("./routes/company_pulse.js");
 var module_applicant_tracking = require("./routes/applicant_tracking.js");
+var module_employee_profile = require("./routes/employee_profile.js");
+
+///ep-getDataOfLoggedInUser
 
 //var ai = require("./routes/ai_generation.js")
 
@@ -116,10 +119,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
-      httpOnly: false,
+      // secure: true,
+      // httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: "none",
+      // sameSite: "none",
     },
   })
 );
@@ -166,6 +169,7 @@ app.use(module_overtime);
 app.use(module_cheer_a_peer);
 app.use(module_company_pulse);
 app.use(module_applicant_tracking);
+app.use(module_employee_profile);
 
 //app.use(ai)
 
