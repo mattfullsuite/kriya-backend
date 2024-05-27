@@ -171,7 +171,7 @@ app.use(module_applicant_tracking);
 app.use(module_employee_profile);
 
 //dispute
-app.use(dispute);
+// app.use(dispute);
 
 //app.use(ai)
 
