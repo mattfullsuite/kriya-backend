@@ -12,7 +12,11 @@ var imports =  {
     LikeACheerPost,
     CheckIfLikedAlready,
     UnlikeACheerPost,
-    GetAllComments
+    GetAllComments,
+    GetAllDistinctComments,
+    GetDeptReceivers,
+    GetDeptPeers,
+    GetDeptGivenAndReceived
 } = require( "../controller/cheer_a_peer_controller.js");
 
 const router = express.Router()
@@ -30,5 +34,9 @@ router.post("/cap-likeACheerPost", LikeACheerPost);
 router.get("/cap-getAllLikes", CheckIfLikedAlready);
 router.post("/cap-unlikeACheerPost", UnlikeACheerPost);
 router.get("/cap-getAllComments", GetAllComments);
+router.get("/cap-getAllDistinctComments", GetAllDistinctComments);
+router.get("/cap-getAllDeptReceivers", GetDeptReceivers);
+router.get("/cap-getAllDeptPeers", GetDeptPeers);
+router.get("/cap-getAllGivenAndReceived", GetDeptGivenAndReceived);
 
 module.exports = router;

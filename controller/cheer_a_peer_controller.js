@@ -156,11 +156,7 @@ function GetRecentCheers(req, res) {
 
 function GetCheersPost(req, res) {
     const cid = req.session.user[0].company_id;
-    const q = `SELECT c.*, ch.f_name AS cheerer_f_name, ch.s_name AS cheerer_s_name, p.position_name AS cheerer_job, pe.f_name AS peer_f_name, pe.s_name AS peer_s_name, p2.position_name AS peer_job FROM cheer_post AS c INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id 
-
-    INNER JOIN emp AS pe ON c.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id 
-    
-    WHERE em.company_id = ? ORDER BY rand()`
+    const q = `SELECT c.*, ch.f_name AS cheerer_f_name, ch.s_name AS cheerer_s_name, p.position_name AS cheerer_job, pe.f_name AS peer_f_name, pe.s_name AS peer_s_name, p2.position_name AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cc.cheer_post_id = c.cheer_post_id) AS num_comments FROM cheer_post AS c INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON c.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? ORDER BY posted_at DESC`
 
     db.query(q, [cid], (err, data) => {
         if (err) {
@@ -288,6 +284,63 @@ function GetAllComments(req, res){
     });
 }
 
+function GetAllDistinctComments(req, res){
+    const q = "SELECT DISTINCT(cheer_post_id) FROM cheer_comments INNER JOIN emp ON emp_id = commenter_id"
+
+    db.query(q, (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+            console.log(data);
+        }
+    });
+}
+
+function GetDeptReceivers(req, res){
+    const cid = req.session.user[0].company_id;
+    const q =  `SELECT de.dept_name, COUNT(de.dept_id) AS cheerer_num FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.cheerer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = ? GROUP BY de.dept_name`
+
+    db.query(q, [cid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+            console.log(data);
+        }
+    });
+}
+
+function GetDeptPeers(req, res){
+    const cid = req.session.user[0].company_id;
+    const q =  `SELECT de.dept_name, COUNT(de.dept_id) AS cheerer_num FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.peer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = ? GROUP BY de.dept_name`
+
+    db.query(q, [cid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+            console.log(data);
+        }
+    });
+}
+
+function GetDeptGivenAndReceived(req, res){
+    const cid = req.session.user[0].company_id;
+    const q =  `SELECT dept_name, SUM(cheers_total) AS total_cheers FROM (SELECT de.dept_name AS dept_name, COUNT(de.dept_id) AS cheers_total FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.cheerer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = ? GROUP BY de.dept_name UNION ALL SELECT de.dept_name AS dept_name, COUNT(de.dept_id) AS cheers_total FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.peer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = ? GROUP BY de.dept_name) t GROUP BY dept_name ORDER BY total_cheers DESC`
+
+    db.query(q, [cid, cid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+            console.log(data);
+        }
+    });
+}
+
+//SELECT dept_name, SUM(cheers_total) AS total_cheers FROM (SELECT de.dept_name AS dept_name, COUNT(de.dept_id) AS cheers_total FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.cheerer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = 1 GROUP BY de.dept_name UNION ALL SELECT de.dept_name AS dept_name, COUNT(de.dept_id) AS cheers_total FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.peer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = 1 GROUP BY de.dept_name) t GROUP BY dept_name
+
 
 
 module.exports = { 
@@ -304,4 +357,8 @@ module.exports = {
     CheckIfLikedAlready,
     UnlikeACheerPost,
     GetAllComments,
+    GetAllDistinctComments,
+    GetDeptReceivers,
+    GetDeptPeers,
+    GetDeptGivenAndReceived
 }
