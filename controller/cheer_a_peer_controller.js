@@ -116,7 +116,18 @@ function CreateACheerPost(req, res) {
                         if (err) {
                             console.log("error");
                         } else {
-                            res.send("success");
+                            const cid = req.session.user[0].company_id;
+                            const q = `SELECT c.*, ch.f_name AS cheerer_f_name, ch.s_name AS cheerer_s_name, p.position_name AS cheerer_job, pe.f_name AS peer_f_name, pe.s_name AS peer_s_name, p2.position_name AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cc.cheer_post_id = c.cheer_post_id) AS num_comments FROM cheer_post AS c INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON c.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? AND cheer_post_id = LAST_INSERT_ID()`;
+
+                            db.query(q, [cid], (err, data) => {
+                                if(err) {
+                                    console.log(err);
+                                } else {
+                                    res.json(data);
+                                    // res.send("success");
+                                }
+                            })
+
                         }
                     })
                 }
