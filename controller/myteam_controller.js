@@ -353,7 +353,7 @@ function CheckIfDownline(req, res){
 }
 
 function ModifiedTeamOOOToday(req, res){
-    const uid = 101
+    const uid = req.session.user[0].emp_id;
 
     const q = 
     `(SELECT  e1.*, l1.*

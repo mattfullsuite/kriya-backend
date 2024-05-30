@@ -180,9 +180,10 @@ function GetCheersPost(req, res) {
 
 function GetPeers(req, res) {
     const cid = req.session.user[0].company_id;
-    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? ORDER BY e.f_name"
+    const uid = req.session.user[0].emp_id;
+    const q = "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND e.emp_id != ? AND e.date_separated IS NULL ORDER BY e.f_name"
 
-    db.query(q, [cid], (err, data) => {
+    db.query(q, [cid, uid], (err, data) => {
         if (err) {
             res.send("error");
         } else {
