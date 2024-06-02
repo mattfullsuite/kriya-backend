@@ -11,7 +11,7 @@ var imports = ({
   getOffBoardingEmployees,
 } = require("../../controller/manage_payroll/payslip_controller"));
 
-router.post("/mp-createPayslip", createPayslip);
+router.post("/mp-createPayslip/:source", createPayslip);
 router.get("/mp-getUserPayslip", getUserPayslip);
 router.get("/mp-getUserYTD", getUserYTD);
 router.get("/mp-getAllPayslipGroups", getAllPaySlipGroups);
