@@ -14,25 +14,21 @@ function getAllPayItems(req, res) {
 
 function addPayItem(req, res) {
   var cid = req.session.user[0].company_id;
-  const { name, category, computationTable } = req.body;
+  const { name, category, type, group } = req.body;
   const q =
-    "INSERT INTO pay_items(company_id, pay_item_name, pay_item_category, computation_table) VALUES(?, ?, ?, ?)";
-  db.query(
-    q,
-    [cid, name, category, JSON.stringify(computationTable)],
-    (err, data) => {
-      if (err) return res.json(err);
-      return res.sendStatus(200);
-    }
-  );
+    "INSERT INTO pay_items(company_id, pay_item_name, pay_item_category, pay_item_type, pay_item_group) VALUES(?, ?, ?, ?, ?)";
+  db.query(q, [cid, name, category, type, group], (err, data) => {
+    if (err) return res.json(err);
+    return res.sendStatus(200);
+  });
 }
 
 function updatePayItem(req, res) {
-  const { name, category } = req.body;
+  const { name, category, type, group } = req.body;
   const { id } = req.params;
   const q =
-    "UPDATE pay_items SET pay_item_name = ?, pay_item_category = ? WHERE pay_items_id = ?";
-  db.query(q, [name, category, id], (err, data) => {
+    "UPDATE pay_items SET pay_item_name = ?, pay_item_category = ?, pay_item_type = ?, pay_item_group = ? WHERE pay_items_id = ?";
+  db.query(q, [name, category, type, group, id], (err, data) => {
     if (err) return res.json(err);
     return res.json(data);
   });
