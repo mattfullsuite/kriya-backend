@@ -48,7 +48,7 @@ const createPayslip = (req, res) => {
     [dataProcessed],
     (error, data) => {
       if (error) {
-        console.log(error);
+        console.error(error);
         return res.sendStatus(500);
       } else {
         return res.sendStatus(200);
@@ -158,13 +158,22 @@ const appendPayItemValues = (payItemYTD, payItems) => {
       payItem["ytd_amount"] = parseFloat(
         payItemYTD[payItem.pay_item_name]
       ).toFixed(2);
-      payItem["visible"] = true;
+
+      payItem["visible"] =
+        checkValue(payItem["ytd_amount"]) ||
+        checkValue(payItem["last_pay_amount"]);
       return;
     }
     payItem["ytd_amount"] = 0.0;
-    payItem["visible"] = false;
+    payItem["visible"] =
+      checkValue(payItem["ytd_amount"]) ||
+      checkValue(payItem["last_pay_amount"]);
   });
   return payItems;
+};
+
+const checkValue = (value) => {
+  return parseFloat(value) > 0;
 };
 
 const tranformData = (data) => {
@@ -206,7 +215,6 @@ const getSumPayItems = (data) => {
         acc[key] += parseFloat(record[key]);
       }
     });
-    console.log(acc);
     return acc;
   }, {});
 };
