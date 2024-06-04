@@ -173,7 +173,7 @@ const appendPayItemValues = (payItemYTD, payItems) => {
 };
 
 const checkValue = (value) => {
-  return parseFloat(value) > 0;
+  return parseFloat(value) != 0;
 };
 
 const tranformData = (data) => {
