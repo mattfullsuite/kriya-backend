@@ -59,6 +59,7 @@ var module_cheer_a_peer = require("./routes/cheer_a_peer.js");
 var module_company_pulse = require("./routes/company_pulse.js");
 var module_applicant_tracking = require("./routes/applicant_tracking.js");
 var module_employee_profile = require("./routes/employee_profile.js");
+var dispute = require("./routes/dispute.js");
 
 ///ep-getDataOfLoggedInUser
 
@@ -171,7 +172,7 @@ app.use(module_applicant_tracking);
 app.use(module_employee_profile);
 
 //dispute
-// app.use(dispute);
+app.use(dispute);
 
 //app.use(ai)
 
