@@ -3,7 +3,7 @@ var axios = require("axios");
 var db = require("../../config.js");
 var moment = require("moment");
 
-const createPayslip = (req, res) => {
+const createPayslip = async (req, res) => {
   const data = req.body;
   const compID = req.session.user[0].company_id;
   const uid = req.session.user[0].emp_num;
@@ -46,15 +46,66 @@ const createPayslip = (req, res) => {
   db.query(
     `INSERT INTO payslip (company_id, emp_num, first_name, middle_name, last_name, email, job_title, hire_date, dates, payables, totals, net_salary, generated_by, source) VALUES ?;`,
     [dataProcessed],
-    (error, data) => {
+    async (error, data) => {
       if (error) {
         console.error(error);
         return res.sendStatus(500);
       } else {
-        return res.sendStatus(200);
+        const updatedEmployees = removeZeroValues(req.body);
+        const result = await generatePDF(updatedEmployees);
+        console.log("Data:", data);
+        console.log("Code:", result.status);
+        if (result.status == 200) {
+          return res.sendStatus(200);
+        } else {
+          return res.status(500).json({ "Error PDF: ": result });
+        }
+        // return res.sendStatus(200);
       }
     }
   );
+};
+
+const removeZeroValues = (data) => {
+  return data.map((employee) => {
+    const updatedPayItems = {};
+
+    for (const [category, items] of Object.entries(employee["Pay Items"])) {
+      updatedPayItems[category] = {};
+
+      for (const [item, value] of Object.entries(items)) {
+        if (parseFloat(value) !== 0) {
+          updatedPayItems[category][item] = value;
+        }
+      }
+    }
+
+    return {
+      ...employee,
+      "Pay Items": updatedPayItems,
+    };
+  });
+};
+
+const generatePDF = async (data) => {
+  console.log("Data to Generate: ", data);
+  console.log("Generating PDF!");
+
+  const result = await axios
+    .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data)
+    .then(function (response) {
+      // console.log(response.status);
+      // if (response.status == 200) {
+      //   console.log(true);
+      // } else {
+      //   console.log(false);
+      // }
+      return response;
+    })
+    .catch(function (error) {
+      console.error("Error: ", error);
+    });
+  return result;
 };
 
 const getUserPayslip = (req, res) => {
