@@ -220,7 +220,7 @@ function ShowAllDepartmentLeavesOfTeam(req, res){
 
 function ModifiedShowAllDownlineLeaves(req, res){
     //const uid = req.session.user[0].emp_id
-    const uid = 101
+    const uid = req.session.user[0].emp_id;
 
     const q = 
     `(SELECT  e1.f_name AS f1,

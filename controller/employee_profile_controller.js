@@ -1,4 +1,5 @@
 var db = require("../config.js");
+var moment = require("moment");
 
 function GetDataOfLoggedInUser(req, res){
     const uid= req.session.user[0].emp_id
@@ -40,10 +41,32 @@ function GetSuperiorDataOfLoggedInUser(req, res){
     });
 }
 
+function OffboardEmployee(req, res) {
+  const fetchid = req.params.emp_id;
+
+  const date_separated = req.body.date_separated
+
+  const values = [date_separated, fetchid]
+
+  console.log("DATA: " + req.body.date_separated)
+
+  const q = "UPDATE emp SET date_separated = '" + req.body.date_separated + "' WHERE emp_id = " + fetchid
+
+  db.query(q, (err, data) => {
+    if (err) {
+      res.send("error")
+      console.log(err)
+    } else {
+      res.send("success")
+    }
+  });
+};
+
 module.exports = 
 { 
     GetDataOfLoggedInUser,
     GetSuperiorDataOfLoggedInUser,
     GetDataForCertainEmployee,
-    GetSuperiorDataOfCertainUser
+    GetSuperiorDataOfCertainUser,
+    OffboardEmployee
 };
