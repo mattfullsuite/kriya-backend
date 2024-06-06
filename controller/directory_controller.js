@@ -51,7 +51,7 @@ function GetDepartment(req, res) {
 }
 
 function GetDownlineCount(req, res) {
-    const q = "SELECT p.emp_id, p.emp_num, p.f_name, COUNT(*) AS downline_count FROM emp AS p INNER JOIN emp AS c ON p.emp_id = c.superior_id GROUP BY f_name, emp_id, emp_num";
+    const q = "SELECT p.emp_id, p.emp_num, p.f_name, COUNT(*) AS downline_count FROM emp AS p INNER JOIN emp AS c ON p.emp_id = c.superior_id WHERE p.date_separated IS NULL AND c.date_separated IS NULL GROUP BY f_name, emp_id, emp_num;";
 
     db.query(q, (err, data) => {
         if(err) {
