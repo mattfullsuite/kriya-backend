@@ -53,10 +53,12 @@ const createPayslip = async (req, res) => {
       } else {
         const updatedEmployees = removeZeroValues(req.body);
         const result = await generatePDF(updatedEmployees);
-        console.log("Data:", data);
-        console.log("Code:", result.status);
-        if (result.status == 200) {
-          return res.sendStatus(200);
+        if (result) {
+          if (result.status == 200) {
+            return res.sendStatus(200);
+          } else {
+            return res.status(500).json({ "Error PDF: ": result });
+          }
         } else {
           return res.status(500).json({ "Error PDF: ": result });
         }
@@ -163,7 +165,7 @@ const getAllPaySlip = (req, res) => {
 const getOffBoardingEmployees = (req, res) => {
   const compID = req.session.user[0].company_id;
   const q =
-    "SELECT e.emp_id, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL AND e.m_name != '', CONCAT(LEFT(e.m_name, 1), '. '), ' '), e.s_name) AS name, e.f_name, e.m_name, e.s_name, e.emp_num, e.work_email, pos.position_name, e.date_hired, e.date_separated, ec.base_pay, rp.recent_payment FROM emp e INNER JOIN emp_compensation ec ON ec.emp_num = e.emp_num INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position pos ON pos.position_id = ed.position_id LEFT JOIN (SELECT p.emp_num, MAX(JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.Payment'))) AS recent_payment FROM payslip p WHERE SUBSTRING(JSON_EXTRACT(p.dates, '$.To'), 2, 4) = YEAR(NOW()) GROUP BY p.emp_num) rp ON e.emp_num = rp.emp_num WHERE ed.company_id = ? AND e.date_separated > CURDATE() ORDER BY e.date_separated DESC;";
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL AND e.m_name != '', CONCAT(LEFT(e.m_name, 1), '. '), ' '), e.s_name) AS name, e.f_name, e.m_name, e.s_name, e.emp_num, e.work_email, pos.position_name, e.date_hired, e.date_separated, ec.base_pay, rp.recent_payment, rp.recent_duration_to, c.company_name, c.company_loc FROM emp e INNER JOIN emp_compensation ec ON ec.emp_num = e.emp_num INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position pos ON pos.position_id = ed.position_id INNER JOIN company c ON c.company_id = ed.company_id LEFT JOIN (SELECT p.emp_num, MAX(JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.Payment'))) AS recent_payment, MAX(JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.To'))) AS recent_duration_to FROM payslip p WHERE SUBSTRING(JSON_EXTRACT(p.dates, '$.To'), 2, 4) = YEAR(NOW()) GROUP BY p.emp_num) rp ON e.emp_num = rp.emp_num WHERE ed.company_id = ? AND e.date_separated > CURDATE() ORDER BY e.date_separated DESC;";
   db.query(q, compID, (err, rows) => {
     if (err) return res.json(err);
     return res.status(200).json(rows);
