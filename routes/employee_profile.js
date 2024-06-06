@@ -4,6 +4,7 @@ const {
     GetSuperiorDataOfLoggedInUser,
     GetDataForCertainEmployee,
     GetSuperiorDataOfCertainUser,
+    OffboardEmployee
 } = require("../controller/employee_profile_controller");
 
 const router = express.Router();
@@ -11,6 +12,7 @@ const router = express.Router();
 router.get("/ep-getDataOfLoggedInUser", GetDataOfLoggedInUser);
 router.get("/ep-getSuperiorDataOfLoggedInUser", GetSuperiorDataOfLoggedInUser);
 router.get("/ep-viewEmployee/:emp_id", GetDataForCertainEmployee)
-router.get("/ep-viewEmployeeSuperior/:emp_id", GetSuperiorDataOfCertainUser)
+router.get("/ep-viewEmployeeSuperior/:emp_id", GetSuperiorDataOfCertainUser);
+router.post("/ep-offboardEmployee/:emp_id", OffboardEmployee);
 
 module.exports = router;
