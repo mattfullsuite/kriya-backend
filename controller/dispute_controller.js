@@ -18,7 +18,7 @@ const createDispute = (req, res) => {
 const viewDisputes = (req, res) => {
   const cid = req.session.user[0].company_id;
   const q =
-    "SELECT * FROM `dispute` d INNER JOIN emp e ON e.emp_id = d.requester_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id WHERE ed.company_id = " +
+    "SELECT e.emp_num, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL and e.m_name != '', LEFT(e.m_name, 1), 'N/A'), '.', ' ',e.s_name) AS 'name', p.position_name,d.* FROM `dispute` d INNER JOIN emp e ON e.emp_id = d.requester_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p on p.position_id = ed.position_id WHERE ed.company_id = " +
     cid +
     ";";
 
