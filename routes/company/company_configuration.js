@@ -6,7 +6,10 @@ var {
   UpdateCompanyConfiguration,
 } = require("../../controller/company/company_configuration_controller");
 
-router.post("/cc-GetCompanyConfiguration", GetCompanyConfiguration);
-router.get("/cc-UpdateCompanyConfiguration", UpdateCompanyConfiguration);
+router.get("/comp-config-GetCompanyConfiguration", GetCompanyConfiguration);
+router.patch(
+  "/comp-config-UpdateCompanyConfiguration/:id",
+  UpdateCompanyConfiguration
+);
 
 module.exports = router;
