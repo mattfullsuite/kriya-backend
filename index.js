@@ -60,6 +60,8 @@ var module_company_pulse = require("./routes/company_pulse.js");
 var module_applicant_tracking = require("./routes/applicant_tracking.js");
 var module_employee_profile = require("./routes/employee_profile.js");
 var dispute = require("./routes/dispute.js");
+var company_compensation = require("./routes/company/company_compensation.js");
+var employee_compensation = require("./routes/employee/employee_compensation.js");
 
 ///ep-getDataOfLoggedInUser
 
@@ -173,6 +175,10 @@ app.use(module_employee_profile);
 
 //dispute
 app.use(dispute);
+
+//compensation
+app.use(company_compensation);
+app.use(employee_compensation);
 
 //app.use(ai)
 
