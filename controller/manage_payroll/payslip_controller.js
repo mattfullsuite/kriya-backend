@@ -148,14 +148,11 @@ const getAllPaySlipGroups = (req, res) => {
 };
 
 const getAllPaySlip = (req, res) => {
-  const uid = req.session.user[0].emp_num;
   const compID = req.session.user[0].company_id;
   const q =
-    "SELECT e.emp_num, CONCAT(e.f_name,' ', e.m_name,' ', e.s_name) AS 'emp_name',e.work_email, DATE_FORMAT( e.`date_hired`, '%m/%d/%Y') AS 'Date Hired', DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `Date From`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `Date To`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `Date Payment`, ps.payables, ps.totals, ps.net_salary, CONCAT(e2.f_name, ' ', e2.s_name) AS `generated_by`, ps.source, DATE_FORMAT(ps.`created_at`, '%m/%d/%Y %H:%i:%s') AS 'created_at' FROM `payslip` ps INNER JOIN emp e ON e.emp_num = ps.emp_num INNER JOIN `emp` e2 on e2.emp_num = ps.generated_by WHERE company_id = " +
-    compID +
-    " ORDER BY `created_at` DESC;";
+    "SELECT ps.`emp_num` AS 'Employee ID', ps.`last_name` AS 'Last Name', ps.`first_name` AS 'First Name', ps.`middle_name` AS 'Middle Name', ps.`email` AS 'Email', ps.`job_title` AS 'Job Title', DATE_FORMAT(ps.`hire_date`, '%m/%d/%Y') AS 'Hire Date', DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `Date From`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `Date To`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `Date Payment`, ps.payables, ps.totals, ps.net_salary, CONCAT(e.f_name, ' ', e.s_name) AS `generated_by`, ps.source, DATE_FORMAT(ps.`created_at`, '%m/%d/%Y %H:%i:%s') AS 'created_at' FROM `payslip` ps INNER JOIN `emp` e on e.emp_num = ps.generated_by  WHERE company_id = ? ORDER BY `created_at` DESC;";
 
-  db.query(q, [uid], (err, rows) => {
+  db.query(q, [compID], (err, rows) => {
     if (err) return res.json(err);
     return res.status(200).json(rows);
   });
