@@ -44,10 +44,6 @@ function GetSuperiorDataOfLoggedInUser(req, res){
 function OffboardEmployee(req, res) {
   const fetchid = req.params.emp_id;
 
-  const date_separated = req.body.date_separated
-
-  const values = [date_separated, fetchid]
-
   console.log("DATA: " + req.body.date_separated)
 
   const q = "UPDATE emp SET date_separated = '" + req.body.date_separated + "' WHERE emp_id = " + fetchid
