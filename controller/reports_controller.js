@@ -53,9 +53,20 @@ function GetAllPaidBetweenDateLeaves(req, res){
     }) 
 }
 
+function GetAllOvertimes(req, res){
+    var cid = req.session.user[0].company_id
+    const q = "SELECT * FROM overtime AS o INNER JOIN emp AS e ON o.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ?"
+
+    db.query(q, cid, (err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
 module.exports = {
     GetAllLeaves,
     GetAllPaidLeaves,
     GetAllBetweenDateLeaves,
     GetAllPaidBetweenDateLeaves,
+    GetAllOvertimes
 }

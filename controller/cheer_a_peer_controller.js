@@ -95,7 +95,7 @@ function CreateACheerPost(req, res) {
         (err,data) => {
             try {
                 if (err){
-                   console.log("error");
+                   console.log(err);
                    res.send("error")
                 } else {
                    console.log("success");
@@ -104,7 +104,7 @@ function CreateACheerPost(req, res) {
 
                    db.query(cheerer_q, (err, data) => {
                         if (err) {
-                            console.log("error");
+                            console.log(err);
                         } else {
                             console.log(data);
                         }
@@ -114,7 +114,7 @@ function CreateACheerPost(req, res) {
 
                     db.query(peer_q, (err, data) => {
                         if (err) {
-                            console.log("error");
+                            console.log(err);
                         } else {
                             const cid = req.session.user[0].company_id;
                             const q = `SELECT c.*, ch.f_name AS cheerer_f_name, ch.s_name AS cheerer_s_name, p.position_name AS cheerer_job, pe.f_name AS peer_f_name, pe.s_name AS peer_s_name, p2.position_name AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cc.cheer_post_id = c.cheer_post_id) AS num_comments FROM cheer_post AS c INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON c.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? AND cheer_post_id = LAST_INSERT_ID()`;
@@ -133,10 +133,65 @@ function CreateACheerPost(req, res) {
                 }
             } catch(e) {
                 res.send("error");
+                console.log(err)
             }
 
     })
 
+}
+
+function ModifiedCreateACheerPost(req, res){
+    const uid = req.session.user[0].emp_id
+    const q = "INSERT INTO cheer_post (`cheerer_id`, `post_body`) VALUES (?)";
+
+    const values = [
+        uid,
+        req.body.post_body,
+    ]
+
+    db.query(q, [values], (err, data) => {
+        if (err) {
+            console.log("Error 1: ", err);
+        } else {
+            console.log("Level 1: Success")
+            
+            const q2 = "INSERT INTO cheer_designation (`cheer_post_id`,`peer_id`, `heartbits_given`) VALUES ((SELECT `cheer_post_id` FROM `cheer_post` ORDER BY cheer_post_id DESC LIMIT 1), ?, ?)";
+
+            const peers = req.body.peer_id
+
+            const hb_given = req.body.heartbits_given
+                
+            peers.map((p) => {
+                db.query(q2, [p.id, hb_given], (err, data) => {
+                    if (err) {
+                        console.log("Error 2: ", err);
+                    } else {
+                        console.log("Level 2: Success")
+                    }
+                })
+
+                const cheerer_q = "UPDATE heartbits SET `heartbits_balance` = `heartbits_balance` - " + hb_given + " WHERE emp_id = " + uid;
+
+                db.query(cheerer_q, (err, data) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log("Deducted heartbits from employee# " + uid)
+                    }
+                })
+
+                const peer_q = "UPDATE heartbits SET `total_heartbits` = `total_heartbits` + " + hb_given + " WHERE emp_id = " + p.id;
+
+                db.query(peer_q, (err, data) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log("Added heartbits to employee# " + p.id)
+                    }
+                })
+            })
+        }
+    })
 }
 
 function GetMostRecentCheer(req, res) {
@@ -277,7 +332,7 @@ function UnlikeACheerPost(req, res) {
       if (err) {
         console.log(err);
       } else {
-        //res.json("success");
+        // res.json("success");
         console.log(data)
       }
     });
@@ -291,7 +346,19 @@ function GetAllComments(req, res){
             res.send("error");
         } else {
             res.json(data);
-            console.log(data);
+        }
+    });
+}
+
+function GetAllLikes(req, res){
+    const q = "SELECT * FROM cheer_likes cl INNER JOIN emp e ON e.emp_id = cl.liker_id INNER JOIN emp_designation em ON em.emp_id = e.emp_id INNER JOIN position p ON em.position_id = p.position_id "
+
+    db.query(q, (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+            console.log("LIKES: " + JSON.stringify(data));
         }
     });
 }
@@ -304,7 +371,7 @@ function GetAllDistinctComments(req, res){
             res.send("error");
         } else {
             res.json(data);
-            console.log(data);
+            // console.log(data);
         }
     });
 }
@@ -318,7 +385,7 @@ function GetDeptReceivers(req, res){
             res.send("error");
         } else {
             res.json(data);
-            console.log(data);
+            // console.log(data);
         }
     });
 }
@@ -332,7 +399,7 @@ function GetDeptPeers(req, res){
             res.send("error");
         } else {
             res.json(data);
-            console.log(data);
+            // console.log(data);
         }
     });
 }
@@ -346,10 +413,64 @@ function GetDeptGivenAndReceived(req, res){
             res.send("error");
         } else {
             res.json(data);
-            console.log(data);
+            // console.log(data);
         }
     });
 }
+
+function GetDataForNotifications(req,res){
+    const q = "(SELECT ec.f_name AS c_f_name, ec.s_name AS c_s_name, cp.heartbits_given, ep.f_name AS p_f_name, ep.s_name AS p_f_name, cp.posted_at FROM cheer_post cp INNER JOIN emp ec ON ec.emp_id = cp.peer_id INNER JOIN emp ep ON ep.emp_id = cp.cheerer_id)"
+
+    db.query(q, (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+function GetDataForMyNotifications(req,res){
+    const uid = req.session.user[0].emp_id;
+    const q = "(SELECT cp.*, ec.f_name AS c_f_name, ec.s_name AS c_s_name, ep.f_name AS p_f_name, ep.s_name AS p_s_name FROM cheer_post cp INNER JOIN emp ec ON ec.emp_id = cp.peer_id INNER JOIN emp ep ON ep.emp_id = cp.cheerer_id WHERE cp.cheerer_id = ? OR cp.peer_id = ? ORDER BY posted_at DESC)"
+
+    db.query(q, [uid, uid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+function GetDataForMyNotificationsLimited(req,res){
+    const uid = req.session.user[0].emp_id;
+    const q = "(SELECT cp.*, ec.f_name AS c_f_name, ec.s_name AS c_s_name, ep.f_name AS p_f_name, ep.s_name AS p_s_name FROM cheer_post cp INNER JOIN emp ec ON ec.emp_id = cp.peer_id INNER JOIN emp ep ON ep.emp_id = cp.cheerer_id WHERE cp.cheerer_id = ? OR cp.peer_id = ? ORDER BY posted_at DESC LIMIT 5)"
+
+    db.query(q, [uid, uid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+function GetMentionPeers(req, res) {
+    const cid = req.session.user[0].company_id;
+    const uid = req.session.user[0].emp_id;
+    const q = `SELECT e.emp_id AS id, CONCAT(e.f_name, " ", e.s_name) AS display FROM emp AS e INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND e.emp_id != ? AND e.date_separated IS NULL ORDER BY e.f_name;`
+
+    db.query(q, [cid, uid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+
 
 //SELECT dept_name, SUM(cheers_total) AS total_cheers FROM (SELECT de.dept_name AS dept_name, COUNT(de.dept_id) AS cheers_total FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.cheerer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = 1 GROUP BY de.dept_name UNION ALL SELECT de.dept_name AS dept_name, COUNT(de.dept_id) AS cheers_total FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.peer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = 1 GROUP BY de.dept_name) t GROUP BY dept_name
 
@@ -359,6 +480,7 @@ module.exports = {
     CreateHeartbitsForAllInactiveEmployees,
     GetMyHeartbitsData,
     CreateACheerPost,
+    ModifiedCreateACheerPost,
     GetRecentCheers,
     GetPeers,
     GetMostRecentCheer,
@@ -372,5 +494,10 @@ module.exports = {
     GetAllDistinctComments,
     GetDeptReceivers,
     GetDeptPeers,
-    GetDeptGivenAndReceived
+    GetDeptGivenAndReceived,
+    GetAllLikes,
+    GetDataForNotifications,
+    GetDataForMyNotifications,
+    GetDataForMyNotificationsLimited,
+    GetMentionPeers,
 }
