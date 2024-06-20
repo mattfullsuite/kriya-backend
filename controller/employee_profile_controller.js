@@ -1,3 +1,4 @@
+const { JsonWebTokenError } = require("jsonwebtoken");
 var db = require("../config.js");
 var moment = require("moment");
 
@@ -53,7 +54,28 @@ function OffboardEmployee(req, res) {
       res.send("error")
       console.log(err)
     } else {
-      res.send("success")
+      // res.send("success")
+      const q1 = "SELECT superior_id FROM emp WHERE emp_id = " + fetchid
+
+      db.query(q1, (err, data) => {
+        if (err) {
+          console.log(err)
+        } else {
+          console.log("DATA lvl 2 : " + data[0].superior_id)
+
+          const q2 = "UPDATE emp SET superior_id = " + data[0].superior_id + " WHERE superior_id = " + fetchid
+
+          db.query(q2, (err, data) => {
+            if (err) {
+              console.log(err)
+            } else {
+              console.log("DATA lvl 3 : " + data)
+
+              res.send("success")
+            }
+          })
+        }
+      })
     }
   });
 };
