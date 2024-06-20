@@ -124,10 +124,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      // secure: true,
+      secure: true,
       httpOnly: false,
-      // expires: 60 * 60 * 24 * 1000,
-      // sameSite: "none",
+      expires: 60 * 60 * 24 * 1000,
+      sameSite: "none",
     },
   })
 );
