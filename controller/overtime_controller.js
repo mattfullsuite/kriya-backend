@@ -25,11 +25,65 @@ function FileOvertime(req, res) {
     })
 }
 
+function GetAllPendingOvertimes(req, res) {
+    const uid = req.session.user[0].emp_id
+    const q = "SELECT * FROM overtime o INNER JOIN emp e ON o.requester_id = e.emp_id WHERE e.superior_id = ? AND overtime_status = 0"
+
+    const values = [ uid ]
+
+    db.query(q, 
+        [values], 
+        (err,data) => {
+        if (err){
+            console.log(err);
+            res.send("error")
+        } else {
+            res.send(data)
+        }
+    })
+}
+
+function ApproveOvertime(req, res) {
+    const overtime_id = req.params.overtime_id;
+    const q = "UPDATE overtime SET overtime_status = 1 WHERE overtime_id = ?";
+
+    db.query(q, 
+        [overtime_id], 
+        (err,data) => {
+        if (err){
+            console.log(err);
+            res.send("error")
+        } else {
+            console.log(data)
+        }
+    })
+}
+
+function RejectOvertime(req, res) {
+    const overtime_id = req.params.overtime_id;
+    const q = "UPDATE overtime SET overtime_status = 2 WHERE overtime_id = ?";
+
+    db.query(q, 
+        [overtime_id], 
+        (err,data) => {
+        if (err){
+            console.log(err);
+            res.send("error")
+        } else {
+            console.log(data)
+            res.send(data)
+        }
+    })
+}
+
 
 
 
 
 
 module.exports = { 
-    FileOvertime
+    FileOvertime,
+    GetAllPendingOvertimes,
+    ApproveOvertime,
+    RejectOvertime
 }

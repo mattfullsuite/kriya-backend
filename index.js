@@ -59,6 +59,8 @@ var module_cheer_a_peer = require("./routes/cheer_a_peer.js");
 var module_company_pulse = require("./routes/company_pulse.js");
 var module_applicant_tracking = require("./routes/applicant_tracking.js");
 var module_employee_profile = require("./routes/employee_profile.js");
+var module_engagement_index = require("./routes/engagement_index.js");
+var module_north_star = require("./routes/north_star.js");
 var dispute = require("./routes/dispute.js");
 var company_compensation = require("./routes/company/company_compensation.js");
 var employee_compensation = require("./routes/employee/employee_compensation.js");
@@ -122,10 +124,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
+      // secure: true,
       httpOnly: false,
-      expires: 60 * 60 * 24 * 1000,
-      sameSite: "none",
+      // expires: 60 * 60 * 24 * 1000,
+      // sameSite: "none",
     },
   })
 );
@@ -173,6 +175,8 @@ app.use(module_cheer_a_peer);
 app.use(module_company_pulse);
 app.use(module_applicant_tracking);
 app.use(module_employee_profile);
+app.use(module_engagement_index);
+app.use(module_north_star);
 
 //dispute
 app.use(dispute);
