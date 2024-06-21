@@ -76,14 +76,48 @@ function RejectOvertime(req, res) {
     })
 }
 
+//SELECT * FROM overtime WHERE requester_id = 1
 
+function GetMyOvertimes(req, res) {
+    const uid = req.session.user[0].emp_id
+    const q = "SELECT * FROM overtime WHERE requester_id = 1";
 
+    db.query(q, 
+        [uid], 
+        (err,data) => {
+        if (err){
+            console.log(err);
+            res.send("error")
+        } else {
+            console.log(data)
+            res.send(data)
+        }
+    })
+}
 
+function GetOvertimesOfDownline(req, res) {
+    const uid = req.session.user[0].emp_id
+    const q = "SELECT * FROM overtime o INNER JOIN emp e ON e.emp_id = o.requester_id WHERE e.superior_id = ?";
+
+    db.query(q, 
+        [uid], 
+        (err,data) => {
+        if (err){
+            console.log(err);
+            res.send("error")
+        } else {
+            console.log(data)
+            res.send(data)
+        }
+    })
+}
 
 
 module.exports = { 
     FileOvertime,
     GetAllPendingOvertimes,
     ApproveOvertime,
-    RejectOvertime
+    RejectOvertime,
+    GetMyOvertimes,
+    GetOvertimesOfDownline
 }
