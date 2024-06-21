@@ -64,10 +64,10 @@ function GetAllDivisions(req, res) {
 }
 
 const CreateCompany = async (req, res) => {
-  const { company_name, company_address, company_logo } = req.body;
+  const { company_name, company_address } = req.body;
 
   const q =
-    "INSERT INTO company (`company_name`, `company_address`, `company_logo`) VALUES (?, ?, ?) ";
+    "INSERT INTO company (`company_name`, `company_loc`, `company_logo`) VALUES (?, ?, ?) ";
 
   try {
     if (req.file) {
