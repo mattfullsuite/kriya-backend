@@ -106,7 +106,10 @@ app.use(express.json());
 //"https://geolocation-db.com/"
 app.use(
   cors({
-    origin: [process.env.ORIGIN_URL],
+    origin: [
+      process.env.ORIGIN_URL,
+      "https://pdf-generation-test.onrender.com",
+    ],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
     credentials: true,
   })
@@ -124,10 +127,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      // secure: true,
-      // httpOnly: false,
-      // expires: 60 * 60 * 24 * 1000,
-      // sameSite: "none",
+      secure: true,
+      httpOnly: false,
+      expires: 60 * 60 * 24 * 1000,
+      sameSite: "none",
     },
   })
 );
