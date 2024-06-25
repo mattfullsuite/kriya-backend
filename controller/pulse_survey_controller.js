@@ -16,7 +16,7 @@ function GetAllActiveSurveys(req, res) {
 function GetAnswersFromActiveSurvey(req, res) {
   var uid = req.session.user[0].emp_id;
   const q =
-    "SELECT * FROM pulse_survey INNER JOIN pulse_survey_answers ON pulse_survey_id = survey_id WHERE survey_status = 1";
+    "SELECT * FROM pulse_survey INNER JOIN pulse_survey_answers ON pulse_survey_id = survey_id WHERE survey_status = 1 AND respondent_id = ?";
 
   db.query(q, uid, (err, data) => {
     if (err) {
@@ -83,5 +83,5 @@ module.exports = {
   InsertSurveyAnswer,
   GetPreviousSurveyAnswers,
   GetAnswersFromActiveSurvey,
-  GetPreviousSurveyDates
+  GetPreviousSurveyDates,
 };
