@@ -52,12 +52,12 @@ const createPayslip = async (req, res) => {
           console.error(error);
           return res.sendStatus(500);
         } else {
-          const updatedEmployees = removeZeroValues(req.body);
+          console.log("Data Inserted to Database!");
           if (source === "Uploaded") {
             try {
+              const updatedEmployees = removeZeroValues(req.body);
               const result = await generatePDF(updatedEmployees);
-              console.log("RESULT VALUE: ", result);
-              if (result && result.status === 200) {
+              if (result.status === 200) {
                 console.log("Success PDF Generation");
                 return res.sendStatus(200);
               } else {
@@ -103,15 +103,35 @@ const generatePDF = async (data) => {
   console.log("Data to Generate: ", data);
   console.log("Generating PDF!");
 
-  const result = await axios
-    .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data)
-    .then(function (response) {
-      return response;
-    })
-    .catch(function (error) {
-      console.error("Error: ", error);
-    });
-  return result;
+  // const result = await axios
+  //   .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data)
+  //   .then(function (response) {
+  //     return response;
+  //   })
+  //   .catch(function (error) {
+  //     console.error("Error: ", error);
+  //   });
+  // return result;
+
+  try {
+    const response = await axios.post(
+      "https://pdf-generation-test.onrender.com/generate-and-send",
+      data
+    );
+    console.log("Response:", response);
+    return response;
+  } catch (error) {
+    console.log("Error: ", error);
+    console.error("Network Error: ", error.message);
+    console.error("Error Code: ", error.code);
+    console.error("Error Config: ", error.config);
+    if (error.response) {
+      console.error("Error Response: ", error.response);
+    } else if (error.request) {
+      console.error("Error Request: ", error.request);
+    }
+    throw error;
+  }
 };
 
 const getUserPayslip = (req, res) => {
