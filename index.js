@@ -112,7 +112,7 @@ app.use(
     ],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
     credentials: true,
-    optionsSuccessStatus: 204,
+    optionsSuccessStatus: 200,
   })
 );
 
