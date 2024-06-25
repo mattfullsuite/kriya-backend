@@ -96,14 +96,10 @@ const generatePDF = async (data) => {
   console.log("Generating PDF!");
 
   const result = await axios
-    .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data)
+    .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data, {
+      timeout: 60000,
+    })
     .then(function (response) {
-      // console.log(response.status);
-      // if (response.status == 200) {
-      //   console.log(true);
-      // } else {
-      //   console.log(false);
-      // }
       return response;
     })
     .catch(function (error) {
