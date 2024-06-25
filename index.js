@@ -108,11 +108,11 @@ app.use(
   cors({
     origin: [
       process.env.ORIGIN_URL,
-      "https://www.tseksuite.com",
       "https://pdf-generation-test.onrender.com",
     ],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
     credentials: true,
+    optionsSuccessStatus: 204,
   })
 );
 
