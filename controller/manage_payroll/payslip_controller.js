@@ -43,31 +43,39 @@ const createPayslip = async (req, res) => {
     ];
   });
 
-  await db.query(
-    `INSERT INTO payslip (company_id, emp_num, first_name, middle_name, last_name, email, job_title, hire_date, dates, payables, totals, net_salary, generated_by, source) VALUES ?;`,
-    [dataProcessed],
-    async (error, data) => {
-      if (error) {
-        console.error(error);
-        return res.sendStatus(500);
-      } else {
-        const updatedEmployees = removeZeroValues(req.body);
-        if (source == "Uploaded") {
-          const result = await generatePDF(updatedEmployees);
-          if (result) {
-            if (result.status == 200) {
-              return res.sendStatus(200);
-            } else {
-              return res.status(500).json({ "Error PDF: ": result });
+  try {
+    await db.query(
+      `INSERT INTO payslip (company_id, emp_num, first_name, middle_name, last_name, email, job_title, hire_date, dates, payables, totals, net_salary, generated_by, source) VALUES ?;`,
+      [dataProcessed],
+      async (error, data) => {
+        if (error) {
+          console.error(error);
+          return res.sendStatus(500);
+        } else {
+          const updatedEmployees = removeZeroValues(req.body);
+          if (source === "Uploaded") {
+            try {
+              const result = await generatePDF(updatedEmployees);
+              console.log("RESULT VALUE: ", result);
+              if (result && result.status === 200) {
+                console.log("Success PDF Generation");
+                return res.sendStatus(200);
+              } else {
+                return res.status(500).json({ "Error PDF: ": result });
+              }
+            } catch (error) {
+              console.error("Error generating PDF:", error);
+              return res.status(500).json({ "Error PDF: ": error.message });
             }
-          } else {
-            return res.status(500).json({ "Error PDF: ": result });
           }
+          return res.sendStatus(200);
         }
-        return res.sendStatus(200);
       }
-    }
-  );
+    );
+  } catch (error) {
+    console.log("Catch Error: ", error);
+    return res.sendStatus(500).json({ "Error: ": errro });
+  }
 };
 
 const removeZeroValues = (data) => {
