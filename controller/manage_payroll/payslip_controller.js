@@ -43,7 +43,7 @@ const createPayslip = async (req, res) => {
     ];
   });
 
-  db.query(
+  await db.query(
     `INSERT INTO payslip (company_id, emp_num, first_name, middle_name, last_name, email, job_title, hire_date, dates, payables, totals, net_salary, generated_by, source) VALUES ?;`,
     [dataProcessed],
     async (error, data) => {
@@ -96,9 +96,7 @@ const generatePDF = async (data) => {
   console.log("Generating PDF!");
 
   const result = await axios
-    .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data, {
-      timeout: 60000,
-    })
+    .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data)
     .then(function (response) {
       return response;
     })
