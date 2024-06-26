@@ -106,13 +106,9 @@ app.use(express.json());
 //"https://geolocation-db.com/"
 app.use(
   cors({
-    origin: [
-      process.env.ORIGIN_URL,
-      "https://pdf-generation-test.onrender.com",
-    ],
+    origin: [process.env.ORIGIN_URL],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
     credentials: true,
-    optionsSuccessStatus: 200,
   })
 );
 
