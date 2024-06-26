@@ -54,6 +54,7 @@ const createPayslip = async (req, res) => {
         } else {
           console.log("Data Inserted to Database!");
           if (source === "Uploaded") {
+            console.log("SOURCE FROM UPLOAD");
             try {
               const updatedEmployees = removeZeroValues(req.body);
               const result = await generatePDF(updatedEmployees);
@@ -74,7 +75,7 @@ const createPayslip = async (req, res) => {
     );
   } catch (error) {
     console.log("Catch Error: ", error);
-    return res.sendStatus(500).json({ "Error: ": errro });
+    return res.sendStatus(500).json({ "Error: ": error });
   }
 };
 
