@@ -117,7 +117,13 @@ const generatePDF = async (data) => {
   try {
     const response = await axios.post(
       "https://pdf-generation-test.onrender.com/generate-and-send",
-      data
+      data,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
     console.log("Response:", response);
     return response;
