@@ -74,7 +74,7 @@ const createPayslip = async (req, res) => {
       }
     );
   } catch (error) {
-    console.log("Catch Error: ", error);
+    console.error("Catch Error: ", error);
     return res.sendStatus(500).json({ "Error: ": error });
   }
 };
@@ -101,7 +101,7 @@ const removeZeroValues = (data) => {
 };
 
 const generatePDF = async (data) => {
-  console.log("Data to Generate: ", data);
+  // console.log("Data to Generate: ", data);
   console.log("Generating PDF!");
 
   // const result = await axios
@@ -122,16 +122,8 @@ const generatePDF = async (data) => {
     console.log("Response:", response);
     return response;
   } catch (error) {
-    console.log("Error: ", error);
-    console.error("Network Error: ", error.message);
-    console.error("Error Code: ", error.code);
-    console.error("Error Config: ", error.config);
-    if (error.response) {
-      console.error("Error Response: ", error.response);
-    } else if (error.request) {
-      console.error("Error Request: ", error.request);
-    }
-    throw error;
+    console.error("Error: ", error);
+    return error;
   }
 };
 
