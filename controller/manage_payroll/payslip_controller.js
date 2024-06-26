@@ -54,7 +54,6 @@ const createPayslip = async (req, res) => {
         } else {
           console.log("Data Inserted to Database!");
           if (source === "Uploaded") {
-            return res.sendStatus(200);
             try {
               const updatedEmployees = removeZeroValues(req.body);
               const result = await generatePDF(updatedEmployees);
