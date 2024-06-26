@@ -53,21 +53,21 @@ const createPayslip = async (req, res) => {
           return res.sendStatus(500);
         } else {
           console.log("Data Inserted to Database!");
-          if (source === "Uploaded") {
-            try {
-              const updatedEmployees = removeZeroValues(req.body);
-              const result = await generatePDF(updatedEmployees);
-              if (result.status === 200) {
-                console.log("Success PDF Generation");
-                return res.sendStatus(200);
-              } else {
-                return res.status(500).json({ "Error PDF: ": result });
-              }
-            } catch (error) {
-              console.error("Error generating PDF:", error);
-              return res.status(500).json({ "Error PDF: ": error.message });
-            }
-          }
+          // if (source === "Uploaded") {
+          //   try {
+          //     const updatedEmployees = removeZeroValues(req.body);
+          //     const result = await generatePDF(updatedEmployees);
+          //     if (result.status === 200) {
+          //       console.log("Success PDF Generation");
+          //       return res.sendStatus(200);
+          //     } else {
+          //       return res.status(500).json({ "Error PDF: ": result });
+          //     }
+          //   } catch (error) {
+          //     console.error("Error generating PDF:", error);
+          //     return res.status(500).json({ "Error PDF: ": error.message });
+          //   }
+          // }
           return res.sendStatus(200);
         }
       }
