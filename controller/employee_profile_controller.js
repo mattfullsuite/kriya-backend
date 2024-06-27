@@ -47,7 +47,7 @@ function OffboardEmployee(req, res) {
 
   console.log("DATA: " + req.body.date_separated)
 
-  const q = "UPDATE emp SET date_separated = '" + req.body.date_separated + "' WHERE emp_id = " + fetchid
+  const q = "UPDATE emp SET date_offboarding = '" + req.body.date_offboarding + "', date_separated = '" + req.body.date_separated + "' WHERE emp_id = " + fetchid
 
   db.query(q, (err, data) => {
     if (err) {
