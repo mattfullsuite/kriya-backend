@@ -89,7 +89,7 @@ function GetMyOvertimes(req, res) {
             console.log(err);
             res.send("error")
         } else {
-            console.log(data)
+            console.log(data);
             res.send(data)
         }
     })
