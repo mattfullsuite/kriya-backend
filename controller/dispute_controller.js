@@ -33,7 +33,7 @@ const viewUserDisputes = (req, res) => {
   const uid = req.session.user[0].emp_id;
   const cid = req.session.user[0].company_id;
   const q =
-    "SELECT d.* FROM `dispute` d INNER JOIN emp e ON e.emp_id = d.requester_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id WHERE ed.company_id = ? AND d.requester_id = ?";
+    "SELECT d.*, CONCAT(e2.f_name, ' ', IFNULL(CONCAT(SUBSTRING(e2.m_name, 1, 1), '. '), ''), ' ', e2.s_name) as 'handler_name' FROM `dispute` d INNER JOIN emp e ON e.emp_id = d.requester_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id LEFT JOIN emp e2 ON e2.emp_id = d.handled_by WHERE ed.company_id = ? AND d.requester_id = ?";
 
   db.query(q, [cid, uid], (err, rows) => {
     if (err) return res.json(err);
