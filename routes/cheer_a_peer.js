@@ -22,7 +22,12 @@ var imports =  {
     GetDataForNotifications,
     GetDataForMyNotifications,
     GetDataForMyNotificationsLimited,
-    GetMentionPeers
+    GetMentionPeers,
+    GetAllTimeLeaderboards,
+    GetMonthlyLeaderboards,
+    GetWeeklyLeaderboards,
+    GetMyRecentCheersWidget,
+    GetModifiedCheersPost
 } = require( "../controller/cheer_a_peer_controller.js");
 
 const router = express.Router()
@@ -50,5 +55,10 @@ router.get("/cap-getAllLikesOfPost", GetAllLikes);
 router.get("/cap-getDataForNotifications", GetDataForNotifications);
 router.get("/cap-getDataForMyNotifications", GetDataForMyNotifications);
 router.get("/cap-getDataForMyNotificationsLimited", GetDataForMyNotificationsLimited);
+router.get("/cap-getAllTimeLeaderboards", GetAllTimeLeaderboards);
+router.get("/cap-getMonthlyLeaderboards", GetMonthlyLeaderboards);
+router.get("/cap-getWeeklyLeaderboards", GetWeeklyLeaderboards);
+router.get("/cap-getMyRecentCheersWidget", GetMyRecentCheersWidget);
+router.get("/cap-getModifiedCheerPosts", GetModifiedCheersPost)
 
 module.exports = router;

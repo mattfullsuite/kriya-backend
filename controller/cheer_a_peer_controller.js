@@ -470,10 +470,77 @@ function GetMentionPeers(req, res) {
     });
 }
 
+function GetAllTimeLeaderboards(req, res) {
+    const cid = req.session.user[0].company_id;
+    const q = `SELECT e.emp_id, e.emp_pic, e.f_name, e.s_name, SUM(cd.heartbits_given) AS total_heartbits FROM cheer_post cp INNER JOIN cheer_designation cd ON cp.cheer_post_id = cd.cheer_post_id INNER JOIN emp e ON e.emp_id = cd.peer_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id WHERE ed.company_id = ? GROUP BY e.emp_id, e.emp_pic, e.f_name, e.s_name ORDER BY total_heartbits DESC`
+
+    db.query(q, [cid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+function GetMonthlyLeaderboards(req, res) {
+    const cid = req.session.user[0].company_id;
+    const q = `SELECT e.emp_id, e.emp_pic, e.f_name, e.s_name, SUM(cd.heartbits_given) AS total_heartbits FROM cheer_post cp INNER JOIN cheer_designation cd ON cp.cheer_post_id = cd.cheer_post_id INNER JOIN emp e ON e.emp_id = cd.peer_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id WHERE ed.company_id = ? AND MONTH(cp.posted_at) = MONTH(CURRENT_TIMESTAMP ()) AND YEAR(cp.posted_at) = YEAR(CURRENT_TIMESTAMP ()) GROUP BY e.emp_id, e.emp_pic, e.f_name, e.s_name ORDER BY total_heartbits DESC;`
+
+    db.query(q, [cid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+function GetWeeklyLeaderboards(req, res) {
+    const cid = req.session.user[0].company_id;
+    const q = `SELECT e.emp_id, e.emp_pic, e.f_name, e.s_name, SUM(cd.heartbits_given) AS total_heartbits FROM cheer_post cp INNER JOIN cheer_designation cd ON cp.cheer_post_id = cd.cheer_post_id INNER JOIN emp e ON e.emp_id = cd.peer_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id WHERE ed.company_id = ? AND WEEK(cp.posted_at) = WEEK(CURRENT_TIMESTAMP ()) AND YEAR(cp.posted_at) = YEAR(CURRENT_TIMESTAMP ()) GROUP BY e.emp_id, e.emp_pic, e.f_name, e.s_name ORDER BY total_heartbits DESC;`
+
+    db.query(q, [cid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+function GetMyRecentCheersWidget(req, res) {
+    const uid = req.session.user[0].emp_id;
+    const q = `SELECT * FROM cheer_post cp INNER JOIN cheer_designation cd ON cp.cheer_post_id = cd.cheer_post_id INNER JOIN emp e ON e.emp_id = cp.cheerer_id INNER JOIN emp_designation em ON e.emp_id = em.emp_id INNER JOIN position p ON p.position_id = em.position_id WHERE cd.peer_id = ?`
+
+    db.query(q, [uid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
+function GetModifiedCheersPost(req, res) {
+    const cid = req.session.user[0].company_id;
+    //const q = `SELECT c.*, ch.f_name AS cheerer_f_name, ch.s_name AS cheerer_s_name, p.position_name AS cheerer_job, pe.f_name AS peer_f_name, pe.s_name AS peer_s_name, p2.position_name AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cc.cheer_post_id = c.cheer_post_id) AS num_comments FROM cheer_post AS c INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON c.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? ORDER BY posted_at DESC`
+    const q = `SELECT c.*, cd.heartbits_given AS hb_given, ch.f_name AS cheerer_f_name, ch.s_name AS cheerer_s_name, p.position_name AS cheerer_job, pe.f_name AS peer_f_name, pe.s_name AS peer_s_name, p2.position_name AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id) AS num_comments, (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? ORDER BY posted_at DESC`
+    db.query(q, [cid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data)
+        }
+    })
+}
 
 
-//SELECT dept_name, SUM(cheers_total) AS total_cheers FROM (SELECT de.dept_name AS dept_name, COUNT(de.dept_id) AS cheers_total FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.cheerer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = 1 GROUP BY de.dept_name UNION ALL SELECT de.dept_name AS dept_name, COUNT(de.dept_id) AS cheers_total FROM cheer_post cp LEFT JOIN emp_designation ed ON ed.emp_id = cp.peer_id LEFT JOIN position p ON ed.position_id = p.position_id LEFT JOIN dept de ON de.dept_id = p.dept_id WHERE ed.company_id = 1 GROUP BY de.dept_name) t GROUP BY dept_name
 
+
+
+
+//SELECT e.emp_pic, e.f_name, e.s_name, SUM(cd.heartbits_given) AS total_heartbits FROM cheer_post cp INNER JOIN cheer_designation cd ON cp.cheer_post_id = cd.cheer_post_id INNER JOIN emp e ON e.emp_id = cd.peer_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id WHERE ed.company_id = 1 GROUP BY e.emp_pic, e.f_name, e.s_name ORDER BY total_heartbits DESC
 
 
 module.exports = { 
@@ -500,4 +567,9 @@ module.exports = {
     GetDataForMyNotifications,
     GetDataForMyNotificationsLimited,
     GetMentionPeers,
+    GetAllTimeLeaderboards,
+    GetMonthlyLeaderboards,
+    GetWeeklyLeaderboards,
+    GetMyRecentCheersWidget,
+    GetModifiedCheersPost
 }
