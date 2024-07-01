@@ -106,7 +106,7 @@ app.use(express.json());
 //"https://geolocation-db.com/"
 app.use(
   cors({
-    origin: [process.env.ORIGIN_URL],
+    origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
     credentials: true,
   })
