@@ -106,7 +106,7 @@ app.use(express.json());
 //"https://geolocation-db.com/"
 app.use(
   cors({
-    origin: [process.env.ORIGIN_URL],
+    origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
     credentials: true,
   })
@@ -1358,192 +1358,185 @@ app.get("/getApprover", (req, res) => {
   });
 });
 
-app.post("/addNewEmployee", upload.single("emp_pic"), (req, res) => {
-  function generateRandomString(n) {
-    let randomString = "";
-    let characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+// app.post("/addNewEmployee", upload.single("emp_pic"), (req, res) => {
+//   function generateRandomString(n) {
+//     let randomString = "";
+//     let characters =
+//       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 
-    for (let i = 0; i < n; i++) {
-      randomString += characters.charAt(
-        Math.floor(Math.random() * characters.length)
-      );
-    }
+//     for (let i = 0; i < n; i++) {
+//       randomString += characters.charAt(
+//         Math.floor(Math.random() * characters.length)
+//       );
+//     }
 
-    return randomString;
-  }
+//     return randomString;
+//   }
 
-  const tempPassword = generateRandomString(20);
+//   const tempPassword = generateRandomString(20);
 
-  const empKey = generateRandomString(30);
+//   const empKey = generateRandomString(30);
 
-  //----- HASHING ALGO -----//
-  const salt = bcrypt.genSaltSync(10);
-  const hashed = bcrypt.hashSync(tempPassword, salt);
-  const filename = req.file === undefined ? null : req.file.filename;
+//   //----- HASHING ALGO -----//
+//   const salt = bcrypt.genSaltSync(10);
+//   const hashed = bcrypt.hashSync(tempPassword, salt);
+//   const filename = req.file === undefined ? null : req.file.filename;
 
-  const q =
-    "INSERT INTO `emp` ( `emp_num`, `work_email`, `password`, `f_name`, `m_name`, `s_name`, `emp_role`,`personal_email`, `contact_num`, `dob`, `p_address`, `c_address`, `date_hired`, `date_regularization`,`emp_status`,`sex`,`gender`,`civil_status`, `emp_key`, `emp_pic`) VALUES (?)";
-  const values = [
-    req.body.emp_num,
-    req.body.work_email,
-    hashed,
-    req.body.f_name,
-    req.body.m_name,
-    req.body.s_name,
-    req.body.emp_role,
-    req.body.personal_email,
-    req.body.contact_num,
-    req.body.dob,
-    req.body.p_address,
-    req.body.c_address,
-    req.body.date_hired,
-    req.body.date_regularization,
-    req.body.emp_status,
-    req.body.sex,
-    req.body.gender,
-    req.body.civil_status,
-    empKey,
-    filename,
-  ];
+//   const q =
+//     "INSERT INTO `emp` ( `emp_num`, `work_email`, `password`, `f_name`, `m_name`, `s_name`, `emp_role`,`personal_email`, `contact_num`, `dob`, `p_address`, `c_address`, `date_hired`, `date_regularization`,`emp_status`,`sex`,`gender`,`civil_status`, `emp_key`, `emp_pic`) VALUES (?)";
+//   const values = [
+//     req.body.emp_num,
+//     req.body.work_email,
+//     hashed,
+//     req.body.f_name,
+//     req.body.m_name,
+//     req.body.s_name,
+//     req.body.emp_role,
+//     req.body.personal_email,
+//     req.body.contact_num,
+//     req.body.dob,
+//     req.body.p_address,
+//     req.body.c_address,
+//     req.body.date_hired,
+//     req.body.date_regularization,
+//     req.body.emp_status,
+//     req.body.sex,
+//     req.body.gender,
+//     req.body.civil_status,
+//     empKey,
+//     filename,
+//   ];
 
-  db.query(q, [values], (err, data) => {
-    if (err) {
-      res.send("error");
-    } else {
-      //const q4 = "UPDATE dept SET manager_id = (SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1) WHERE dept_id = " + req.body.dept_id;
+//   db.query(q, [values], (err, data) => {
+//     if (err) {
+//       res.send("error");
+//     } else {
+//       //const q4 = "UPDATE dept SET manager_id = (SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1) WHERE dept_id = " + req.body.dept_id;
 
-      const q2 =
-        "INSERT INTO `leave_credits` (`emp_id`, `leave_balance`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1)," +
-        0 +
-        ")";
+//       const q2 =
+//         "INSERT INTO `leave_credits` (`emp_id`, `leave_balance`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1)," +
+//         0 +
+//         ")";
 
-      db.query(q2, (err, data2) => {
-        if (err) {
-          console.log(err);
-        }
-        console.log("Inserted leave credits for new employee.");
-      });
+//       db.query(q2, (err, data2) => {
+//         if (err) {
+//           console.log(err);
+//         }
+//         console.log("Inserted leave credits for new employee.");
+//       });
 
-      const aq =
-        "INSERT INTO heartbits (`emp_id`, `heartbits_balance`, `total_heartbits`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), 100, 0)";
+//       const aq =
+//         "INSERT INTO heartbits (`emp_id`, `heartbits_balance`, `total_heartbits`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), 100, 0)";
 
-      db.query(aq, (err, data) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log("done");
-        }
-      });
+//       db.query(aq, (err, data) => {
+//         if (err) {
+//           console.log(err);
+//         } else {
+//           console.log("done");
+//         }
+//       });
 
-      const designationValues = [
-        req.body.company_id,
-        req.body.client_id,
-        req.body.position_id,
-      ];
+//       const designationValues = [
+//         req.body.company_id,
+//         req.body.client_id,
+//         req.body.position_id,
+//       ];
 
-      const q3 =
-        "INSERT INTO `emp_designation` (`emp_id`, `company_id`,`client_id`,`position_id`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), ?)";
+//       const q3 =
+//         "INSERT INTO `emp_designation` (`emp_id`, `company_id`,`client_id`,`position_id`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), ?)";
 
-      db.query(q3, [designationValues], (err, data3) => {
-        if (err) {
-          console.log(err);
-        }
-      });
+//       db.query(q3, [designationValues], (err, data3) => {
+//         if (err) {
+//           console.log(err);
+//         }
+//       });
 
-      res.send("success");
+//       res.send("success");
 
-      try {
-        let transporter = nodemailer.createTransport({
-          service: "Gmail",
-          host: "smtp.gmail.com",
-          port: 465,
-          secure: true,
-          auth: {
-            user: "marvin@fullsuite.ph",
-            pass: "uggm nyyd ymnb szrx",
-          },
-        });
-        transporter.sendMail({
-          from: "marvin@fullsuite.ph", // sender address
-          to: req.body.work_email, // list of receivers
-          subject: "Action required: Temporary password | FS-HRIS", // Subject line
-          text: tempPassword, // plain text body
-          html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" lang="en">
+//       try {
+//         let transporter = nodemailer.createTransport({
+//           service: "Gmail",
+//           host: "smtp.gmail.com",
+//           port: 465,
+//           secure: true,
+//           auth: {
+//             user: "marvin@fullsuite.ph",
+//             pass: "uggm nyyd ymnb szrx",
+//           },
+//         });
+//         transporter.sendMail({
+//           from: "marvin@fullsuite.ph", // sender address
+//           to: req.body.work_email, // list of receivers
+//           subject: "Action required: Temporary password | FS-HRIS", // Subject line
+//           text: tempPassword, // plain text body
+//           html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" lang="en">
 
-                    <head></head>
-                      
-                      <body bgcolor="#F5F8FA" style="width: 100%; margin: auto 0; padding:0; font-family:Lato, sans-serif; font-size:18px; color:#33475B; word-break:break-word">
-                        
-                  <div id="email" style="margin: auto;width: 600px;background-color: white;">
-                    
-                  
-                           <table role="presentation" width="100%">
-                              <tr>
-                           
-                                <td bgcolor="#0097B2" align="center" style="color: white;vertical-align: top;">
-                              
-                               <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/2-2.png" width="100%" align="middle">
-                                  
-                              
-                              </td> 
-                  
-                  
-                          </tr></table>
-                    
-                    <table role="presentation" border="0" cellpadding="0" cellspacing="10px" style="padding: 30px 30px 30px 60px;">
-                       <tr>
-                         <td style="vertical-align: top;">
-                          <h2 style="font-size: 28px;font-weight: 900;">Temporary Password</h2>
-                              
-                              <p style="font-weight: 100;">
-                                This is your temporary password: 
-                              </p>
+//                     <head></head>
 
-                              <p style="color: #0097B2; font-weight: bold;">
-                                ${tempPassword}
-                              </p>
-                  
-                  
-                              <br><br><br>
-                              <h3>Cheers!</h3>
-                              <h2 style="font-size: 28px;font-weight: 900;">the <span style="color: #0097B2">f</span>ull<span style="color: #0097B2">s</span>uite HRIS team.</h2>
-                            </td> 
-                            </tr>
-                                   </table>
-                    
-                       
-                          <!--Footer Row-->
-                    <table role="presentation" bgcolor="#EAF0F6" width="100%" style="margin-top: 50px;">
-                        <tr>
-                            <td align="center" style="padding: 30px 30px;vertical-align: top;">
-                  
-                                <p style="font-size: 11px;font-weight: 100;">166-C Military Cutoff Road, Baguio City, Benguet
-                                  Purok 2, Poblacion, Lianga, Surigao del Sur</p>
-                                
-                     
-                            </td>
-                            </tr>
-                        </table>
-                  
-                        <table role="presentation" width="100%">
-                          <tr>
-                       
-                          
-                           <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/3-1-1.png" height="200px" width="100%" align="middle">
-                  
-                      </tr></table>
-                    
-                        </div>
-                      </body>
-                        </html>`,
-        });
-      } catch (e) {
-        console.log("----------------" + e + "----------------");
-      }
-    }
-  });
-});
+//                       <body bgcolor="#F5F8FA" style="width: 100%; margin: auto 0; padding:0; font-family:Lato, sans-serif; font-size:18px; color:#33475B; word-break:break-word">
+
+//                   <div id="email" style="margin: auto;width: 600px;background-color: white;">
+
+//                            <table role="presentation" width="100%">
+//                               <tr>
+
+//                                 <td bgcolor="#0097B2" align="center" style="color: white;vertical-align: top;">
+
+//                                <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/2-2.png" width="100%" align="middle">
+
+//                               </td>
+
+//                           </tr></table>
+
+//                     <table role="presentation" border="0" cellpadding="0" cellspacing="10px" style="padding: 30px 30px 30px 60px;">
+//                        <tr>
+//                          <td style="vertical-align: top;">
+//                           <h2 style="font-size: 28px;font-weight: 900;">Temporary Password</h2>
+
+//                               <p style="font-weight: 100;">
+//                                 This is your temporary password:
+//                               </p>
+
+//                               <p style="color: #0097B2; font-weight: bold;">
+//                                 ${tempPassword}
+//                               </p>
+
+//                               <br><br><br>
+//                               <h3>Cheers!</h3>
+//                               <h2 style="font-size: 28px;font-weight: 900;">the <span style="color: #0097B2">f</span>ull<span style="color: #0097B2">s</span>uite HRIS team.</h2>
+//                             </td>
+//                             </tr>
+//                                    </table>
+
+//                           <!--Footer Row-->
+//                     <table role="presentation" bgcolor="#EAF0F6" width="100%" style="margin-top: 50px;">
+//                         <tr>
+//                             <td align="center" style="padding: 30px 30px;vertical-align: top;">
+
+//                                 <p style="font-size: 11px;font-weight: 100;">166-C Military Cutoff Road, Baguio City, Benguet
+//                                   Purok 2, Poblacion, Lianga, Surigao del Sur</p>
+
+//                             </td>
+//                             </tr>
+//                         </table>
+
+//                         <table role="presentation" width="100%">
+//                           <tr>
+
+//                            <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/3-1-1.png" height="200px" width="100%" align="middle">
+
+//                       </tr></table>
+
+//                         </div>
+//                       </body>
+//                         </html>`,
+//         });
+//       } catch (e) {
+//         console.log("----------------" + e + "----------------");
+//       }
+//     }
+//   });
+// });
 
 // app.post("/createNewLeaveCredit", (req, res)=> {
 //     const q2 = "INSERT INTO `leave_credits` (`emp_id`, `leave_balance`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), 0)"
