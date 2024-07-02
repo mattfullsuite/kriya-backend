@@ -13,6 +13,8 @@ var moment = require("moment");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
+const { Server } = require('socket.io');
+const { createServer } = require('node:http');
 
 // var imports =  {
 //   OpenAI,
@@ -62,6 +64,7 @@ var module_employee_profile = require("./routes/employee_profile.js");
 var dispute = require("./routes/dispute.js");
 var company_compensation = require("./routes/company/company_compensation.js");
 var employee_compensation = require("./routes/employee/employee_compensation.js");
+var suggestion_box = require("./routes/suggestion_box.js");
 
 ///ep-getDataOfLoggedInUser
 
@@ -100,6 +103,10 @@ db.connect((error) => {
 
 app.use(express.json());
 
+const server = createServer(app);
+
+const io = new Server(server);
+
 //"https://geolocation-db.com/"
 app.use(
   cors({
@@ -121,10 +128,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
-      httpOnly: false,
+      // secure: true,
+      // httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: "none",
+      // sameSite: "none",
     },
   })
 );
@@ -179,6 +186,7 @@ app.use(dispute);
 //compensation
 app.use(company_compensation);
 app.use(employee_compensation);
+app.use(suggestion_box);
 
 //app.use(ai)
 
