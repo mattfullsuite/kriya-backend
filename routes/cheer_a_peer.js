@@ -3,6 +3,7 @@ var imports =  {
     CreateHeartbitsForAllInactiveEmployees,
     GetMyHeartbitsData,
     CreateACheerPost,
+    ModifiedCreateACheerPost,
     GetRecentCheers,
     GetPeers,
     GetMostRecentCheer,
@@ -16,7 +17,12 @@ var imports =  {
     GetAllDistinctComments,
     GetDeptReceivers,
     GetDeptPeers,
-    GetDeptGivenAndReceived
+    GetDeptGivenAndReceived,
+    GetAllLikes,
+    GetDataForNotifications,
+    GetDataForMyNotifications,
+    GetDataForMyNotificationsLimited,
+    GetMentionPeers
 } = require( "../controller/cheer_a_peer_controller.js");
 
 const router = express.Router()
@@ -24,8 +30,10 @@ const router = express.Router()
 router.post("/cap-createHeartbits", CreateHeartbitsForAllInactiveEmployees);
 router.get("/cap-getMyHeartbits", GetMyHeartbitsData);
 router.post("/cap-cheerAPeer", CreateACheerPost);
+router.post("/cap-modifiedCheerAPeer", ModifiedCreateACheerPost);
 router.get("/cap-getRecentCheers", GetRecentCheers);
 router.get("/cap-getPeers", GetPeers);
+router.get("/cap-getMentionPeers", GetMentionPeers);
 router.get("/cap-getMostRecentCheer", GetMostRecentCheer);
 router.get("/cap-getTotals", GetMyTotals);
 router.post("/cap-addCommentToCheerPost", AddCommentToCheerPost)
@@ -38,5 +46,9 @@ router.get("/cap-getAllDistinctComments", GetAllDistinctComments);
 router.get("/cap-getAllDeptReceivers", GetDeptReceivers);
 router.get("/cap-getAllDeptPeers", GetDeptPeers);
 router.get("/cap-getAllGivenAndReceived", GetDeptGivenAndReceived);
+router.get("/cap-getAllLikesOfPost", GetAllLikes);
+router.get("/cap-getDataForNotifications", GetDataForNotifications);
+router.get("/cap-getDataForMyNotifications", GetDataForMyNotifications);
+router.get("/cap-getDataForMyNotificationsLimited", GetDataForMyNotificationsLimited);
 
 module.exports = router;
