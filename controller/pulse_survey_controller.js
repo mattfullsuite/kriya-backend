@@ -13,6 +13,19 @@ function GetAllActiveSurveys(req, res) {
   });
 }
 
+function GetAnswersFromActiveSurvey(req, res) {
+  var uid = req.session.user[0].emp_id;
+  const q =
+    "SELECT * FROM pulse_survey INNER JOIN pulse_survey_answers ON pulse_survey_id = survey_id WHERE survey_status = 1 AND respondent_id = ?";
+
+  db.query(q, uid, (err, data) => {
+    if (err) {
+      return res.json(err);
+    }
+    return res.json(data);
+  });
+}
+
 function InsertSurveyAnswer(req, res) {
   var uid = req.session.user[0].emp_id;
   const values = req.body;
@@ -39,7 +52,36 @@ function InsertSurveyAnswer(req, res) {
   });
 }
 
+function GetPreviousSurveyAnswers(req, res) {
+  var uid = req.session.user[0].emp_id;
+  const q =
+    "SELECT *, CAST(date_created AS date) AS converted_date FROM pulse_survey_answers psa INNER JOIN pulse_survey ON pulse_survey_id = survey_id WHERE respondent_id = ?";
+
+  db.query(q, uid, (err, data) => {
+    if (err) {
+      return res.json(err);
+    }
+    return res.json(data);
+  });
+}
+
+function GetPreviousSurveyDates(req, res) {
+  var uid = req.session.user[0].emp_id;
+  const q =
+    "SELECT DISTINCT CAST(date_created AS date) AS converted_date FROM pulse_survey_answers psa INNER JOIN pulse_survey ON pulse_survey_id = survey_id WHERE respondent_id = ?";
+
+  db.query(q, uid, (err, data) => {
+    if (err) {
+      return res.json(err);
+    }
+    return res.json(data);
+  });
+}
+
 module.exports = {
   GetAllActiveSurveys,
   InsertSurveyAnswer,
+  GetPreviousSurveyAnswers,
+  GetAnswersFromActiveSurvey,
+  GetPreviousSurveyDates,
 };
