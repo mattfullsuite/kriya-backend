@@ -62,9 +62,8 @@ var module_employee_profile = require("./routes/employee_profile.js");
 var module_engagement_index = require("./routes/engagement_index.js");
 var module_north_star = require("./routes/north_star.js");
 var dispute = require("./routes/dispute.js");
-var company_compensation = require("./routes/company/company_compensation.js");
-var employee_compensation = require("./routes/employee/employee_compensation.js");
 var company_configuration = require("./routes/company/company_configuration.js");
+var employee_contributions = require("./routes/employee/employee_contribution.js");
 
 ///ep-getDataOfLoggedInUser
 
@@ -181,12 +180,11 @@ app.use(module_north_star);
 //dispute
 app.use(dispute);
 
-//compensation
-app.use(company_compensation);
-app.use(employee_compensation);
-
 //configuration
 app.use(company_configuration);
+
+//contribution
+app.use(employee_contributions);
 
 //app.use(ai)
 

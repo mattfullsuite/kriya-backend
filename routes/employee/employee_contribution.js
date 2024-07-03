@@ -5,10 +5,10 @@ var {
   CreateEmployeeContribution,
   GetEmployeeContribution,
   UpdateEmployeeContribution,
-} = require("../../controller/employee/employee_benefit_controller");
+} = require("../../controller/employee/employee_contributions_controller");
 
 router.post("/ec-CreateEmployeeContribution", CreateEmployeeContribution);
-router.get("/ec-GetEmployeeContribution", GetEmployeeContribution);
-router.get("/ec-UpdateEmployeeContribution", UpdateEmployeeContribution);
+router.get("/ec-GetEmployeeContribution/:id", GetEmployeeContribution);
+router.post("/ec-UpdateEmployeeContribution/:id", UpdateEmployeeContribution);
 
 module.exports = router;

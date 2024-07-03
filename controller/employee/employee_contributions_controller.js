@@ -18,27 +18,36 @@ function CreateEmployeeContribution(req, res) {
 
 function UpdateEmployeeContribution(req, res) {
   const comp_id = req.session.user[0].company_id;
-  const { emp_num, contribution_name, contribution_account_id } = req.body;
+  const data = req.body;
+  const userID = req.params.id;
 
-  const q =
-    "INSERT INTO contributions (company_id, emp_num, contribution_name, contribution_account_id) VALUES  ?";
-  db.query(
-    q,
-    [comp_id, emp_num, contribution_name, contribution_account_id],
-    (err, data) => {
-      if (err) return res.json(err);
-      return res.sendStatus(200);
+  // Transform the data
+  const formattedData = Object.entries(data).map(([key, value]) => {
+    const keyValue = key.toUpperCase();
+    return [comp_id, userID, keyValue, value];
+  });
+
+  const q = `
+    INSERT INTO employee_contributions (company_id, emp_id, contribution_name, contribution_account_id)
+    VALUES ?
+    ON DUPLICATE KEY UPDATE contribution_account_id = VALUES(contribution_account_id);
+  `;
+
+  db.query(q, [formattedData], (err, data) => {
+    if (err) {
+      return res.json(err);
     }
-  );
+    return res.send("success");
+  });
 }
 
 function GetEmployeeContribution(req, res) {
   const comp_id = req.session.user[0].company_id;
-  const { emp_num } = req.params;
+  const emp_ID = req.params.id;
 
   const q =
-    "SELECT * FROM `employee_contributions` WHERE `company_id` = ? AND `emp_num` = ?";
-  db.query(q, [emp_num, comp_id], (err, data) => {
+    "SELECT * FROM `employee_contributions` WHERE `company_id` = ? AND `emp_id` = ?";
+  db.query(q, [comp_id, emp_ID], (err, data) => {
     if (err) return res.json(err);
     return res.json(data);
   });
