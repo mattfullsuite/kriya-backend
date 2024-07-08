@@ -1,6 +1,8 @@
 const { JsonWebTokenError } = require("jsonwebtoken");
 var db = require("../config.js");
 var moment = require("moment");
+const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
 
 function GetDataOfLoggedInUser(req, res) {
   const uid = req.session.user[0].emp_id;
