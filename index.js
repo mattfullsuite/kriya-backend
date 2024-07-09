@@ -1651,91 +1651,91 @@ app.post("/makeDeptLead", (req, res) => {
   });
 });
 
-app.post("/setPTO/:emp_id", (req, res) => {
-  const uid = req.params.emp_id;
+// app.post("/setPTO/:emp_id", (req, res) => {
+//   const uid = req.params.emp_id;
 
-  const oq =
-    "SELECT leave_balance FROM leave_credits WHERE emp_id = " +
-    req.params.emp_id;
-  let ob;
+//   const oq =
+//     "SELECT leave_balance FROM leave_credits WHERE emp_id = " +
+//     req.params.emp_id;
+//   let ob;
 
-  db.query(oq, (err, data) => {
-    if (err) {
-      console.log(err);
-    } else {
-      ob = data[0].leave_balance;
+//   db.query(oq, (err, data) => {
+//     if (err) {
+//       console.log(err);
+//     } else {
+//       ob = data[0].leave_balance;
 
-      const q2 =
-        "INSERT INTO pto_logs (`log_type`, `log_desc`, `hr_id`, `emp_id`) VALUES (?)";
-      //const reason = "EMP#" + req.session.user[0].emp_id + " set PTO balance of EMP#" + req.params.emp_id + " from " + ob + " to " + req.body.new_pto_balance
+//       const q2 =
+//         "INSERT INTO pto_logs (`log_type`, `log_desc`, `hr_id`, `emp_id`) VALUES (?)";
+//       //const reason = "EMP#" + req.session.user[0].emp_id + " set PTO balance of EMP#" + req.params.emp_id + " from " + ob + " to " + req.body.new_pto_balance
 
-      let category;
-      let reason;
+//       let category;
+//       let reason;
 
-      if (ob < req.body.new_pto_balance) {
-        let diff = req.body.new_pto_balance - ob;
-        category = "GRANT";
-        reason =
-          "EMP#" +
-          req.session.user[0].emp_id +
-          " gave " +
-          diff +
-          " pto points to EMP#" +
-          req.params.emp_id +
-          ". (" +
-          ob +
-          " + " +
-          diff +
-          ") = " +
-          req.body.new_pto_balance;
-      } else {
-        let diff = ob - req.body.new_pto_balance;
-        category = "DIFF";
-        reason =
-          "EMP#" +
-          req.session.user[0].emp_id +
-          " took away " +
-          diff +
-          " pto points from EMP#" +
-          req.params.emp_id +
-          ". (" +
-          ob +
-          " - " +
-          diff +
-          ") = " +
-          req.body.new_pto_balance;
-      }
+//       if (ob < req.body.new_pto_balance) {
+//         let diff = req.body.new_pto_balance - ob;
+//         category = "GRANT";
+//         reason =
+//           "EMP#" +
+//           req.session.user[0].emp_id +
+//           " gave " +
+//           diff +
+//           " pto points to EMP#" +
+//           req.params.emp_id +
+//           ". (" +
+//           ob +
+//           " + " +
+//           diff +
+//           ") = " +
+//           req.body.new_pto_balance;
+//       } else {
+//         let diff = ob - req.body.new_pto_balance;
+//         category = "DIFF";
+//         reason =
+//           "EMP#" +
+//           req.session.user[0].emp_id +
+//           " took away " +
+//           diff +
+//           " pto points from EMP#" +
+//           req.params.emp_id +
+//           ". (" +
+//           ob +
+//           " - " +
+//           diff +
+//           ") = " +
+//           req.body.new_pto_balance;
+//       }
 
-      const VALUES = [
-        category,
-        reason,
-        req.session.user[0].emp_id,
-        req.params.emp_id,
-      ];
+//       const VALUES = [
+//         category,
+//         reason,
+//         req.session.user[0].emp_id,
+//         req.params.emp_id,
+//       ];
 
-      db.query(q2, [VALUES], (err, data) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log(reason);
-        }
-      });
-    }
-  });
+//       db.query(q2, [VALUES], (err, data) => {
+//         if (err) {
+//           console.log(err);
+//         } else {
+//           console.log(reason);
+//         }
+//       });
+//     }
+//   });
 
-  const q =
-    "UPDATE emp AS e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = " +
-    req.body.new_pto_balance +
-    " WHERE l.emp_id = ?";
+//   const q =
+//     "UPDATE emp AS e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = " +
+//     req.body.new_pto_balance +
+//     " WHERE l.emp_id = ?";
 
-  db.query(q, [uid], (err, data) => {
-    if (err) {
-      res.send(err);
-    } else {
-      res.send("success");
-    }
-  });
-});
+//   db.query(q, [uid], (err, data) => {
+//     if (err) {
+//       res.send(err);
+//     } else {
+//       res.send("success");
+//     }
+//   });
+// });
 
 app.get("/getUserAvatar", (req, res) => {
   const uid = req.session.user[0].emp_id;

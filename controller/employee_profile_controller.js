@@ -16,7 +16,7 @@ function GetDataOfLoggedInUser(req, res) {
 function GetDataForCertainEmployee(req, res) {
   const emp_id = req.params.emp_id;
   const q =
-    "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN dept AS d ON d.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = d.div_id INNER JOIN company AS c ON c.company_id = em.company_id WHERE e.emp_id = ? ";
+    "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id INNER JOIN leave_credits lc ON e.emp_id = lc.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN dept AS d ON d.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = d.div_id INNER JOIN company AS c ON c.company_id = em.company_id WHERE e.emp_id = ? ";
 
   db.query(q, [emp_id], (err, data) => {
     if (err) return res.json(err);
@@ -342,6 +342,92 @@ function EditEmployee(req, res) {
   });
 }
 
+function EditEmployeePTO(req, res) {
+  const uid = req.params.emp_id;
+
+  const oq =
+    "SELECT leave_balance FROM leave_credits WHERE emp_id = " +
+    req.params.emp_id;
+  let ob;
+
+  db.query(oq, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      ob = data[0].leave_balance;
+
+      const q2 =
+        "INSERT INTO pto_logs (`log_type`, `log_desc`, `hr_id`, `emp_id`) VALUES (?)";
+      //const reason = "EMP#" + req.session.user[0].emp_id + " set PTO balance of EMP#" + req.params.emp_id + " from " + ob + " to " + req.body.new_pto_balance
+
+      let category;
+      let reason;
+
+      if (ob < req.body.new_pto_balance) {
+        let diff = req.body.new_pto_balance - ob;
+        category = "GRANT";
+        reason =
+          "EMP#" +
+          req.session.user[0].emp_id +
+          " gave " +
+          diff +
+          " pto points to EMP#" +
+          req.params.emp_id +
+          ". (" +
+          ob +
+          " + " +
+          diff +
+          ") = " +
+          req.body.new_pto_balance;
+      } else {
+        let diff = ob - req.body.new_pto_balance;
+        category = "DIFF";
+        reason =
+          "EMP#" +
+          req.session.user[0].emp_id +
+          " took away " +
+          diff +
+          " pto points from EMP#" +
+          req.params.emp_id +
+          ". (" +
+          ob +
+          " - " +
+          diff +
+          ") = " +
+          req.body.new_pto_balance;
+      }
+
+      const VALUES = [
+        category,
+        reason,
+        req.session.user[0].emp_id,
+        req.params.emp_id,
+      ];
+
+      db.query(q2, [VALUES], (err, data) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(reason);
+        }
+      });
+    }
+  });
+
+  const q =
+    "UPDATE emp AS e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = " +
+    req.body.new_pto_balance +
+    " WHERE l.emp_id = ?";
+
+  db.query(q, [uid], (err, data) => {
+    if (err) {
+      res.send(err);
+    } else {
+      res.send("success");
+    }
+  });
+}
+
 module.exports = {
   GetDataOfLoggedInUser,
   GetSuperiorDataOfLoggedInUser,
@@ -350,4 +436,5 @@ module.exports = {
   OffboardEmployee,
   AddEmployee,
   EditEmployee,
+  EditEmployeePTO,
 };
