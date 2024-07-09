@@ -342,6 +342,17 @@ function EditEmployee(req, res) {
   });
 }
 
+function GetEmployeeInfoForUploadPayrun(req, res) {
+  const email = req.params.email;
+  const q =
+    "SELECT e.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name' , p.`position_name` AS 'Job Title',  e.`date_hired` AS 'Hire Date' FROM `emp` e INNER JOIN `emp_designation` ed ON e.emp_id = ed.emp_id INNER JOIN `position` p ON p.position_id = ed.position_id WHERE e.work_email = ?";
+
+  db.query(q, [email], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+
 module.exports = {
   GetDataOfLoggedInUser,
   GetSuperiorDataOfLoggedInUser,
@@ -350,4 +361,5 @@ module.exports = {
   OffboardEmployee,
   AddEmployee,
   EditEmployee,
+  GetEmployeeInfoForUploadPayrun,
 };
