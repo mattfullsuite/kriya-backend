@@ -13,6 +13,8 @@ var moment = require("moment");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
+const { Server } = require('socket.io');
+const { createServer } = require('node:http');
 
 // var imports =  {
 //   OpenAI,
@@ -62,6 +64,7 @@ var module_employee_profile = require("./routes/employee_profile.js");
 var module_engagement_index = require("./routes/engagement_index.js");
 var module_north_star = require("./routes/north_star.js");
 var dispute = require("./routes/dispute.js");
+var suggestion_box = require("./routes/suggestion_box.js");
 var company_configuration = require("./routes/company/company_configuration.js");
 var employee_contributions = require("./routes/employee/employee_contribution.js");
 
@@ -101,6 +104,10 @@ db.connect((error) => {
 });
 
 app.use(express.json());
+
+const server = createServer(app);
+
+const io = new Server(server);
 
 //"https://geolocation-db.com/"
 app.use(
@@ -179,6 +186,7 @@ app.use(module_north_star);
 
 //dispute
 app.use(dispute);
+app.use(suggestion_box);
 
 //configuration
 app.use(company_configuration);

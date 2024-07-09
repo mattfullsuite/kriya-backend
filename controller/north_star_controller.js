@@ -7,8 +7,8 @@ function InsertNorthStar(req, res){
 
     const values = [
         uid, 
-        req.body.target_goal,
-        req.body.target_desc,
+        req.body[0].target_goal,
+        req.body[0].target_desc,
         //moment(req.body.target_date).format("YYYY-MM-DD"),
     ]
 
@@ -16,18 +16,41 @@ function InsertNorthStar(req, res){
         [values], 
         (err,data) => {
         if (err){
-            console.log(err);
             res.send("error")
         } else {
-            res.send("success")
-            console.log(data)
+            const q = "SELECT LAST_INSERT_ID() AS id FROM north_star";
+
+            db.query(q, (err, data) => {
+                if(err){
+                    res.send("error");
+                }
+                else {
+                    res.json(data);
+                }
+            })
+        }
+    })
+}
+
+function EditNorthStar(req, res) {
+    const north_star_id = req.body[0].north_star_id;
+    const target_goal = req.body[0].target_goal;
+    const target_desc = req.body[0].target_desc;
+
+    const q = "UPDATE north_star SET target_goal = ?, target_desc = ? WHERE north_star_id = ?";
+    db.query(q, [target_goal, target_desc, north_star_id], (err, data) => {
+        if(err) {
+            res.send("error");
+            console.log(err);
+        } else {
+            res.send("success");
         }
     })
 }
 
 function GetMyOwnNorthStar(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM north_star WHERE upline_id = ?"
+    const q = "SELECT north_star_id, target_goal, target_desc FROM north_star WHERE upline_id = ?"
 
     db.query(q, 
         uid, 
@@ -92,7 +115,15 @@ function InsertNorthStarGoal(req, res){
             console.log(err);
             res.send("error")
         } else {
-            res.send("success")
+            const q = "(SELECT nsg.*, a.f_name AS a_fname, a.s_name AS a_sname, r.f_name AS r_fname, r.s_name AS r_sname FROM north_star_goals nsg INNER JOIN emp a ON nsg.assignee_id = a.emp_id INNER JOIN emp r ON nsg.assigner_id = r.emp_id ORDER BY north_star_goal_id DESC LIMIT 1) UNION (SELECT nsg.*, a.f_name AS a_fname, a.s_name AS a_sname, r.f_name AS r_fname, r.s_name AS r_sname FROM north_star_goals nsg INNER JOIN emp a ON nsg.assignee_id = a.emp_id INNER JOIN emp r ON nsg.assigner_id = r.emp_id WHERE assigner_id = ? ORDER BY north_star_goal_id DESC LIMIT 1)";
+            db.query(q, [uid, uid], (err, data) => {
+                if(err) {
+                    console.log(err);
+                } else {
+                    res.json(data);
+                    console.log(data);
+                }
+            })
         }
     })
 }
@@ -206,5 +237,6 @@ module.exports = {
     GetFinishedTaskOfSameLine,
     GetMyOwnNorthStar,
     GetMyTasks,
-    GetMyTeamTasks
+    GetMyTeamTasks,
+    EditNorthStar
 }
