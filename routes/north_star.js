@@ -10,7 +10,8 @@ var imports =  {
     GetFinishedTaskOfSameLine,
     GetMyOwnNorthStar,
     GetMyTasks,
-    GetMyTeamTasks
+    GetMyTeamTasks,
+    EditNorthStar,
 } = require( "../controller/north_star_controller.js");
 
 const router = express.Router()
@@ -26,6 +27,7 @@ router.get("/ns-getFinishedSameLineTasks", GetFinishedTaskOfSameLine);
 router.get("/ns-getMyOwnNorthStar",GetMyOwnNorthStar);
 router.get("/ns-getMyTeamTasks", GetMyTeamTasks);
 router.get("/ns-getMyTasks", GetMyTasks);
+router.post("/ns-editNorthStarGoal", EditNorthStar);
 
 
 module.exports = router;
