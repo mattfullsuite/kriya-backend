@@ -209,7 +209,25 @@ function GetTasksYouAssigned(req, res) {
 
 function GetTasksForReview(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE nsg.assigner_id = ? AND status = 'FOR REVIEW'"
+    const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE nsg.assigner_id = ? AND status = 9"
+
+    db.query(q, 
+        uid, 
+        (err,data) => {
+        if (err){
+            console.log(err);
+            res.send("error")
+        } else {
+            res.send(data)
+        }
+    })
+}
+
+//MY TEAM
+
+function GetMyTeamTasksYouAssigned(req, res) {
+    const uid = req.session.user[0].emp_id
+    const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE nsg.assigner_id = ? AND nsg.status < 8"
 
     db.query(q, 
         uid, 
@@ -236,7 +254,12 @@ module.exports = {
     GetTasksForReview,
     GetFinishedTaskOfSameLine,
     GetMyOwnNorthStar,
+    EditNorthStar,
+
+    //Tasks You Assigned
+    GetMyTeamTasksYouAssigned,
     GetMyTasks,
     GetMyTeamTasks,
-    EditNorthStar
+
+    //Tasks You Assigned
 }
