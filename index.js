@@ -1126,9 +1126,9 @@ cron.schedule("0 0 * * *", function () {
   dailyPtoAccrual();
 });
 
-cron.schedule("0 0 1 1 *", function () {
-  yearlyAccrual();
-});
+// cron.schedule("0 0 1 1 *", function () {
+//   yearlyAccrual();
+// });
 
 // cron.schedule("*/10 * * * * *", function() {
 //     console.log("running a task every 10 second");
@@ -1178,9 +1178,7 @@ function cronLogs() {
 
       category = "AUTO";
       reason =
-        "EMP#" +
-        id +
-        " has been given 5 PTO credits for being regularized. Congratulations!";
+        "You have been given 5 PTO days for being regularized. Congratulations!";
 
       const VALUES = [category, reason, id];
 
@@ -1198,7 +1196,7 @@ function cronLogs() {
   let reg_array;
 
   const reg_q =
-    "SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+    "SELECT emp_id FROM emp WHERE date_hired > DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
 
   db.query(reg_q, (err, data) => {
     if (err) {
@@ -1218,10 +1216,7 @@ function cronLogs() {
       let reason;
 
       category = "AUTO";
-      reason =
-        "EMP#" +
-        id +
-        " has been given 0.83 PTO credits because it's PTO accrual day!";
+      reason = "You has been given 0.83 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1239,7 +1234,7 @@ function cronLogs() {
   let tenure_array;
 
   const tenure_q =
-    "SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+    "SELECT emp_id FROM emp WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
 
   db.query(tenure_q, (err, data) => {
     if (err) {
@@ -1260,9 +1255,7 @@ function cronLogs() {
 
       category = "AUTO";
       reason =
-        "EMP#" +
-        id +
-        " has been given 1.25 PTO credits because it's PTO accrual day!";
+        "You has been given 1.25 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1276,19 +1269,19 @@ function cronLogs() {
   });
 }
 
-function yearlyAccrual() {
-  const year_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 6 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time'";
+// function yearlyAccrual() {
+//   const year_q =
+//     "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
+//     "SET leave_balance = leave_balance + 6 " +
+//     "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time'";
 
-  db.query(year_q, (err, data) => {
-    if (err) {
-      return console.log(err);
-    }
-    console.log("Working Scholar yearly accrual done.");
-  });
-}
+//   db.query(year_q, (err, data) => {
+//     if (err) {
+//       return console.log(err);
+//     }
+//     console.log("Working Scholar yearly accrual done.");
+//   });
+// }
 
 function dailyPtoAccrual() {
   const prob_q =
@@ -1299,7 +1292,7 @@ function dailyPtoAccrual() {
   const reg_q =
     "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
     "SET leave_balance = leave_balance + 0.83 " +
-    "WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+    "WHERE date_hired > DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
 
   const tenure_q =
     "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
