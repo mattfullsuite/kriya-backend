@@ -12,6 +12,9 @@ var imports =  {
     GetMyTasks,
     GetMyTeamTasks,
     EditNorthStar,
+
+    //MY TEAM
+    GetMyTeamTasksYouAssigned
 } = require( "../controller/north_star_controller.js");
 
 const router = express.Router()
@@ -29,5 +32,6 @@ router.get("/ns-getMyTeamTasks", GetMyTeamTasks);
 router.get("/ns-getMyTasks", GetMyTasks);
 router.post("/ns-editNorthStarGoal", EditNorthStar);
 
+router.get("/ns-getMyTeamTasksYouAssigned", GetMyTeamTasksYouAssigned);
 
 module.exports = router;
