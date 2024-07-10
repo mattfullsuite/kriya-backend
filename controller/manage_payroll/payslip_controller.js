@@ -22,18 +22,12 @@ const createPayslip = async (req, res) => {
       "Pay Items": payItems,
       Totals,
       "Net Pay": netPay,
-      generated_by,
     } = items;
 
     return [
       compID,
       employeeID,
-      firstName,
-      middleName,
-      lastName,
       Email,
-      jobTitle,
-      moment(hireDate).format("YYYY-MM-DD"),
       JSON.stringify(Dates),
       JSON.stringify(payItems),
       JSON.stringify(Totals),
@@ -45,30 +39,13 @@ const createPayslip = async (req, res) => {
 
   try {
     await db.query(
-      `INSERT INTO payslip (company_id, emp_num, first_name, middle_name, last_name, email, job_title, hire_date, dates, payables, totals, net_salary, generated_by, source) VALUES ?;`,
+      `INSERT INTO payslip (company_id, emp_num, email, dates, payables, totals, net_salary, generated_by, source) VALUES ?;`,
       [dataProcessed],
       async (error, data) => {
         if (error) {
           console.error(error);
           return res.sendStatus(500);
         } else {
-          console.log("Data Inserted to Database!");
-          if (source === "Uploaded") {
-            console.log("SOURCE FROM UPLOAD");
-            // try {
-            //   const updatedEmployees = removeZeroValues(req.body);
-            //   const result = await generatePDF(updatedEmployees);
-            //   if (result.status === 200) {
-            //     console.log("Success PDF Generation");
-            //     return res.sendStatus(200);
-            //   } else {
-            //     return res.status(500).json({ "Error PDF: ": result });
-            //   }
-            // } catch (error) {
-            //   console.error("Error generating PDF:", error);
-            //   return res.status(500).json({ "Error PDF: ": error.message });
-            // }
-          }
           return res.sendStatus(200);
         }
       }
@@ -171,7 +148,7 @@ const getAllPaySlipGroups = (req, res) => {
 const getAllPaySlip = (req, res) => {
   const compID = req.session.user[0].company_id;
   const q =
-    "SELECT ps.`emp_num` AS 'Employee ID', ps.`last_name` AS 'Last Name', ps.`first_name` AS 'First Name', ps.`middle_name` AS 'Middle Name', ps.`email` AS 'Email', ps.`job_title` AS 'Job Title', DATE_FORMAT(ps.`hire_date`, '%m/%d/%Y') AS 'Hire Date', DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `Date From`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `Date To`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `Date Payment`, ps.payables, ps.totals, ps.net_salary, CONCAT(e.f_name, ' ', e.s_name) AS `generated_by`, ps.source, DATE_FORMAT(ps.`created_at`, '%m/%d/%Y %H:%i:%s') AS 'created_at' FROM `payslip` ps INNER JOIN `emp` e on e.emp_num = ps.generated_by  WHERE company_id = ? ORDER BY `created_at` DESC;";
+    "SELECT ps.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', ps.`email` AS 'Email', p.position_name AS 'Job Title', DATE_FORMAT(e.`date_hired`, '%m/%d/%Y') AS 'Hire Date', DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `Date From`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `Date To`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `Date Payment`, ps.payables, ps.totals, ps.net_salary, CONCAT(e.f_name, ' ', e.s_name) AS `generated_by`, ps.source, DATE_FORMAT(ps.`created_at`, '%m/%d/%Y %H:%i:%s') AS 'created_at' FROM `payslip` ps INNER JOIN `emp` e on e.emp_num = ps.generated_by INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p on p.position_id = ed.position_id WHERE ed.company_id = ? ORDER BY `created_at` DESC;";
 
   db.query(q, [compID], (err, rows) => {
     if (err) return res.json(err);
