@@ -367,12 +367,10 @@ function EditEmployeePTO(req, res) {
         let diff = req.body.new_pto_balance - ob;
         category = "GRANT";
         reason =
-          "EMP#" +
-          req.session.user[0].emp_id +
+          req.session.user[0].f_name +
           " gave " +
           diff +
-          " pto points to EMP#" +
-          req.params.emp_id +
+          " PTO days to you" +
           ". (" +
           ob +
           " + " +
@@ -383,12 +381,10 @@ function EditEmployeePTO(req, res) {
         let diff = ob - req.body.new_pto_balance;
         category = "DIFF";
         reason =
-          "EMP#" +
-          req.session.user[0].emp_id +
+          req.session.user[0].f_name +
           " took away " +
           diff +
-          " pto points from EMP#" +
-          req.params.emp_id +
+          " PTO days from you" +
           ". (" +
           ob +
           " - " +
