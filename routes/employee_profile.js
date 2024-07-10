@@ -8,6 +8,7 @@ const {
   AddEmployee,
   EditEmployee,
   EditEmployeePTO,
+  GetEmployeeInfoForUploadPayrun,
 } = require("../controller/employee_profile_controller");
 const uploadMulter = require("../handlers/utilities/multerFileHandler");
 
@@ -24,6 +25,10 @@ router.patch(
   "/ep-editEmployee/:emp_id",
   uploadMulter.single("emp_pic"),
   EditEmployee
+);
+router.get(
+  "/ep-getEmployeeInfoForUploadPayrun/:email",
+  GetEmployeeInfoForUploadPayrun
 );
 
 module.exports = router;
