@@ -426,6 +426,7 @@ function EditEmployeePTO(req, res) {
   });
 }
 
+// Payrun Functions Start
 function GetEmployeeInfoForUploadPayrun(req, res) {
   const email = req.params.email;
   const q =
@@ -437,14 +438,27 @@ function GetEmployeeInfoForUploadPayrun(req, res) {
   });
 }
 
+function GetActiveEmployees(req, res) {
+  const compID = req.session.user[0].company_id;
+  const q =
+    "SELECT e.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', e.`work_email` AS 'Email', p.`position_name` AS 'Job Title', e.`date_hired` AS 'Hire Date' FROM `emp` e INNER JOIN `emp_designation` ed ON ed.emp_id = e.emp_id  INNER JOIN `position` p ON p.position_id = ed.position_id WHERE date_offboarding IS NULL AND date_separated IS NULL AND ed.company_id = ? ORDER BY p.`position_name`;";
+
+  db.query(q, [compID], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+// Payrun Functions End
+
 module.exports = {
   GetDataOfLoggedInUser,
   GetSuperiorDataOfLoggedInUser,
   GetDataForCertainEmployee,
   GetSuperiorDataOfCertainUser,
   OffboardEmployee,
-  GetEmployeeInfoForUploadPayrun,
   AddEmployee,
   EditEmployee,
   EditEmployeePTO,
+  GetEmployeeInfoForUploadPayrun,
+  GetActiveEmployees,
 };
