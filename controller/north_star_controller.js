@@ -175,22 +175,6 @@ function GetMyTeamTasks(req, res) {
     })
 }
 
-function GetFinishedTaskOfSameLine(req, res) {
-    const uid = req.session.user[0].emp_id
-    //const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assigner_id = e.emp_id WHERE assignee_id = ?"
-    const q = "(SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE assignee_id = ? AND status = 0) UNION (SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE assigner_id = ? AND status = 0)"
-    db.query(q, 
-        [uid, uid], 
-        (err,data) => {
-        if (err){
-            console.log(err);
-            res.send("error")
-        } else {
-            res.send(data)
-        }
-    })
-}
-
 function GetTasksYouAssigned(req, res) {
     const uid = req.session.user[0].emp_id
     const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE nsg.assigner_id = ?"
@@ -209,7 +193,9 @@ function GetTasksYouAssigned(req, res) {
 
 function GetTasksForReview(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE nsg.assigner_id = ? AND status = 9"
+    //const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE nsg.assigner_id = ? AND status = 9"
+    const q = "(SELECT nsg.*, a.f_name AS a_fname, a.s_name AS a_sname, r.f_name AS r_fname, r.s_name AS r_sname FROM north_star_goals nsg INNER JOIN emp a ON nsg.assignee_id = a.emp_id INNER JOIN emp r ON nsg.assigner_id = r.emp_id WHERE assigner_id = ? AND status = 9)"
+
 
     db.query(q, 
         uid, 
@@ -241,7 +227,62 @@ function GetMyTeamTasksYouAssigned(req, res) {
     })
 }
 
-//SELECT child.* FROM emp parent INNER JOIN emp child ON child.superior_id = parent.emp_id WHERE child.date_separated IS NULL AND parent.emp_id = 101
+function UpdateTaskStatus(req, res) {
+
+    console.log(JSON.stringify(req.body))
+  
+    const normal_q = "UPDATE north_star_goals SET status = " + req.body.status + " WHERE north_star_goal_id = " + req.body.north_star_goal_id;
+    const finished_q = "UPDATE north_star_goals SET status = " + req.body.status + ", finished_date = CURRENT_TIMESTAMP WHERE north_star_goal_id = " + req.body.north_star_goal_id;
+  
+    db.query(
+        (req.body.status == 0) ? finished_q : normal_q, (err, data) => {
+      if (err) {
+        res.send("error");
+        console.log(err);
+      } else {
+        console.log(data);
+        res.send("success")
+      }
+    });
+}
+
+function GetFinishedTaskOfSameLine(req, res) {
+    const uid = req.session.user[0].emp_id
+    //const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assigner_id = e.emp_id WHERE assignee_id = ?"
+    const q = "(SELECT nsg.*, a.f_name AS a_fname, a.s_name AS a_sname, r.f_name AS r_fname, r.s_name AS r_sname FROM north_star_goals nsg INNER JOIN emp a ON nsg.assignee_id = a.emp_id INNER JOIN emp r ON nsg.assigner_id = r.emp_id WHERE assigner_id = ? AND status = 0)"
+    //"(SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE assignee_id = ? AND status = 0) UNION (SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE assigner_id = ? AND status = 0)"
+    
+    db.query(q, 
+        [uid, uid], 
+        (err,data) => {
+        if (err){
+            console.log(err);
+            res.send("error")
+        } else {
+            res.send(data)
+        }
+    })
+}
+
+function GetMyFinishedTasks(req, res) {
+    const uid = req.session.user[0].emp_id
+    //const q = "SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assigner_id = e.emp_id WHERE assignee_id = ?"
+    const q = "(SELECT nsg.*, a.f_name AS a_fname, a.s_name AS a_sname, r.f_name AS r_fname, r.s_name AS r_sname FROM north_star_goals nsg INNER JOIN emp a ON nsg.assignee_id = a.emp_id INNER JOIN emp r ON nsg.assigner_id = r.emp_id WHERE assignee_id = ? AND status = 0)"
+    
+    //"(SELECT * FROM north_star_goals nsg INNER JOIN emp e ON nsg.assignee_id = e.emp_id WHERE assignee_id = ? AND status = 0)"
+    
+    db.query(q, 
+        [uid], 
+        (err,data) => {
+        if (err){
+            console.log(err);
+            res.send("error")
+        } else {
+            res.send(data)
+        }
+    })
+}
+  
 
 
 module.exports = { 
@@ -251,7 +292,6 @@ module.exports = {
     GetMyDownlines,
     GetTaskOfSameLine,
     GetTasksYouAssigned,
-    GetTasksForReview,
     GetFinishedTaskOfSameLine,
     GetMyOwnNorthStar,
     EditNorthStar,
@@ -261,5 +301,11 @@ module.exports = {
     GetMyTasks,
     GetMyTeamTasks,
 
-    //Tasks You Assigned
+    //Tasks For Review
+    GetTasksForReview,
+    UpdateTaskStatus,
+
+    //FinishedTasks
+    GetFinishedTaskOfSameLine,
+    GetMyFinishedTasks
 }
