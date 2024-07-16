@@ -7,7 +7,7 @@ function InsertApplicantsData(req, res) {
     const data = req.body;
     console.log(JSON.stringify(data))
 
-    const q = "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `status`) VALUES (?)"
+    const q = "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `position_applied`, `status`) VALUES (?)"
 
     data.map((d) => {
         db.query(q, [d], (err, data) => {
