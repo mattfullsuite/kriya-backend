@@ -6,7 +6,7 @@ function InsertAttendanceIntoDatabase(req, res) {
     const data = req.body;
     console.log(JSON.stringify(data))
 
-    const q = "INSERT INTO attendance (`employee_id`, `surname`, `date`, `time_in`, `time_out`, `total_break`, `hours_logged`) VALUES (?)"
+    const q = "INSERT INTO attendance (`employee_id`, `surname`, `department`, `date`, `time_in`, `time_out`, `hours_logged`, `total_break`, `hours_worked`, `status`, `undertime`) VALUES (?)"
 
     data.map((d) => {
         db.query(q, [d], (err, data) => {
