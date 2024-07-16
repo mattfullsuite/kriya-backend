@@ -22,7 +22,10 @@ var imports =  {
 
     //FinishedTasks
     GetFinishedTaskOfSameLine,
-    GetMyFinishedTasks
+    GetMyFinishedTasks,
+
+    //DownlineTasks
+    GetDownlineTasks
 } = require( "../controller/north_star_controller.js");
 
 const router = express.Router()
@@ -49,5 +52,8 @@ router.post("/ns-updateTask", UpdateTaskStatus)
 //Finished Tasks
 router.get("/ns-getFinishedSameLineTasks", GetFinishedTaskOfSameLine);
 router.get("/ns-getMyFinishedTasks", GetMyFinishedTasks);
+
+//Downline Tasks
+router.get("/ns-getDownlineTasks", GetDownlineTasks)
 
 module.exports = router;

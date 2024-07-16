@@ -63,6 +63,7 @@ var module_applicant_tracking = require("./routes/applicant_tracking.js");
 var module_employee_profile = require("./routes/employee_profile.js");
 var module_engagement_index = require("./routes/engagement_index.js");
 var module_north_star = require("./routes/north_star.js");
+var module_task_notes = require("./routes/task_notes.js");
 var dispute = require("./routes/dispute.js");
 var suggestion_box = require("./routes/suggestion_box.js");
 var company_configuration = require("./routes/company/company_configuration.js");
@@ -183,6 +184,7 @@ app.use(module_applicant_tracking);
 app.use(module_employee_profile);
 app.use(module_engagement_index);
 app.use(module_north_star);
+app.use(module_task_notes);
 
 //dispute
 app.use(dispute);
