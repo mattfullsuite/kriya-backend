@@ -80,7 +80,7 @@ function RejectOvertime(req, res) {
 
 function GetMyOvertimes(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM overtime WHERE requester_id = 1";
+    const q = "SELECT * FROM overtime WHERE requester_id = ?";
 
     db.query(q, 
         [uid], 
