@@ -1,19 +1,26 @@
 var db = require("../../config.js");
 
 function CreateEmployeeContribution(req, res) {
+  console.log("Contributions Controller");
   const comp_id = req.session.user[0].company_id;
-  const { emp_num, contribution_name, contribution_account_id } = req.body;
+  const data = req.body.contributions;
+  console.log("data: ", data);
+  console.log("Type of: ", typeof data);
+  console.log("Data: ", JSON.parse(JSON.stringify(data)));
+  const userID = req.body.emp_id;
+
+  // Transform the data
+  const formattedData = Object.entries(data).map(([key, value]) => {
+    const keyValue = key.toUpperCase();
+    return [comp_id, userID, keyValue, value];
+  });
 
   const q =
     "INSERT INTO `employee_contributions`(`company_id, `emp_num`, `contribution_name`, `contribution_account_id`) VALUES ?";
-  db.query(
-    q,
-    [comp_id, emp_num, contribution_name, contribution_account_id],
-    (err, data) => {
-      if (err) return res.json(err);
-      return res.sendStatus(200);
-    }
-  );
+  db.query(q, [formattedData], (err, data) => {
+    if (err) return res.json(err);
+    return res.send("success");
+  });
 }
 
 function UpdateEmployeeContribution(req, res) {
