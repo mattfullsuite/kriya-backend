@@ -96,7 +96,7 @@ function OffboardEmployee(req, res) {
   });
 }
 
-function AddEmployee(req, res) {
+function AddEmployee(req, res, next) {
   // app.post("/addNewEmployee", upload.single("emp_pic"), (req, res) => {
   function generateRandomString(n) {
     let randomString = "";
@@ -120,7 +120,9 @@ function AddEmployee(req, res) {
   const salt = bcrypt.genSaltSync(10);
   const hashed = bcrypt.hashSync(tempPassword, salt);
   const filename = req.file === undefined ? null : req.file.filename;
-
+  console.log("Data ", req.body);
+  const { employeeInfo } = req.body;
+  console.log("Emp Info: ", employeeInfo);
   const q =
     "INSERT INTO `emp` ( `emp_num`, `work_email`, `password`, `f_name`, `m_name`, `s_name`, `emp_role`,`personal_email`, `contact_num`, `dob`, `p_address`, `c_address`, `date_hired`, `date_regularization`,`emp_status`,`sex`,`gender`,`civil_status`, `emp_key`, `emp_pic`) VALUES (?)";
   const values = [
@@ -146,10 +148,11 @@ function AddEmployee(req, res) {
     filename,
   ];
 
-  db.query(q, [values], (err, data) => {
+  db.query(q, [values], (err, result) => {
     if (err) {
       res.send("error");
     } else {
+      req.emp_id = result.emp_id;
       //const q4 = "UPDATE dept SET manager_id = (SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1) WHERE dept_id = " + req.body.dept_id;
 
       const q2 =
@@ -190,7 +193,7 @@ function AddEmployee(req, res) {
         }
       });
 
-      res.send("success");
+      // res.send("success");
 
       try {
         let transporter = nodemailer.createTransport({
@@ -277,6 +280,8 @@ function AddEmployee(req, res) {
                       </body>
                         </html>`,
         });
+        console.log("Sent email");
+        next();
       } catch (e) {
         console.log("----------------" + e + "----------------");
       }
