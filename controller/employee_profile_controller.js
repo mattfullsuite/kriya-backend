@@ -126,24 +126,24 @@ function AddEmployee(req, res, next) {
   const q =
     "INSERT INTO `emp` ( `emp_num`, `work_email`, `password`, `f_name`, `m_name`, `s_name`, `emp_role`,`personal_email`, `contact_num`, `dob`, `p_address`, `c_address`, `date_hired`, `date_regularization`,`emp_status`,`sex`,`gender`,`civil_status`, `emp_key`, `emp_pic`) VALUES (?)";
   const values = [
-    req.body.emp_num,
-    req.body.work_email,
+    employeeInfo.emp_num,
+    employeeInfo.work_email,
     hashed,
-    req.body.f_name,
-    req.body.m_name,
-    req.body.s_name,
-    req.body.emp_role,
-    req.body.personal_email,
-    req.body.contact_num,
-    req.body.dob,
-    req.body.p_address,
-    req.body.c_address,
-    req.body.date_hired,
-    req.body.date_regularization,
-    req.body.emp_status,
-    req.body.sex,
-    req.body.gender,
-    req.body.civil_status,
+    employeeInfo.f_name,
+    employeeInfo.m_name,
+    employeeInfo.s_name,
+    employeeInfo.emp_role,
+    employeeInfo.personal_email,
+    employeeInfo.contact_num,
+    employeeInfo.dob,
+    employeeInfo.p_address,
+    employeeInfo.c_address,
+    employeeInfo.date_hired,
+    employeeInfo.date_regularization,
+    employeeInfo.emp_status,
+    employeeInfo.sex,
+    employeeInfo.gender,
+    employeeInfo.civil_status,
     empKey,
     filename,
   ];
@@ -152,7 +152,7 @@ function AddEmployee(req, res, next) {
     if (err) {
       res.send("error");
     } else {
-      req.emp_id = result.emp_id;
+      req.body.employeeInfo.user_id = result.insertId;
       //const q4 = "UPDATE dept SET manager_id = (SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1) WHERE dept_id = " + req.body.dept_id;
 
       const q2 =
@@ -179,9 +179,9 @@ function AddEmployee(req, res, next) {
       });
 
       const designationValues = [
-        req.body.company_id,
-        req.body.client_id,
-        req.body.position_id,
+        employeeInfo.company_id,
+        employeeInfo.client_id,
+        employeeInfo.position_id,
       ];
 
       const q3 =
@@ -208,79 +208,78 @@ function AddEmployee(req, res, next) {
         });
         transporter.sendMail({
           from: "marvin@fullsuite.ph", // sender address
-          to: req.body.work_email, // list of receivers
+          to: employeeInfo.work_email, // list of receivers
           subject: "Action required: Temporary password | FS-HRIS", // Subject line
           text: tempPassword, // plain text body
           html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" lang="en">
 
                     <head></head>
-                      
+
                       <body bgcolor="#F5F8FA" style="width: 100%; margin: auto 0; padding:0; font-family:Lato, sans-serif; font-size:18px; color:#33475B; word-break:break-word">
-                        
+
                   <div id="email" style="margin: auto;width: 600px;background-color: white;">
-                    
-                  
+
+
                            <table role="presentation" width="100%">
                               <tr>
-                           
+
                                 <td bgcolor="#0097B2" align="center" style="color: white;vertical-align: top;">
-                              
+
                                <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/2-2.png" width="100%" align="middle">
-                                  
-                              
-                              </td> 
-                  
-                  
-                          </tr></table>
-                    
+
+
+                              </td>
+
+
+                              </tr></table>
+
                     <table role="presentation" border="0" cellpadding="0" cellspacing="10px" style="padding: 30px 30px 30px 60px;">
                        <tr>
                          <td style="vertical-align: top;">
                           <h2 style="font-size: 28px;font-weight: 900;">Temporary Password</h2>
-                              
+
                               <p style="font-weight: 100;">
-                                This is your temporary password: 
+                                This is your temporary password:
                               </p>
 
                               <p style="color: #0097B2; font-weight: bold;">
                                 ${tempPassword}
                               </p>
-                  
-                  
+
+
                               <br><br><br>
                               <h3>Cheers!</h3>
                               <h2 style="font-size: 28px;font-weight: 900;">the <span style="color: #0097B2">f</span>ull<span style="color: #0097B2">s</span>uite HRIS team.</h2>
-                            </td> 
+                            </td>
                             </tr>
                                    </table>
-                    
-                       
+
+
                           <!--Footer Row-->
                     <table role="presentation" bgcolor="#EAF0F6" width="100%" style="margin-top: 50px;">
                         <tr>
                             <td align="center" style="padding: 30px 30px;vertical-align: top;">
-                  
+
                                 <p style="font-size: 11px;font-weight: 100;">166-C Military Cutoff Road, Baguio City, Benguet
                                   Purok 2, Poblacion, Lianga, Surigao del Sur</p>
-                                
-                     
+
+
                             </td>
                             </tr>
                         </table>
-                  
+
                         <table role="presentation" width="100%">
                           <tr>
-                       
-                          
+
+
                            <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/3-1-1.png" height="200px" width="100%" align="middle">
-                  
+
                       </tr></table>
-                    
+
                         </div>
                       </body>
                         </html>`,
         });
-        console.log("Sent email");
         next();
       } catch (e) {
         console.log("----------------" + e + "----------------");
