@@ -13,6 +13,10 @@ const {
   GetActiveEmployees,
   //Payrun End
 } = require("../controller/employee_profile_controller");
+const {
+  CreateEmployeeContribution,
+} = require("../controller/employee/employee_contributions_controller");
+
 const uploadMulter = require("../handlers/utilities/multerFileHandler");
 
 const router = express.Router();
@@ -22,7 +26,12 @@ router.get("/ep-getSuperiorDataOfLoggedInUser", GetSuperiorDataOfLoggedInUser);
 router.get("/ep-viewEmployee/:emp_id", GetDataForCertainEmployee);
 router.get("/ep-viewEmployeeSuperior/:emp_id", GetSuperiorDataOfCertainUser);
 router.post("/ep-offboardEmployee/:emp_id", OffboardEmployee);
-router.post("/ep-addEmployee/", uploadMulter.single("emp_pic"), AddEmployee);
+router.post(
+  "/ep-addEmployee/",
+  uploadMulter.single("emp_pic"),
+  AddEmployee,
+  CreateEmployeeContribution
+);
 router.post("/ep-setPTO/:emp_id", EditEmployeePTO);
 router.patch(
   "/ep-editEmployee/:emp_id",
