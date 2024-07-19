@@ -8,7 +8,7 @@ var imports =  {
     GetPeers,
     GetMostRecentCheer,
     GetMyTotals,
-    AddCommentToCheerPost,
+    OriginalAddCommentToCheerPost,
     GetCheersPost,
     LikeACheerPost,
     CheckIfLikedAlready,
@@ -22,7 +22,37 @@ var imports =  {
     GetDataForNotifications,
     GetDataForMyNotifications,
     GetDataForMyNotificationsLimited,
-    GetMentionPeers
+    GetMentionPeers,
+    GetAllTimeLeaderboards,
+    GetMonthlyLeaderboards,
+    GetWeeklyLeaderboards,
+    GetMyRecentCheersWidget,
+    GetModifiedCheersPost,
+
+    //Likes Details
+    GetLikesDetails,
+
+    //Comments Modal
+    GetCommentsDetails,
+
+    //Posts Modal
+    GetPostDetails,
+
+    //Tagged Modal
+    GetTaggedDetails,
+
+    //Insert Comments
+    AddCommentToCheerPost,
+
+    //Posts Based on Number of Engagements
+    GetMostPopularCheersPost,
+
+    //Cheer Posts to You
+    GetMyCheersPost,
+
+    //Get Hashtags
+    GetHashtags,
+    GetTopTenHashtags
 } = require( "../controller/cheer_a_peer_controller.js");
 
 const router = express.Router()
@@ -50,5 +80,34 @@ router.get("/cap-getAllLikesOfPost", GetAllLikes);
 router.get("/cap-getDataForNotifications", GetDataForNotifications);
 router.get("/cap-getDataForMyNotifications", GetDataForMyNotifications);
 router.get("/cap-getDataForMyNotificationsLimited", GetDataForMyNotificationsLimited);
+router.get("/cap-getAllTimeLeaderboards", GetAllTimeLeaderboards);
+router.get("/cap-getMonthlyLeaderboards", GetMonthlyLeaderboards);
+router.get("/cap-getWeeklyLeaderboards", GetWeeklyLeaderboards);
+router.get("/cap-getMyRecentCheersWidget", GetMyRecentCheersWidget);
+router.get("/cap-getModifiedCheerPosts", GetModifiedCheersPost)
+
+//Likes Details
+router.post("/cap-getLikesDetails", GetLikesDetails);
+
+//Comments Details
+router.post("/cap-getCommentsDetails", GetCommentsDetails);
+
+//Post Details
+router.post("/cap-getPostDetails", GetPostDetails);
+
+//Tagged Details
+router.post("/cap-getTaggedDetails", GetTaggedDetails);
+
+//Add Comment
+router.post("/cap-insertOriginalComment", OriginalAddCommentToCheerPost)
+
+//Other Timeline Data
+router.get("/cap-getMostEngagedPosts", GetMostPopularCheersPost)
+router.get("/cap-getMyRecentPosts", GetMyCheersPost)
+
+//Hashtags
+router.get("/cap-getHashtags", GetHashtags);
+router.get("/cap-getTopTenHashtags", GetTopTenHashtags);
+
 
 module.exports = router;
