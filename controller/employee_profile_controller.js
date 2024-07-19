@@ -150,7 +150,7 @@ function AddEmployee(req, res, next) {
     if (err) {
       res.send("error");
     } else {
-      req.body.employeeInfo.user_id = result.insertId;
+      req.body.employeeInfo.emp_id = result.insertId;
       //const q4 = "UPDATE dept SET manager_id = (SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1) WHERE dept_id = " + req.body.dept_id;
 
       const q2 =
@@ -224,7 +224,7 @@ function AddEmployee(req, res, next) {
                                 <td bgcolor="#0097B2" align="center" style="color: white;vertical-align: top;">
 
                                <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/2-2.png" width="100%" align="middle">
-
+        
 
                               </td>
 
@@ -258,8 +258,9 @@ function AddEmployee(req, res, next) {
                         <tr>
                             <td align="center" style="padding: 30px 30px;vertical-align: top;">
 
-                                <p style="font-size: 11px;font-weight: 100;">166-C Military Cutoff Road, Baguio City, Benguet
-                                  Purok 2, Poblacion, Lianga, Surigao del Sur</p>
+                                <p style="font-size: 11px;font-weight: 100;">
+                                  5th Floor, 19 Ben Palispis Highway, Legarda-Burnham-Kisad, Baguio City, North Luzon, Benguet, 2600
+                                </p>
 
 
                             </td>
@@ -278,10 +279,10 @@ function AddEmployee(req, res, next) {
                       </body>
                         </html>`,
         });
-        next();
       } catch (e) {
         console.log("----------------" + e + "----------------");
       }
+      next();
     }
   });
 }
