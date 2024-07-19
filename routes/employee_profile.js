@@ -16,6 +16,9 @@ const {
 const {
   CreateEmployeeContribution,
 } = require("../controller/employee/employee_contributions_controller");
+const {
+  CreateEmployeeSalary,
+} = require("../controller/employee/employee_salary_controller");
 
 const uploadMulter = require("../handlers/utilities/multerFileHandler");
 
@@ -30,6 +33,7 @@ router.post(
   "/ep-addEmployee/",
   uploadMulter.single("emp_pic"),
   AddEmployee,
+  CreateEmployeeSalary,
   CreateEmployeeContribution
 );
 router.post("/ep-setPTO/:emp_id", EditEmployeePTO);
