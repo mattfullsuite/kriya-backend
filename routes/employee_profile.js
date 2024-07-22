@@ -15,6 +15,7 @@ const {
 } = require("../controller/employee_profile_controller");
 const {
   CreateEmployeeContribution,
+  UpdateEmployeeContribution,
 } = require("../controller/employee/employee_contributions_controller");
 const {
   CreateEmployeeSalary,
@@ -40,7 +41,9 @@ router.post("/ep-setPTO/:emp_id", EditEmployeePTO);
 router.patch(
   "/ep-editEmployee/:emp_id",
   uploadMulter.single("emp_pic"),
-  EditEmployee
+  EditEmployee,
+  CreateEmployeeSalary,
+  UpdateEmployeeContribution
 );
 /// Payrun Start
 router.get(
