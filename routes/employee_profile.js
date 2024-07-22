@@ -8,11 +8,18 @@ const {
   AddEmployee,
   EditEmployee,
   EditEmployeePTO,
+  //Payrun Start
   GetEmployeeInfoForUploadPayrun,
+  GetActiveEmployees,
+  //Payrun End
 } = require("../controller/employee_profile_controller");
 const {
   CreateEmployeeContribution,
+  UpdateEmployeeContribution,
 } = require("../controller/employee/employee_contributions_controller");
+const {
+  CreateEmployeeSalary,
+} = require("../controller/employee/employee_salary_controller");
 
 const uploadMulter = require("../handlers/utilities/multerFileHandler");
 
@@ -27,17 +34,23 @@ router.post(
   "/ep-addEmployee/",
   uploadMulter.single("emp_pic"),
   AddEmployee,
+  CreateEmployeeSalary,
   CreateEmployeeContribution
 );
 router.post("/ep-setPTO/:emp_id", EditEmployeePTO);
 router.patch(
   "/ep-editEmployee/:emp_id",
   uploadMulter.single("emp_pic"),
-  EditEmployee
+  EditEmployee,
+  CreateEmployeeSalary,
+  UpdateEmployeeContribution
 );
+/// Payrun Start
 router.get(
   "/ep-getEmployeeInfoForUploadPayrun/:email",
   GetEmployeeInfoForUploadPayrun
 );
+router.get("/ep-getActiveEmployees", GetActiveEmployees);
+//Payrun End
 
 module.exports = router;

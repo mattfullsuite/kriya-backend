@@ -150,7 +150,7 @@ function AddEmployee(req, res, next) {
     if (err) {
       res.send("error");
     } else {
-      req.body.employeeInfo.user_id = result.insertId;
+      req.body.employeeInfo.emp_id = result.insertId;
       //const q4 = "UPDATE dept SET manager_id = (SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1) WHERE dept_id = " + req.body.dept_id;
 
       const q2 =
@@ -224,7 +224,7 @@ function AddEmployee(req, res, next) {
                                 <td bgcolor="#0097B2" align="center" style="color: white;vertical-align: top;">
 
                                <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/2-2.png" width="100%" align="middle">
-
+        
 
                               </td>
 
@@ -258,8 +258,9 @@ function AddEmployee(req, res, next) {
                         <tr>
                             <td align="center" style="padding: 30px 30px;vertical-align: top;">
 
-                                <p style="font-size: 11px;font-weight: 100;">166-C Military Cutoff Road, Baguio City, Benguet
-                                  Purok 2, Poblacion, Lianga, Surigao del Sur</p>
+                                <p style="font-size: 11px;font-weight: 100;">
+                                  5th Floor, 19 Ben Palispis Highway, Legarda-Burnham-Kisad, Baguio City, North Luzon, Benguet, 2600
+                                </p>
 
 
                             </td>
@@ -278,53 +279,53 @@ function AddEmployee(req, res, next) {
                       </body>
                         </html>`,
         });
-        next();
       } catch (e) {
         console.log("----------------" + e + "----------------");
       }
+      next();
     }
   });
 }
 
-function EditEmployee(req, res) {
+function EditEmployee(req, res, next) {
   // app.post("/editEmployee/:emp_id", upload.single("emp_pic"), (req, res) => {
   const fetchid = req.params.emp_id;
+  const { employeeInfo } = req.body;
   const date_separated =
-    moment(req.body.date_separated).format("YYYY-MM-DD") === "" ||
-    moment(req.body.date_separated).format("YYYY-MM-DD") === "Invalid date"
+    moment(employeeInfo.date_separated).format("YYYY-MM-DD") === "" ||
+    moment(employeeInfo.date_separated).format("YYYY-MM-DD") === "Invalid date"
       ? moment(null)._d
-      : moment(req.body.date_separated).format("YYYY-MM-DD");
+      : moment(employeeInfo.date_separated).format("YYYY-MM-DD");
 
   const values1 = [
-    req.body.emp_num,
-    req.body.work_email,
-    req.body.f_name,
-    req.body.m_name,
-    req.body.s_name,
-    req.body.emp_role,
-    req.body.personal_email,
-    req.body.contact_num,
-    moment(req.body.dob).format("YYYY-MM-DD"),
-    req.body.p_address,
-    req.body.c_address,
-    moment(req.body.date_hired).format("YYYY-MM-DD"),
-    moment(req.body.date_regularization).format("YYYY-MM-DD"),
+    employeeInfo.emp_num,
+    employeeInfo.work_email,
+    employeeInfo.f_name,
+    employeeInfo.m_name,
+    employeeInfo.s_name,
+    employeeInfo.emp_role,
+    employeeInfo.personal_email,
+    employeeInfo.contact_num,
+    moment(employeeInfo.dob).format("YYYY-MM-DD"),
+    employeeInfo.p_address,
+    employeeInfo.c_address,
+    moment(employeeInfo.date_hired).format("YYYY-MM-DD"),
+    moment(employeeInfo.date_regularization).format("YYYY-MM-DD"),
     date_separated,
-    req.body.emp_status,
-    req.body.sex,
-    req.body.gender,
-    req.body.civil_status,
+    employeeInfo.emp_status,
+    employeeInfo.sex,
+    employeeInfo.gender,
+    employeeInfo.civil_status,
     // filename,
     fetchid,
   ];
 
   const values2 = [
-    req.body.company_id,
-    req.body.client_id,
-    req.body.position_id,
+    employeeInfo.company_id,
+    employeeInfo.client_id,
+    employeeInfo.position_id,
     fetchid,
   ];
-
   const q =
     "UPDATE emp SET emp_num = ?, work_email = ?, f_name = ?, m_name = ? , s_name = ?, emp_role = ?, personal_email = ?, contact_num = ?, dob = ?, p_address = ?, c_address = ?, date_hired = ?, date_regularization = ?, date_separated = ?, emp_status = ?, sex = ?, gender = ?, civil_status =? WHERE emp_id = ?";
 
@@ -339,7 +340,9 @@ function EditEmployee(req, res) {
         if (err) {
           res.send("error");
         } else {
-          res.send("success");
+          // res.send("success");
+          req.body.employeeInfo.emp_id = fetchid;
+          next();
         }
       });
     }
@@ -432,6 +435,7 @@ function EditEmployeePTO(req, res) {
   });
 }
 
+// Payrun Functions Start
 function GetEmployeeInfoForUploadPayrun(req, res) {
   const email = req.params.email;
   const q =
@@ -443,14 +447,27 @@ function GetEmployeeInfoForUploadPayrun(req, res) {
   });
 }
 
+function GetActiveEmployees(req, res) {
+  const compID = req.session.user[0].company_id;
+  const q =
+    "SELECT e.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', e.`work_email` AS 'Email', p.`position_name` AS 'Job Title', e.`date_hired` AS 'Hire Date' FROM `emp` e INNER JOIN `emp_designation` ed ON ed.emp_id = e.emp_id  INNER JOIN `position` p ON p.position_id = ed.position_id WHERE date_offboarding IS NULL AND date_separated IS NULL AND ed.company_id = ? ORDER BY p.`position_name`;";
+
+  db.query(q, [compID], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+// Payrun Functions End
+
 module.exports = {
   GetDataOfLoggedInUser,
   GetSuperiorDataOfLoggedInUser,
   GetDataForCertainEmployee,
   GetSuperiorDataOfCertainUser,
   OffboardEmployee,
-  GetEmployeeInfoForUploadPayrun,
   AddEmployee,
   EditEmployee,
   EditEmployeePTO,
+  GetEmployeeInfoForUploadPayrun,
+  GetActiveEmployees,
 };

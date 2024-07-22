@@ -4,12 +4,12 @@ function CreateEmployeeContribution(req, res) {
   const comp_id = req.session.user[0].company_id;
   const { employeeInfo } = req.body;
   const data = employeeInfo.contributions;
-  const userID = employeeInfo.user_id;
+  const empID = employeeInfo.emp_id;
 
   // Transform the data
   const formattedData = Object.entries(data).map(([key, value]) => {
     const keyValue = key.toUpperCase();
-    return [comp_id, userID, keyValue, value];
+    return [comp_id, empID, keyValue, value];
   });
 
   const q =
@@ -25,13 +25,14 @@ function CreateEmployeeContribution(req, res) {
 
 function UpdateEmployeeContribution(req, res) {
   const comp_id = req.session.user[0].company_id;
-  const data = req.body;
-  const userID = req.params.id;
+  const { employeeInfo } = req.body;
+  const data = employeeInfo.contributions;
+  const empID = employeeInfo.emp_id;
 
   // Transform the data
   const formattedData = Object.entries(data).map(([key, value]) => {
     const keyValue = key.toUpperCase();
-    return [comp_id, userID, keyValue, value];
+    return [comp_id, empID, keyValue, value];
   });
 
   const q = `
@@ -42,6 +43,7 @@ function UpdateEmployeeContribution(req, res) {
 
   db.query(q, [formattedData], (err, data) => {
     if (err) {
+      console.log("Error: ", err);
       return res.json(err);
     }
     return res.send("success");
