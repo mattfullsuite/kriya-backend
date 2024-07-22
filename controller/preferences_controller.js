@@ -1,23 +1,4 @@
 var db = require("../config.js");
-var cloudinary = require("../handlers/utilities/cloudinary.js");
-var fs = require("fs");
-
-const uploadImage = async (imagePath, company_name) => {
-  console.log("Upload Image");
-  // Upload image to Cloudinary
-  try {
-    const result = await cloudinary.uploader.upload(imagePath, {
-      folder: "kriya/companies/logos",
-      public_id: company_name,
-      overwrite: true,
-    });
-
-    fs.unlinkSync(imagePath);
-    return result;
-  } catch (error) {
-    console.log("Error: ", error);
-  }
-};
 
 function CreateHoliday(req, res) {
   const cid = req.session.user[0].company_id;
@@ -62,38 +43,6 @@ function GetAllDivisions(req, res) {
     }
   });
 }
-
-const CreateCompany = async (req, res) => {
-  const { company_name, company_address } = req.body;
-
-  const q =
-    "INSERT INTO company (`company_name`, `company_loc`, `company_logo`) VALUES (?, ?, ?) ";
-
-  try {
-    if (req.file) {
-      // Upload image to Cloudinary
-      const result = await uploadImage(req.file.path, company_name);
-      if (result != null) {
-        console.log("Insert to database");
-        if (company_name != undefined || company_name != "") {
-          db.query(
-            q,
-            [company_name, company_address, result.secure_url],
-            (err, data) => {
-              if (err) {
-                res.send(err);
-              } else {
-                res.send("success");
-              }
-            }
-          );
-        } else {
-          res.sendStatus(400);
-        }
-      }
-    }
-  } catch (error) {}
-};
 
 function GetAllDepartments(req, res) {
   const q =
