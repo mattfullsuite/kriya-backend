@@ -45,10 +45,9 @@ function InsertTaskNotes(req, res){
         [values], 
         (err,data) => {
         if (err){
-            res.send("error")
+            res.send("error");
         } else {
-            res.send(data)
-            console.log(data)
+            res.sendStatus(200);
         }
     })
 }
