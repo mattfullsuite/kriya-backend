@@ -85,7 +85,6 @@ function GetManagersAndRespectiveDepartments(req, res) {
 }
 
 module.exports = {
-  CreateCompany,
   CreateHoliday,
   DeleteHoliday,
   GetAllDivisions,
