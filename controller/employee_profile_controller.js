@@ -287,45 +287,45 @@ function AddEmployee(req, res, next) {
   });
 }
 
-function EditEmployee(req, res) {
+function EditEmployee(req, res, next) {
   // app.post("/editEmployee/:emp_id", upload.single("emp_pic"), (req, res) => {
   const fetchid = req.params.emp_id;
+  const { employeeInfo } = req.body;
   const date_separated =
-    moment(req.body.date_separated).format("YYYY-MM-DD") === "" ||
-    moment(req.body.date_separated).format("YYYY-MM-DD") === "Invalid date"
+    moment(employeeInfo.date_separated).format("YYYY-MM-DD") === "" ||
+    moment(employeeInfo.date_separated).format("YYYY-MM-DD") === "Invalid date"
       ? moment(null)._d
-      : moment(req.body.date_separated).format("YYYY-MM-DD");
+      : moment(employeeInfo.date_separated).format("YYYY-MM-DD");
 
   const values1 = [
-    req.body.emp_num,
-    req.body.work_email,
-    req.body.f_name,
-    req.body.m_name,
-    req.body.s_name,
-    req.body.emp_role,
-    req.body.personal_email,
-    req.body.contact_num,
-    moment(req.body.dob).format("YYYY-MM-DD"),
-    req.body.p_address,
-    req.body.c_address,
-    moment(req.body.date_hired).format("YYYY-MM-DD"),
-    moment(req.body.date_regularization).format("YYYY-MM-DD"),
+    employeeInfo.emp_num,
+    employeeInfo.work_email,
+    employeeInfo.f_name,
+    employeeInfo.m_name,
+    employeeInfo.s_name,
+    employeeInfo.emp_role,
+    employeeInfo.personal_email,
+    employeeInfo.contact_num,
+    moment(employeeInfo.dob).format("YYYY-MM-DD"),
+    employeeInfo.p_address,
+    employeeInfo.c_address,
+    moment(employeeInfo.date_hired).format("YYYY-MM-DD"),
+    moment(employeeInfo.date_regularization).format("YYYY-MM-DD"),
     date_separated,
-    req.body.emp_status,
-    req.body.sex,
-    req.body.gender,
-    req.body.civil_status,
+    employeeInfo.emp_status,
+    employeeInfo.sex,
+    employeeInfo.gender,
+    employeeInfo.civil_status,
     // filename,
     fetchid,
   ];
 
   const values2 = [
-    req.body.company_id,
-    req.body.client_id,
-    req.body.position_id,
+    employeeInfo.company_id,
+    employeeInfo.client_id,
+    employeeInfo.position_id,
     fetchid,
   ];
-
   const q =
     "UPDATE emp SET emp_num = ?, work_email = ?, f_name = ?, m_name = ? , s_name = ?, emp_role = ?, personal_email = ?, contact_num = ?, dob = ?, p_address = ?, c_address = ?, date_hired = ?, date_regularization = ?, date_separated = ?, emp_status = ?, sex = ?, gender = ?, civil_status =? WHERE emp_id = ?";
 
@@ -340,7 +340,9 @@ function EditEmployee(req, res) {
         if (err) {
           res.send("error");
         } else {
-          res.send("success");
+          // res.send("success");
+          req.body.employeeInfo.emp_id = fetchid;
+          next();
         }
       });
     }
