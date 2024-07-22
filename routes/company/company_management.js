@@ -1,9 +1,6 @@
 var express = require("express");
-var uploadMulter = require("../handlers/utilities/multerFileHandler.js");
-const {
-  UpdateCompany,
-} = require("../../controller/company/company_management_controller.js");
 
+var uploadMulter = require("../../handlers/utilities/multerFileHandler.js");
 var {
   CreateCompany,
   UpdateCompany,
@@ -21,3 +18,5 @@ router.patch(
   uploadMulter.single("company_logo"),
   UpdateCompany
 );
+
+module.exports = router;

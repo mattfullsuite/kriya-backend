@@ -1,5 +1,5 @@
-var db = require("../config.js");
-var cloudinary = require("../handlers/utilities/cloudinary.js");
+var db = require("../../config.js");
+var cloudinary = require("../../handlers/utilities/cloudinary.js");
 var fs = require("fs");
 
 const uploadImage = async (imagePath, company_name) => {
