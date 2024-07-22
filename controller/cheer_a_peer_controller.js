@@ -211,7 +211,7 @@ function ModifiedCreateACheerPost(req, res){
             console.log("Error 1: ", err);
         } else {
             console.log("Level 1: Success")
-            
+
             const q2 = "INSERT INTO cheer_designation (`cheer_post_id`,`peer_id`, `heartbits_given`) VALUES ((SELECT `cheer_post_id` FROM `cheer_post` ORDER BY cheer_post_id DESC LIMIT 1), ?, ?)";
 
             const peers = req.body.peer_id
@@ -247,6 +247,7 @@ function ModifiedCreateACheerPost(req, res){
                     }
                 })
             })
+            res.send("success")
         }
     })
 }
