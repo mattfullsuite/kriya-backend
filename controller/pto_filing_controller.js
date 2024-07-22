@@ -4,26 +4,128 @@ var moment = require('moment');
 var nodemailer = require('nodemailer')
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// var Slack = require("@slack/bolt")
+// var dotenv = require("dotenv")
 
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-
-// async function generateReason(leave_type) {
-//   // For text-only input, use the gemini-pro model
-//   const model = genAI.getGenerativeModel({ model: "gemini-pro"});
-
-//   const prompt = "Create a short leave reason for ." + leave_type
-
-//   const result = await model.generateContent(prompt);
-//   const response = await result.response;
-//   const text = response.text();
-//   console.log(text);
-// }
+// const api_app = new Slack.App({
+//     signingSecret: process.env.SLACK_SIGNING_SECRET,
+//     token: process.env.SLACK_BOT_TOKEN,
+// })
 
 function FileLeave(req, res){
 
     const uid = req.session.user[0].emp_id;
     const sid = req.session.user[0].superior_id;
+
+    const emp_num = req.session.user[0].emp_num;
+
+    const fn = req.session.user[0].f_name;
+    const sn = req.session.user[0].s_name;
+
+    const sen = req.session.user[0].superior_emp_num;
+    const sfn = req.session.user[0].superior_f_name;
+    const ssn = req.session.user[0].superior_s_name;
+
+    // const blocks = [{
+    //     "type": "section",
+    //     "text": {
+    //         "type": "mrkdwn",
+    //         "text": "(" + emp_num + ") " + req.session.user[0].f_name + " " + req.session.user[0].s_name + ` filed a `+ req.body.leave_type + `  on ` + req.body.leave_from + " to " + req.body.leave_to + ". Request sent to " + sfn + " " + ssn + " (" + sen + ")."
+    //     }
+    // }]
+
+    const blocks2 = [
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": `Hi. ${fn} ${sn} (${emp_num}) has filed a ${req.body.leave_type} on ${req.body.leave_from} to ${req.body.leave_to}`
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": `Request sent to ${sfn} ${ssn} (${sen}) on Kriya for approval. Thank you!`
+			},
+		},
+	]
+
+    const blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*Leave Request:*\n ${fn} ${sn} (${emp_num}) - ${req.body.leave_type} Request`
+                }
+            },
+            {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": `*Type:*\n ${req.body.leave_type}`
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": `*When:*\n ${moment(req.body.leave_from).format("MMM DD YYYY")} to ${moment(req.body.leave_to).format("MMM DD YYYY")}`
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": `*PTOs Used:*\n ${req.body.use_pto_points}`
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": `*Reason:*\n ${req.body.leave_reason}`
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": `*Date Filed:*\n\ ${moment().format("MMM DD YYYY")}`
+                    }
+                ]
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "emoji": true,
+                            "text": "Approve"
+                        },
+                        "style": "primary",
+                        "value": "click_me_123"
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "emoji": true,
+                            "text": "Escalate"
+                        },
+                        "style": "primary",
+                        "value": "click_me_123"
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "emoji": true,
+                            "text": "Deny"
+                        },
+                        "style": "danger",
+                        "value": "click_me_123"
+                    }
+                ]
+            }
+        ]
+    
 
     const q = "INSERT INTO leaves (`requester_id`, `leave_type`, `leave_reason`, `leave_from`, `leave_to`, `leave_status`, `approver_id`, `use_pto_points`) VALUES (?)" 
     const values = [
@@ -37,6 +139,14 @@ function FileLeave(req, res){
         sid,
         req.body.use_pto_points,
     ]
+
+
+    // await api_app.client.chat.postMessage({
+    //     token: process.env.SLACK_BOT_TOKEN,
+    //     channel: process.env.SLACK_CHANNEL,
+    //     text: "Leave Filed",
+    //     blocks,
+    // })
 
     if (!isEmpty(req.body.leave_type) && !isEmpty(req.body.leave_from) && !isEmpty(req.body.leave_to)){
 
@@ -66,6 +176,7 @@ function FileLeave(req, res){
 
             else {
                 try {
+                    
                     let transporter = nodemailer.createTransport({
                       service: "Gmail",
                       host: "smtp.gmail.com",
@@ -157,8 +268,11 @@ function FileLeave(req, res){
                                     </div>
                                   </body>
                                     </html>`,
-                    }); } catch(e) {
-                        console.log(e);
+                    }); 
+                } catch(e) {
+                        
+                    console.log(e);
+                    
                     }
             }
         })
