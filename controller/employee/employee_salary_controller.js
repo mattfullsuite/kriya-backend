@@ -2,16 +2,21 @@ var db = require("../../config.js");
 
 function CreateEmployeeSalary(req, res, next) {
   const { employeeInfo } = req.body;
-  const salaryInfo = [employeeInfo.emp_id, employeeInfo.salary];
-  const q = "INSERT INTO `emp_salary`(`emp_id`, `base_pay`) VALUES (?)";
-  db.query(q, [salaryInfo], (err, data) => {
-    if (err) {
-      console.log("Error: ", err);
-      return res.json(err);
-    }
+  const { emp_id, salary } = employeeInfo;
+  const q = "INSERT INTO `emp_salary`(`emp_id`, `base_pay`) VALUES (?,?)";
+
+  if (salary == "") {
     next();
-    // return res.sendStatus(200);
-  });
+  } else {
+    db.query(q, [emp_id, salary], (err, data) => {
+      if (err) {
+        console.log("Error: ", err);
+        return res.json(err);
+      }
+      next();
+      // return res.sendStatus(200);
+    });
+  }
 }
 
 module.exports = {
