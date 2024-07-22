@@ -1,4 +1,13 @@
 var db = require("../config.js");
+var moment = require("moment")
+
+var Slack = require("@slack/bolt")
+var dotenv = require("dotenv")
+
+const api_app = new Slack.App({
+    signingSecret: process.env.SLACK_SIGNING_SECRET,
+    token: process.env.SLACK_BOT_TOKEN,
+})
 
 function CreateHeartbitsForAllInactiveEmployees(req, res) {
     const aq = "INSERT INTO heartbits (`emp_id`, `heartbits_balance`, `total_heartbits`) SELECT emp_id, 100, 0 FROM emp WHERE emp_id NOT IN (SELECT DISTINCT e.emp_id FROM emp AS e INNER JOIN heartbits AS h ON e.emp_id = h.emp_id)"
@@ -196,7 +205,7 @@ function AddCommentToCheerPost(req, res) {
     });
 }
 
-function ModifiedCreateACheerPost(req, res){
+async function ModifiedCreateACheerPost(req, res){
     const uid = req.session.user[0].emp_id
     const q = "INSERT INTO cheer_post (`cheerer_id`, `post_body`, `hashtags`) VALUES (?)";
 
@@ -206,6 +215,10 @@ function ModifiedCreateACheerPost(req, res){
         req.body.hashtags,
     ]
 
+    const hb_given = req.body.heartbits_given
+    const peers = req.body.peer_id
+    
+
     db.query(q, [values], (err, data) => {
         if (err) {
             console.log("Error 1: ", err);
@@ -213,10 +226,6 @@ function ModifiedCreateACheerPost(req, res){
             console.log("Level 1: Success")
 
             const q2 = "INSERT INTO cheer_designation (`cheer_post_id`,`peer_id`, `heartbits_given`) VALUES ((SELECT `cheer_post_id` FROM `cheer_post` ORDER BY cheer_post_id DESC LIMIT 1), ?, ?)";
-
-            const peers = req.body.peer_id
-
-            const hb_given = req.body.heartbits_given
                 
             peers.map((p) => {
                 db.query(q2, [p.id, hb_given], (err, data) => {
@@ -246,10 +255,65 @@ function ModifiedCreateACheerPost(req, res){
                         console.log("Added heartbits to employee# " + p.id)
                     }
                 })
+
             })
             res.send("success")
+
+            
         }
     })
+
+    //Slack API Configuration
+
+    const fn = req.session.user[0].f_name;
+    const sn = req.session.user[0].s_name;
+
+    const peerNames = []
+    peers.map((p) => {
+        peerNames.push(p.display)
+    })
+
+    const mentionedPeers = peerNames.join(", ")
+
+    console.log("Mentioned Peers", mentionedPeers)
+
+    const blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "A new cheer has been posted!"
+                }
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*${fn} ${sn}* > *${mentionedPeers}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
+                }
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "plain_text",
+                        "emoji": true,
+                        "text": `${moment().format("MMM DD YYYY")}`
+                    }
+                ]
+            },
+    ]
+
+    await api_app.client.chat.postMessage({
+        token: process.env.SLACK_BOT_TOKEN,
+        channel: process.env.SLACK_CHANNEL,
+        text: "New Cheer Post!",
+        blocks,
+    })
+
 }
 
 function GetMostRecentCheer(req, res) {
