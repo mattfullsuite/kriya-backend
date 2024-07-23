@@ -450,7 +450,7 @@ function GetEmployeeInfoForUploadPayrun(req, res) {
 function GetActiveEmployees(req, res) {
   const compID = req.session.user[0].company_id;
   const q =
-    "SELECT e.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', e.`work_email` AS 'Email', p.`position_name` AS 'Job Title', e.`date_hired` AS 'Hire Date', s.base_pay AS 'Basic Pay' FROM `emp` e INNER JOIN `emp_designation` ed ON ed.emp_id = e.emp_id  INNER JOIN `position` p ON p.position_id = ed.position_id LEFT JOIN `emp_salary` s ON s.emp_id = e.emp_id WHERE date_offboarding IS NULL AND date_separated IS NULL AND ed.company_id = ? ORDER BY p.`position_name`;";
+    "SELECT e.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', e.`work_email` AS 'Email', p.`position_name` AS 'Job Title', e.`date_hired` AS 'Hire Date', s.base_pay AS 'Basic Pay' FROM `emp` e INNER JOIN `emp_designation` ed ON ed.emp_id = e.emp_id  INNER JOIN `position` p ON p.position_id = ed.position_id LEFT JOIN `emp_salary` s ON s.emp_id = e.emp_id WHERE date_offboarding IS NULL AND date_separated IS NULL AND ed.company_id = ? ORDER BY e.`emp_num`;";
 
   db.query(q, [compID], (err, data) => {
     if (err) return res.json(err);
