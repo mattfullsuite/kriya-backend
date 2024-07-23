@@ -66,8 +66,11 @@ var module_north_star = require("./routes/north_star.js");
 var module_task_notes = require("./routes/task_notes.js");
 var dispute = require("./routes/dispute.js");
 var suggestion_box = require("./routes/suggestion_box.js");
-var company_configuration = require("./routes/company/company_configuration.js");
 var employee_contributions = require("./routes/employee/employee_contribution.js");
+
+// company
+var company_configuration = require("./routes/company/company_configuration.js");
+var company_management = require("./routes/company/company_management.js");
 
 ///ep-getDataOfLoggedInUser
 
@@ -190,11 +193,12 @@ app.use(module_task_notes);
 app.use(dispute);
 app.use(suggestion_box);
 
-//configuration
-app.use(company_configuration);
-
 //contribution
 app.use(employee_contributions);
+
+//company
+app.use(company_management);
+app.use(company_configuration);
 
 //app.use(ai)
 
