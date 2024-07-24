@@ -1,4 +1,5 @@
 var db = require("../config.js");
+const moment = require("moment");
 
 function InsertApplicantsData(req, res) {
 
@@ -85,7 +86,91 @@ function GetPositionsFromCompany(req, res){
             console.log(err)
         } else {
             res.json(data)
-            console.log("Retrieved all positions from company " + cid)
+            // console.log("Retrieved all positions from company " + cid)
+        }
+    })
+}
+
+//Get Referrers
+
+function GetPossibleReferrers(req, res){
+    const cid = req.session.user[0].company_id;
+    const q = `SELECT * FROM emp e INNER JOIN emp_designation em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL`
+
+    db.query(q, cid, (err, data) => {
+        if (err){
+            console.log(err)
+        } else {
+            res.json(data)
+        }
+    })
+}
+
+//Edit Employee
+
+function EditApplicantData(req, res){
+  
+    console.log("Data: ", req.body)
+  
+    const values = [
+        req.body.app_start_date, //
+        req.body.position_applied, //
+        req.body.status, //
+        req.body.s_name, //
+        req.body.f_name, //
+        req.body.m_name, //
+        req.body.email, //
+        req.body.source, //
+        req.body.contact_no, //
+        req.body.cv_link, //
+        req.body.referrer, 
+        req.body.next_interview_date ? moment(req.body.next_interview_date).format("YYYY-MM-DD") : null, 
+        req.body.interviewer, 
+        req.body.app_id, //
+    ]
+  
+    const q = "UPDATE applicant_tracking SET `app_start_date` = ?, `position_applied` = ?, `status` = ?, `s_name` = ?, `f_name` = ?, `m_name` = ?, `email` = ?, `source` = ?, `contact_no` = ?, `cv_link` = ?, `referrer_name` = ?, `next_interview_date` = ?, `interviewer` = ? WHERE app_id = ?"
+  
+    db.query(q, values, (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send("success");
+        console.log(data)
+      }
+    });
+  }
+
+  //NOTES
+
+function GetNoteDetails(req, res){
+    const note_id = req.body.note_id
+    const q = "SELECT * FROM applicant_notes INNER JOIN emp ON emp_id = noter_id WHERE note_id = ? ORDER BY noted_at;";
+  
+    db.query(q, [note_id], (err, data) => {
+      if (err) return res.json(err);
+      return res.json(data);
+    });
+}
+
+function InsertApplicantNotes(req, res){
+    const uid = req.session.user[0].emp_id
+    const q = "INSERT INTO applicant_notes (`note_id`, `note_type`, `noter_id`, `note_body`) VALUES (?)"
+
+    const values = [
+        req.body.note_id,
+        2,
+        uid, 
+        req.body.note_body,
+    ]
+
+    db.query(q, 
+        [values], 
+        (err,data) => {
+        if (err){
+            res.send("error");
+        } else {
+            res.sendStatus(200);
         }
     })
 }
@@ -96,5 +181,11 @@ module.exports = {
    GetApplicantsFromDatabase,
    AddNewApplicant,
    ModifiedAddNewApplicant,
-   GetPositionsFromCompany
+   GetPositionsFromCompany,
+   GetPossibleReferrers,
+
+   //Edit Applicant
+   EditApplicantData,
+   GetNoteDetails,
+   InsertApplicantNotes
 }
