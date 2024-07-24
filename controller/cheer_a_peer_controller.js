@@ -179,25 +179,28 @@ function AddCommentToCheerPost(req, res) {
 
                     peers.map((p) => {
 
-                        const cheerer_q = "UPDATE heartbits SET `heartbits_balance` = `heartbits_balance` - " + req.body.additional_heartbits + " WHERE emp_id = " + uid;
-        
-                        db.query(cheerer_q, (err, data) => {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                console.log("Deducted heartbits from employee# " + uid)
-                            }
-                        })
-        
-                        const peer_q = "UPDATE heartbits SET `total_heartbits` = `total_heartbits` + " + req.body.additional_heartbits + " WHERE emp_id = " + p.peer_id;
-        
-                        db.query(peer_q, (err, data) => {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                console.log("Added heartbits to employee# " + p.peer_id)
-                            }
-                        })
+                        if (p.peer_id != uid){
+
+                            const cheerer_q = "UPDATE heartbits SET `heartbits_balance` = `heartbits_balance` - " + req.body.additional_heartbits + " WHERE emp_id = " + uid;
+            
+                            db.query(cheerer_q, (err, data) => {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    console.log("Deducted heartbits from employee# " + uid)
+                                }
+                            })
+            
+                            const peer_q = "UPDATE heartbits SET `total_heartbits` = `total_heartbits` + " + req.body.additional_heartbits + " WHERE emp_id = " + p.peer_id;
+            
+                            db.query(peer_q, (err, data) => {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    console.log("Added heartbits to employee# " + p.peer_id)
+                                }
+                            })
+                        }
                     })
                 }
             })
