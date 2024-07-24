@@ -1,23 +1,4 @@
 var db = require("../config.js");
-var cloudinary = require("../handlers/utilities/cloudinary.js");
-var fs = require("fs");
-
-const uploadImage = async (imagePath, company_name) => {
-  console.log("Upload Image");
-  // Upload image to Cloudinary
-  try {
-    const result = await cloudinary.uploader.upload(imagePath, {
-      folder: "kriya/companies/logos",
-      public_id: company_name,
-      overwrite: true,
-    });
-
-    fs.unlinkSync(imagePath);
-    return result;
-  } catch (error) {
-    console.log("Error: ", error);
-  }
-};
 
 function CreateHoliday(req, res) {
   const cid = req.session.user[0].company_id;
@@ -63,38 +44,6 @@ function GetAllDivisions(req, res) {
   });
 }
 
-const CreateCompany = async (req, res) => {
-  const { company_name, company_address } = req.body;
-
-  const q =
-    "INSERT INTO company (`company_name`, `company_loc`, `company_logo`) VALUES (?, ?, ?) ";
-
-  try {
-    if (req.file) {
-      // Upload image to Cloudinary
-      const result = await uploadImage(req.file.path, company_name);
-      if (result != null) {
-        console.log("Insert to database");
-        if (company_name != undefined || company_name != "") {
-          db.query(
-            q,
-            [company_name, company_address, result.secure_url],
-            (err, data) => {
-              if (err) {
-                res.send(err);
-              } else {
-                res.send("success");
-              }
-            }
-          );
-        } else {
-          res.sendStatus(400);
-        }
-      }
-    }
-  } catch (error) {}
-};
-
 function GetAllDepartments(req, res) {
   const q =
     "SELECT * FROM dept INNER JOIN division ON dept.div_id = division.div_id INNER JOIN company ON company.company_id = division.company_id ORDER BY dept_name ASC";
@@ -135,12 +84,112 @@ function GetManagersAndRespectiveDepartments(req, res) {
   });
 }
 
+//HR ACCESS
+
+function InsertHRAccessData(req, res){
+  const q = "INSERT INTO hr_access (`hr_id`) SELECT emp_id FROM emp WHERE emp_role = 1 AND emp_id NOT IN (SELECT DISTINCT e.emp_id FROM emp AS e INNER JOIN hr_access AS h ON e.emp_id = h.hr_id)"
+
+  db.query(q, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      // res.json(data);
+      console.log(data)
+    }
+  });
+}
+
+function GetHRAccessData(req, res){
+  const q = "SELECT e.f_name, e.s_name, h.* FROM hr_access AS h INNER JOIN emp e ON h.hr_id = e.emp_id WHERE e.date_separated IS NULL"
+
+  db.query(q, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
+function UpdateHRAccess(req, res){
+  
+  console.log("Data: ", req.body)
+
+  const values = [
+    req.body.access_employee_management[0] ? 1 : 0,
+    req.body.access_applicant_tracking[0] ? 1 : 0,
+    req.body.access_pulse[0] ? 1 : 0,
+    req.body.access_attendance[0] ? 1 : 0,
+    req.body.access_performance[0] ? 1 : 0,
+    req.body.access_payroll[0] ? 1 : 0,
+    req.body.hr_access_id,
+  ]
+
+  const q = "UPDATE hr_access SET `access_employee_management` = ?, `access_applicant_tracking` = ?, `access_pulse` = ?, `access_attendance` = ?, `access_performance` = ?, `access_payroll` = ? WHERE hr_access_id = ?"
+
+  db.query(q, values, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send("success");
+      console.log(data)
+    }
+  });
+}
+
+function GetMyHRAccessData(req, res){
+  const uid = req.session.user[0].emp_id
+  const q = "SELECT * FROM hr_access WHERE hr_id = ?"
+
+  db.query(q, [uid], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
+function GetAllEmployeesFromCompanyNotHR(req, res){
+  const cid = req.session.user[0].company_id
+  const q = "SELECT * FROM emp e INNER JOIN emp_designation em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL AND e.emp_role != 1 ORDER BY e.s_name ASC"
+
+  db.query(q, [cid], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
+function MakeAnEmployeeHR(req, res){
+  const emp_id = req.body.emp_id
+  const q = "UPDATE emp SET `emp_role` = 1 WHERE emp_id = ?"
+
+  db.query(q, [emp_id], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(data);
+      res.send("success")
+    }
+  });
+}
+
 module.exports = {
-  CreateCompany,
   CreateHoliday,
   DeleteHoliday,
   GetAllDivisions,
   GetAllDepartments,
   GetAllPositions,
   GetManagersAndRespectiveDepartments,
+
+  //HR ACCESS
+  InsertHRAccessData,
+  GetHRAccessData,
+  UpdateHRAccess,
+  GetMyHRAccessData,
+  GetAllEmployeesFromCompanyNotHR,
+  MakeAnEmployeeHR
 };
