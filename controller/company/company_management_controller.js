@@ -20,7 +20,7 @@ const uploadImage = async (imagePath, company_name) => {
 };
 
 const CreateCompany = async (req, res) => {
-  const { company_name, company_address } = req.body;
+  const { company_name, company_loc } = req.body;
 
   const q =
     "INSERT INTO company (`company_name`, `company_loc`, `company_logo`) VALUES (?, ?, ?) ";
@@ -30,16 +30,16 @@ const CreateCompany = async (req, res) => {
       // Upload image to Cloudinary
       const result = await uploadImage(req.file.path, company_name);
       if (result != null) {
-        console.log("Insert to database");
         if (company_name != undefined || company_name != "") {
           db.query(
             q,
-            [company_name, company_address, result.secure_url],
+            [company_name, company_loc, result.secure_url],
             (err, data) => {
               if (err) {
+                console.log("Error!", err);
                 res.send(err);
               } else {
-                res.send("success");
+                res.sendStatus(200);
               }
             }
           );
@@ -53,28 +53,57 @@ const CreateCompany = async (req, res) => {
   }
 };
 
-const UpdateCompany = (req, res) => {
-  const { company_name, company_loc, company_logo } = req.body;
+const UpdateCompany = async (req, res) => {
+  const { company_name, company_loc } = req.body;
   const { company_id } = req.params;
 
-  const query =
-    "UPDATE `company` SET `company_name`='?',`company_loc`='?',`company_logo`='?' WHERE `company_id`=?";
+  let query;
+  let values;
+  let secureURL;
+  if (!req.file) {
+    query =
+      "UPDATE `company` SET `company_name`= ?, `company_loc`= ? WHERE `company_id`=?";
+    values = [company_name, company_loc, company_id];
+  } else {
+    // Upload image to Cloudinary
+    const result = await uploadImage(req.file.path, company_name);
+    if (result != null) {
+      secureURL = result.secure_url;
+    }
+    query =
+      "UPDATE `company` SET `company_name`= ?, `company_loc`= ?,`company_logo`= ? WHERE `company_id`=?";
+    values = [company_name, company_loc, secureURL, company_id];
+  }
   try {
-    db.query(
-      query,
-      [company_name, company_loc, company_logo, company_id],
-      (err, result) => {
-        if (err) {
-          res.send(err);
-        } else {
-          res.send("success");
-        }
+    db.query(query, values, (err, result) => {
+      if (err) {
+        console.log("Error: ", err);
+        res.send(err);
+      } else {
+        console.log("Success");
+        res.sendStatus(200);
       }
-    );
+    });
   } catch (error) {
     console.log(error);
     return res.send(error);
   }
 };
 
-module.exports = { CreateCompany, UpdateCompany };
+const GetCompanies = (req, res) => {
+  const query = "SELECT * FROM `company`";
+  try {
+    db.query(query, (err, result) => {
+      if (err) {
+        res.send(err);
+      } else {
+        return res.json(result);
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    return res.send(error);
+  }
+};
+
+module.exports = { CreateCompany, UpdateCompany, GetCompanies };
