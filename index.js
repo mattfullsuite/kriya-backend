@@ -134,10 +134,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      // secure: true,
-      // httpOnly: false,
+      secure: true,
+      httpOnly: false,
       expires: 60 * 60 * 24 * 1000,
-      // sameSite: "none",
+      sameSite: "none",
     },
   })
 );
@@ -1143,7 +1143,7 @@ cron.schedule("0 0 1 1 *", function () {
 // ---------------------------------------- CHEER A PEER ---------------------------------------------- //
 function giveMonthlyHeartbits() {
   const q2 =
-    "UPDATE heartbits SET `heartbits_balance` = 100 WHERE LAST_DAY(CURDATE()) = CURDATE()";
+    "UPDATE heartbits SET `heartbits_balance` = 100 WHERE ADDDATE(LAST_DAY(CURDATE()), 1) = CURDATE()";
   //AND LAST_DAY(CURDATE()) = CURDATE()
   //UPDATE attendance SET `hours_logged` = CAST(CAST(`time_out` AS time) - CAST(`time_in` AS time) AS time) WHERE time_in IS NOT NULL AND time_out IS NOT NULL
 
