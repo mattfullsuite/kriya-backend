@@ -10,6 +10,7 @@ var imports =  {
     ReturnTemporaryPTO,
     BlockMyPendingLeaves,
     BlockMyApprovedLeaves,
+    EscalateLeaves
     //GenerateReason
 } = require( "../controller/pto_filing_controller.js");
 
@@ -27,6 +28,7 @@ router.get("/blockApprovedLeaves", BlockMyApprovedLeaves);
 router.post("/approveleave/:leave_id", ApproveLeave);
 router.post("/rejectleave/:leave_id", RejectLeave);
 router.post("/returnTempPTO/:leave_id", ReturnTemporaryPTO);
+router.post("/escalateleave/:leave_id", EscalateLeaves);
 //router.get("/generateReason", GenerateReason)
 
 module.exports = router;
