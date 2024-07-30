@@ -278,6 +278,8 @@ async function ModifiedCreateACheerPost(req, res){
 
     const mentionedPeers = peerNames.join(", ")
 
+    const email1 = req.session.user[0].work_email.substring(0, req.session.user[0].work_email.indexOf("@"))
+
     console.log("Mentioned Peers", mentionedPeers)
 
     const blocks = [
@@ -286,6 +288,7 @@ async function ModifiedCreateACheerPost(req, res){
                 "text": {
                     "type": "mrkdwn",
                     "text": "A new cheer has been posted!"
+                    // "text": `Hello <@${email1}>`
                 }
             },
             {
