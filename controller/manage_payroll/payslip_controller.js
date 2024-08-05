@@ -12,12 +12,12 @@ const createPayslip = async (req, res) => {
   const dataProcessed = data.map((items) => {
     const {
       "Employee ID": employeeID,
-      "Last Name": lastName,
-      "First Name": firstName,
-      "Middle Name": middleName,
+      // "Last Name": lastName,
+      // "First Name": firstName,
+      // "Middle Name": middleName,
       Email,
-      "Job Title": jobTitle,
-      "Hire Date": hireDate,
+      // "Job Title": jobTitle,
+      // "Hire Date": hireDate,
       Dates,
       "Pay Items": payItems,
       Totals,
