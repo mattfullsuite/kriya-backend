@@ -104,7 +104,9 @@ db.connect((error) => {
   }
 });
 
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
+app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(express.json());
 
 const server = createServer(app);
 
@@ -120,7 +122,6 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
   session({
