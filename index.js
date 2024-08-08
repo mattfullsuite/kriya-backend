@@ -66,11 +66,13 @@ var module_north_star = require("./routes/north_star.js");
 var module_task_notes = require("./routes/task_notes.js");
 var dispute = require("./routes/dispute.js");
 var suggestion_box = require("./routes/suggestion_box.js");
-var employee_contributions = require("./routes/employee/employee_contribution.js");
 
 // company
 var company_configuration = require("./routes/company/company_configuration.js");
 var company_management = require("./routes/company/company_management.js");
+// employee
+var employee_contributions = require("./routes/employee/employee_contribution.js");
+var employee_salaries = require("./routes/employee/employee_salary.js");
 
 ///ep-getDataOfLoggedInUser
 
@@ -196,6 +198,8 @@ app.use(suggestion_box);
 
 //contribution
 app.use(employee_contributions);
+//salary
+app.use(employee_salaries);
 
 //company
 app.use(company_management);
