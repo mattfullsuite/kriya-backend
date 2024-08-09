@@ -14,7 +14,10 @@ var imports = ({
   UpdateHRAccess,
   GetMyHRAccessData,
   GetAllEmployeesFromCompanyNotHR,
-  MakeAnEmployeeHR
+  MakeAnEmployeeHR,
+
+  GetAllEmployeeShifts,
+  ChangeEmployeeShift
 } = require("../controller/preferences_controller.js"));
 
 const router = express.Router();
@@ -33,5 +36,7 @@ router.post("/pref-controlHRAccess", UpdateHRAccess);
 router.get("/pref-getMyAccessData", GetMyHRAccessData);
 router.get("/pref-getAllNonHREmployees", GetAllEmployeesFromCompanyNotHR);
 router.post("/pref-makeSomeoneHR", MakeAnEmployeeHR);
+router.get("/pref-getAllShifts", GetAllEmployeeShifts)
+router.post("/pref-changeEmployeeShift", ChangeEmployeeShift);
 
 module.exports = router;
