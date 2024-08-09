@@ -100,31 +100,20 @@ async function FileLeave(req, res){
                         "style": "primary",
                         "url": `https://app.kriyahr.com/hr/team-management/team-pto-and-attendance}`
                     },
-                    // {
-                    //     "type": "button",
-                    //     "text": {
-                    //         "type": "plain_text",
-                    //         "emoji": true,
-                    //         "text": "Escalate"
-                    //     },
-                    //     "style": "primary",
-                    //     "value": "click_me_123"
-                    // },
-                    // {
-                    //     "type": "button",
-                    //     "text": {
-                    //         "type": "plain_text",
-                    //         "emoji": true,
-                    //         "text": "Deny"
-                    //     },
-                    //     "style": "danger",
-                    //     "value": "click_me_123"
-                    // }
                 ]
             }
         ]
 
     const blocks = [
+        (JSON.stringify(req.body.leave_type).includes("Half Day")) ?
+        {
+          "type": "section",
+          "text": {
+              "type": "mrkdwn",
+              "text": `Hi! <@${emp_email}> is on half day leave on ${moment(req.body.leave_from).format("MMM DD YYYY")}. Sent a request to <@${superior_email}> for approval. Thank you!`
+          }
+        }
+        :
         (req.body.leave_from === req.body.leave_to) ?
           {
               "type": "section",
