@@ -171,7 +171,7 @@ async function FileOvertime(req, res) {
       channel: userId,
       //channel: 'U05JF329F18', //percy
       //channel: 'U05Q1FLRFD5', matt
-      text: `You received a leave request from <@${emp_email}>.`,
+      text: `You received an overtime request from <@${emp_email}>.`,
       blocks: blocks2,
     })
       console.log(result);
