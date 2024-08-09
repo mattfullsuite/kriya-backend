@@ -208,6 +208,27 @@ function AddCommentToCheerPost(req, res) {
     });
 }
 
+async function appendMentions (peersArr) {
+    let tempArr = []
+
+    peersArr.map((p) => {
+        const email_q = "SELECT work_email FROM emp WHERE emp_id = ?";
+
+        db.query(email_q, [p.id], (err, data) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log("Added email of employee# " + p.id)
+                tempArr.push(`<@${data[0].work_email.substring(0, data[0].work_email.indexOf("@"))}>`)
+            }
+        })
+    })
+
+    console.log("TEMP ARR", tempArr)
+
+    return tempArr;
+}
+
 async function ModifiedCreateACheerPost(req, res){
     const uid = req.session.user[0].emp_id
     const q = "INSERT INTO cheer_post (`cheerer_id`, `post_body`, `hashtags`) VALUES (?)";
@@ -220,13 +241,16 @@ async function ModifiedCreateACheerPost(req, res){
 
     const hb_given = req.body.heartbits_given
     const peers = req.body.peer_id
-    
 
-    db.query(q, [values], (err, data) => {
+    let peerEmails = [];
+
+    await db.query(q, [values], (err, data) => {
         if (err) {
             console.log("Error 1: ", err);
         } else {
             console.log("Level 1: Success")
+
+            var tempArr = [];
 
             const q2 = "INSERT INTO cheer_designation (`cheer_post_id`,`peer_id`, `heartbits_given`) VALUES ((SELECT `cheer_post_id` FROM `cheer_post` ORDER BY cheer_post_id DESC LIMIT 1), ?, ?)";
                 
@@ -259,19 +283,31 @@ async function ModifiedCreateACheerPost(req, res){
                     }
                 })
 
-            })
-            res.send("success")
+                // const email_q = "SELECT work_email FROM emp WHERE emp_id = ?";
 
-            
+                // db.query(email_q, [p.id], (err, data) => {
+                //     if (err) {
+                //         console.log(err);
+                //     } else {
+                //         console.log("Added email of employee# " + p.id)
+                //         peerEmails.push(`<@${data[0].work_email.substring(0, data[0].work_email.indexOf("@"))}>`)
+                //         console.log("INSIDE: ", peerEmails)
+                //     }
+                // })
+            })
+            res.send("success")    
         }
     })
 
     //Slack API Configuration
 
+    console.log("PEER EMAILS", peerEmails)
+
     const fn = req.session.user[0].f_name;
     const sn = req.session.user[0].s_name;
 
     const peerNames = []
+
     peers.map((p) => {
         peerNames.push(p.display)
     })
@@ -282,13 +318,14 @@ async function ModifiedCreateACheerPost(req, res){
 
     console.log("Mentioned Peers", mentionedPeers)
 
+    const mentionedEmails = peerEmails.join(", ")
+
     const blocks = [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
                     "text": "A new cheer has been posted!"
-                    // "text": `Hello <@${email1}>`
                 }
             },
             {
@@ -298,7 +335,8 @@ async function ModifiedCreateACheerPost(req, res){
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*${fn} ${sn}* > *${mentionedPeers}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
+                    "text": `*<@${email1}>* > *${mentionedEmails}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
+                    //"text": `*${fn} ${sn}* > *${mentionedPeers}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
                 }
             },
             {
