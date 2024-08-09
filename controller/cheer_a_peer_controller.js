@@ -335,8 +335,8 @@ async function ModifiedCreateACheerPost(req, res){
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*<@${email1}>* > *${mentionedEmails}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
-                    //"text": `*${fn} ${sn}* > *${mentionedPeers}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
+                    //"text": `*<@${email1}>* > *${mentionedEmails}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
+                    "text": `*${fn} ${sn}* > *${mentionedPeers}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
                 }
             },
             {
