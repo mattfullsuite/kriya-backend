@@ -1,11 +1,20 @@
 var db = require("../config.js");
 var moment = require("moment");
 
-const createDispute = (req, res) => {
+var Slack = require("@slack/bolt");
+var dotenv = require("dotenv");
+
+const tix_app = new Slack.App({
+  signingSecret: process.env.SLACK_SIGNING_SECRET_TIX,
+  token: process.env.SLACK_BOT_TOKEN_TIX,
+});
+
+async function createDispute(req, res) {
   const uid = req.session.user[0].emp_id;
   const { dispute_type, dispute_title, dispute_body } = req.body;
   const q =
     "INSERT INTO `dispute`(`dispute_type`, `requester_id`, `dispute_title`, `dispute_body`, `dispute_status`) VALUES (?,?,?,?,?)";
+  
   db.query(
     q,
     [dispute_type, uid, dispute_title, dispute_body, 0],
@@ -14,6 +23,61 @@ const createDispute = (req, res) => {
       return res.sendStatus(200);
     }
   );
+
+  const fn = req.session.user[0].f_name;
+  const sn = req.session.user[0].s_name;
+
+  const blocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Payroll Ticket*`,
+      },
+    },
+    {
+      "type": "section",
+      "text": {
+          "type": "mrkdwn",
+          "text": `*Appellant's Name:* ${fn} ${sn}`
+      }
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Type of Appeal:*\n ${req.body.dispute_title}`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*Appeal Reason:*\n ${req.body.dispute_body}`,
+        },
+      ],
+    },
+    {
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            emoji: true,
+            text: "Check Ticket",
+          },
+          style: "primary",
+          url: `https://app.kriyahr.com/hr/hr-management/tickets`,
+        },
+      ],
+    },
+  ];
+
+  await tix_app.client.chat.postMessage({
+    token: process.env.SLACK_BOT_TOKEN_TIX,
+    channel: process.env.SLACK_CHANNEL_TIX,
+    text: "Attendance Dispute Ticket",
+    blocks,
+  });
 };
 
 const viewDisputes = (req, res) => {
@@ -51,7 +115,7 @@ const updateUserDispute = (req, res) => {
   db.query(
     q,
     [
-      dispute_status,
+      req.bodu.dispute_status,
       uid,
       moment().format("YYYY-MM-DD HH:mm:ss"),
       dispute_id,
@@ -64,9 +128,110 @@ const updateUserDispute = (req, res) => {
   );
 };
 
+// ------------------------- Dispute For Attendance --------------------------------- //
+
+async function CreateAttendanceDispute(req, res) {
+  const uid = req.session.user[0].emp_id;
+
+  console.log("req body, ", req.body);
+
+  const values = [
+    "Attendance Dispute",
+    uid,
+    moment(req.body.dispute_date).format("YYYY-MM-DD"),
+    req.body.dispute_title,
+    req.body.dispute_body,
+    0,
+  ];
+
+  const q =
+    "INSERT INTO `dispute`(`dispute_type`, `requester_id`, `dispute_date`, `dispute_title`, `dispute_body`, `dispute_status`) VALUES (?)";
+
+  db.query(q, [values], (err, data) => {
+    if (err) return res.send(err);
+    return res.send(data);
+  });
+
+  const fn = req.session.user[0].f_name;
+  const sn = req.session.user[0].s_name;
+
+  const blocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Attendance Ticket*`,
+      },
+    },
+    {
+      "type": "section",
+      "text": {
+          "type": "mrkdwn",
+          "text": `*Appellant's Name:* ${fn} ${sn}`
+      }
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Date to Appeal:*\n ${moment(req.body.dispute_date).format(
+            "MMMM DD YYYY"
+          )}`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*Type of Appeal:*\n ${req.body.dispute_title}`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*Appeal Reason:*\n ${req.body.dispute_body}`,
+        },
+      ],
+    },
+    {
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            emoji: true,
+            text: "Check Ticket",
+          },
+          style: "primary",
+          url: `https://app.kriyahr.com/hr/hr-management/tickets`,
+        },
+      ],
+    },
+  ];
+
+  await tix_app.client.chat.postMessage({
+    token: process.env.SLACK_BOT_TOKEN_TIX,
+    channel: process.env.SLACK_CHANNEL_TIX,
+    text: "Attendance Dispute Ticket",
+    blocks,
+  });
+}
+
+function AllMyAttendanceDisputes(req, res) {
+  const uid = req.session.user[0].emp_id;
+  const q =
+    "SELECT * FROM dispute d LEFT JOIN emp e ON d.handled_by = e.emp_id WHERE requester_id = ? AND dispute_type = 'Attendance Dispute' ORDER BY raised_at DESC";
+
+  db.query(q, [uid], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+
 module.exports = {
   createDispute,
   viewDisputes,
   viewUserDisputes,
   updateUserDispute,
+
+  //Attendance Dispute
+  CreateAttendanceDispute,
+  AllMyAttendanceDisputes,
 };
