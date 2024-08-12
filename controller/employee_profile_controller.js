@@ -51,8 +51,6 @@ function GetSuperiorDataOfLoggedInUser(req, res) {
 function OffboardEmployee(req, res) {
   const fetchid = req.params.emp_id;
 
-  console.log("DATA: " + req.body.date_separated);
-
   const q =
     "UPDATE emp SET date_offboarding = '" +
     req.body.date_offboarding +
@@ -73,8 +71,6 @@ function OffboardEmployee(req, res) {
         if (err) {
           console.log(err);
         } else {
-          console.log("DATA lvl 2 : " + data[0].superior_id);
-
           const q2 =
             "UPDATE emp SET superior_id = " +
             data[0].superior_id +
@@ -85,8 +81,6 @@ function OffboardEmployee(req, res) {
             if (err) {
               console.log(err);
             } else {
-              console.log("DATA lvl 3 : " + data);
-
               res.send("success");
             }
           });
