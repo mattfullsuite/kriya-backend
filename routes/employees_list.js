@@ -11,7 +11,11 @@ var imports =  {
     NewEmployeesList,
     SeparatedEmployeesList,
     RegularEmployeesList,
-    OffboardingAccounts
+    OffboardingAccounts,
+
+    //Pagination
+    PaginatedAllEmployees,
+    SearchAllEmployees
 } = require( "../controller/employees_list_controller.js");
 
 const router = express.Router()
@@ -28,5 +32,9 @@ router.get("/em-newEmployees", NewEmployeesList);
 router.get("/em-separatedEmployees", SeparatedEmployeesList);
 router.get("/em-regularEmployees", RegularEmployeesList);
 router.get("/em-offboardingEmployees", OffboardingAccounts)
+
+//With Pagination
+router.get("/em-paginatedAllEmployees", PaginatedAllEmployees);
+router.get("/em-searchEmployeeList", SearchAllEmployees);
 
 module.exports = router;
