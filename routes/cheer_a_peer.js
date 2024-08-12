@@ -52,7 +52,12 @@ var imports =  {
 
     //Get Hashtags
     GetHashtags,
-    GetTopTenHashtags
+    GetTopTenHashtags,
+
+    //Paginated Optimized
+    GetModifiedPaginatedCheersPost,
+    GetPaginatedMyCheersPost,
+    GetPaginatedMostEngagedPosts
 } = require( "../controller/cheer_a_peer_controller.js");
 
 const router = express.Router()
@@ -108,6 +113,12 @@ router.get("/cap-getMyRecentPosts", GetMyCheersPost)
 //Hashtags
 router.get("/cap-getHashtags", GetHashtags);
 router.get("/cap-getTopTenHashtags", GetTopTenHashtags);
+
+//Paginated
+
+router.get("/cap-getModifiedPaginatedCheerPosts", GetModifiedPaginatedCheersPost)
+router.get("/cap-getPaginatedMyCheerPosts", GetPaginatedMyCheersPost)
+router.get("/cap-getPaginatedMostEngagedPosts", GetPaginatedMostEngagedPosts)
 
 
 module.exports = router;
