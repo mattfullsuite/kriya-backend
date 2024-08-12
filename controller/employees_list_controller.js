@@ -82,43 +82,134 @@ function PaginatedAllEmployees(req, res) {
         }
     });
   
-    // try {
-    //   let data = db("companies")
-    //     .select("*")
-    //     .limit(parsedLimit)
-    //     .offset(offset)
-    //     .orderBy("created_at", "asc");
+}
 
+function SearchProbationaryEmployees(req, res) {
+    var cid = req.session.user[0].company_id;
+
+    const { searchTerm = "" } = req.query;
+
+    const q = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE CONCAT(e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, p.position_name, s.f_name, s.s_name) LIKE ? AND em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Probationary' ORDER BY e.s_name;`;
+
+    const st = "%" + searchTerm + "%";
+
+    db.query(q, [st, cid], (err, data) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            return res.send(data)
+        }
+    })
+}
+
+function PaginatedProbationaryEmployees(req, res) {
+    var cid = req.session.user[0].company_id;
+
+    const { limit = 10, page = 1 } = req.query;
+
+    const q1 = `SELECT COUNT(*) AS count FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Probationary'`
+
+    db.query(q1, [cid], (err, data1) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            const q2 = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable 
+            FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Probationary' ORDER BY e.s_name LIMIT ? OFFSET ? `
+            
+            let parsedLimit = parseInt(limit);
+            let parsedPage = parseInt(page);
+        
+            let offset = (parsedPage - 1) * parsedLimit;
+
+            const totalCount = data1[0].count
+            const totalPages = Math.ceil(totalCount / parsedLimit);
+
+            console.log("REQ QUERY: ", req.query)
+            console.log("Parsed Limit: ", parsedLimit)
+            console.log("OFFSITE",  offset)
+
+            let pagination = {
+                page: parsedPage,
+                total_pages: totalPages,
+                total: parseInt(totalCount),
+                limit: parsedLimit,
+                offset,
+            };
+
+            db.query(q2, [cid, parsedLimit, offset], (err, data2) => {
+                if (err){ 
+                    return res.json(err)
+                } else { 
+                    return res.json({ data2, pagination })
+                }
+            });
+        }
+    });
   
-    //   const totalCount = (await db("companies").count("* as count"))[0].count;
-    //   const totalPages = Math.ceil(totalCount / parsedLimit);
+}
+
+function SearchRegularEmployees(req, res) {
+    var cid = req.session.user[0].company_id;
+
+    const { searchTerm = "" } = req.query;
+
+    const q = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE CONCAT(e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, p.position_name, s.f_name, s.s_name) LIKE ? AND em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Regular' ORDER BY e.s_name;`;
+
+    const st = "%" + searchTerm + "%";
+
+    db.query(q, [st, cid], (err, data) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            return res.send(data)
+        }
+    })
+}
+
+function PaginatedRegularEmployees(req, res) {
+    var cid = req.session.user[0].company_id;
+
+    const { limit = 10, page = 1 } = req.query;
+
+    const q1 = `SELECT COUNT(*) AS count FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Regular'`
+
+    db.query(q1, [cid], (err, data1) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            const q2 = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable 
+            FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Regular' ORDER BY e.s_name LIMIT ? OFFSET ? `
+            
+            let parsedLimit = parseInt(limit);
+            let parsedPage = parseInt(page);
+        
+            let offset = (parsedPage - 1) * parsedLimit;
+
+            const totalCount = data1[0].count
+            const totalPages = Math.ceil(totalCount / parsedLimit);
+
+            console.log("REQ QUERY: ", req.query)
+            console.log("Parsed Limit: ", parsedLimit)
+            console.log("OFFSITE",  offset)
+
+            let pagination = {
+                page: parsedPage,
+                total_pages: totalPages,
+                total: parseInt(totalCount),
+                limit: parsedLimit,
+                offset,
+            };
+
+            db.query(q2, [cid, parsedLimit, offset], (err, data2) => {
+                if (err){ 
+                    return res.json(err)
+                } else { 
+                    return res.json({ data2, pagination })
+                }
+            });
+        }
+    });
   
-    //   let nextPage = null;
-    //   let prevPage = null;
-  
-    //   if (parsedPage < totalPages) {
-    //     nextPage = `/paginateCompany?page=${parsedPage + 1}&limit=${parsedLimit}`;
-    //   }
-  
-    //   if (parsedPage > 1) {
-    //     prevPage = `/paginateCompany?page=${parsedPage - 1}&limit=${parsedLimit}`;
-    //   }
-  
-    //   let pagination = {
-    //     page: parsedPage,
-    //     total_pages: totalPages,
-    //     total: parseInt(totalCount),
-    //     limit: parsedLimit,
-    //     offset,
-    //     nextPage,
-    //     prevPage,
-    //   };
-  
-    //   res.status(200).json({ data, pagination });
-    // } catch (e) {
-    //   console.error("Error fetching companies:", e);
-    //   res.status(500).json({ error: "Failed to fetch companies" });
-    // }
 }
 
 function NewEmployeesList(req, res) {
@@ -239,5 +330,9 @@ module.exports = {
 
   //With Pagination
   PaginatedAllEmployees,
-  SearchAllEmployees
+  SearchAllEmployees,
+  PaginatedProbationaryEmployees,
+  SearchProbationaryEmployees,
+  PaginatedRegularEmployees,
+  SearchRegularEmployees,
 };

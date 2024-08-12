@@ -13,7 +13,7 @@ var moment = require("moment");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
-// const { Server } = require("socket.io");
+const { Server } = require("socket.io");
 const { createServer } = require("node:http");
 
 // var imports =  {
@@ -114,7 +114,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const server = createServer(app);
 
-// const io = new Server(server);
+const io = new Server(server);
 
 //"https://geolocation-db.com/"
 app.use(

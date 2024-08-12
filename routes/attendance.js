@@ -5,6 +5,7 @@ var imports =  {
     GetAttendance,
     GetMyLeaves,
     GetEmployeesWithStatusForAttendance,
+
     GetAttendanceOfOne,
     GetOneStatusForAttendance,
     ChangeAttendanceOfOne,
@@ -14,7 +15,11 @@ var imports =  {
     GetMyStatusForAttendance,
     GetLeavesOfOne,
     AddNewDate,
-    DisableDatesOfOne
+    DisableDatesOfOne,
+
+    //Pagination
+    GetPaginatedEmployeesWithStatusForAttendance,
+    GetPaginatedAttendanceOfOne
 } = require( "../controller/attendance_controller.js");
 
 const router = express.Router()
@@ -24,6 +29,9 @@ router.get("/mtaa-getLimitedAttendanceData", GetLimitedAttendance);
 router.get("/mtaa-getAttendanceData", GetAttendance);
 router.get("/mtaa-getLeaveData", GetMyLeaves)
 router.get("/mtaa-getAttendanceList", GetEmployeesWithStatusForAttendance);
+
+router.get("/mtaa-getPaginatedAttendanceList", GetPaginatedEmployeesWithStatusForAttendance);
+router.get("/mtaa-getPaginatedAttendanceOfOne", GetPaginatedAttendanceOfOne)
 
 router.post("/mtaa-getStatusOfOne", GetOneStatusForAttendance);
 router.post("/mtaa-getAttendanceOfOne", GetAttendanceOfOne);
