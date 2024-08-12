@@ -8,6 +8,7 @@ var imports = ({
   getAllPaySlipGroups,
   getAllPaySlip,
   getEmployeePayslipCurrentYear,
+  getActiveEmployeeAndSalary,
   getOffBoardingEmployees,
 } = require("../../controller/manage_payroll/payslip_controller"));
 
@@ -20,6 +21,7 @@ router.get(
   "/mp-getEmployeePayslipCurrentYear/:empID",
   getEmployeePayslipCurrentYear
 );
+router.get("/mp-getActiveEmployeeAndSalary", getActiveEmployeeAndSalary);
 router.get("/mp-getOffBoardingEmployees", getOffBoardingEmployees);
 
 module.exports = router;

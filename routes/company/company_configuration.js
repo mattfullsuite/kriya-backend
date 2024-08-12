@@ -6,7 +6,10 @@ var {
   UpdateCompanyConfiguration,
 } = require("../../controller/company/company_configuration_controller");
 
-router.get("/comp-config-GetCompanyConfiguration", GetCompanyConfiguration);
+router.get(
+  "/comp-config-GetCompanyConfiguration/:configuration_name",
+  GetCompanyConfiguration
+);
 router.patch(
   "/comp-config-UpdateCompanyConfiguration/:id",
   UpdateCompanyConfiguration
