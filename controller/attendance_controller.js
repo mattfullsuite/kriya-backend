@@ -248,6 +248,26 @@ function GetPaginatedEmployeesWithStatusForAttendance(req, res) {
   
 }
 
+//Search Attendance Status
+
+function SearchAttendanceStatus(req, res) {
+    var cid = req.session.user[0].company_id;
+
+    const { searchTerm = "" } = req.query;
+
+    const q = `SELECT DISTINCT e.emp_id, a.employee_id, e.f_name, e.s_name, es.shift_type, es.start, es.end, p.position_name, COUNT(case when a.status = 'Data Incomplete' then 1 else null end) AS data_incomplete, COUNT(case when a.status = 'Late Start' then 1 else null end) AS late_start, COUNT(case when a.status = 'Early Start' then 1 else null end) AS early_start, (SELECT COUNT(*) FROM overtime o INNER JOIN emp eo ON o.requester_id = eo.emp_id WHERE a.employee_id = eo.emp_num) AS overtime, COUNT(case when a.undertime = 'Undertime' then 1 else null end) AS undertime, COUNT(case when a.status = 'Completed' then 1 else null end) AS completed FROM attendance a INNER JOIN emp e ON a.employee_id = e.emp_num INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id LEFT JOIN emp_shift es ON es.emp_num = a.employee_id INNER JOIN position p ON p.position_id = ed.position_id WHERE CONCAT(e.emp_id, a.employee_id, e.f_name, e.s_name) LIKE ? AND ed.company_id = ? GROUP BY e.emp_id, a.employee_id, e.f_name, e.s_name, es.start, es.end, p.position_name, es.shift_type`
+
+    const st = "%" + searchTerm + "%";
+
+    db.query(q, [st, cid], (err, data) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            return res.send(data)
+        }
+    })
+}
+
 //Get Attendance of a Certain Employee
 
 function GetOneStatusForAttendance(req, res){
@@ -579,6 +599,7 @@ module.exports = {
     GetPaginatedAttendanceOfOne,
 
     //My Attendance
-    GetPaginatedAttendanceOfMine
+    GetPaginatedAttendanceOfMine,
+    SearchAttendanceStatus
 };
 

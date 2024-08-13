@@ -22,7 +22,8 @@ var imports =  {
     GetPaginatedAttendanceOfOne,
 
     //My Attendance
-    GetPaginatedAttendanceOfMine
+    GetPaginatedAttendanceOfMine,
+    SearchAttendanceStatus
 } = require( "../controller/attendance_controller.js");
 
 const router = express.Router()
@@ -35,6 +36,7 @@ router.get("/mtaa-getAttendanceList", GetEmployeesWithStatusForAttendance);
 
 router.get("/mtaa-getPaginatedAttendanceList", GetPaginatedEmployeesWithStatusForAttendance);
 router.get("/mtaa-getPaginatedAttendanceOfOne", GetPaginatedAttendanceOfOne)
+router.get("/mtaa-searchAttendanceList", SearchAttendanceStatus)
 
 router.get("/mtaa-getMyAttendanceData", GetPaginatedAttendanceOfMine);
 
