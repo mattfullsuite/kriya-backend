@@ -662,7 +662,7 @@ app.get("/numofdeptleavestoday", (req, res) => {
   const today = moment().format("YYYY/MM/DD");
 
   const q =
-    "SELECT * FROM leaves WHERE leave_status = 1 AND approver_id = ? AND ? BETWEEN leave_from AND leave_to";
+    "SELECT COUNT(*) as count FROM leaves WHERE leave_status = 1 AND approver_id = ? AND ? BETWEEN leave_from AND leave_to";
 
   db.query(q, [uid, today], (err, data) => {
     if (err) {
@@ -684,7 +684,7 @@ app.get("/numofdeptleavesweek", (req, res) => {
   //const today7 = moment().endOf('week').format("YYYY/MM/DD");
 
   const q =
-    "SELECT * FROM leaves WHERE " +
+    "SELECT COUNT(*) AS count FROM leaves WHERE " +
     "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " +
     "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " +
     "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " +
