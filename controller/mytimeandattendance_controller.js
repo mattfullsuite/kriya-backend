@@ -21,7 +21,7 @@ function NumberOfLeavesToday(req, res) {
     const cid = req.session.user[0].emp_id
     const today = moment().format("YYYY/MM/DD")
 
-    const q = "SELECT * FROM leaves WHERE leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
+    const q = "SELECT COUNT(*) AS count FROM leaves WHERE leave_status = 1 AND ? BETWEEN leave_from AND leave_to"
 
     db.query(q,
         [today],
@@ -41,7 +41,7 @@ function NumberOfLeavesWeek(req, res) {
     const today5 = moment().startOf('week').add('days', 4).format("YYYY/MM/DD");
     const today6 = moment().startOf('week').add('days', 5).format("YYYY/MM/DD");
 
-    const q = "SELECT * FROM leaves WHERE " + 
+    const q = "SELECT COUNT(*) AS count FROM leaves WHERE " + 
     "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
     "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
     "leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " + 
@@ -61,7 +61,7 @@ function NumberOfLeavesWeek(req, res) {
 
 function PaidLeavesTaken(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM leaves WHERE requester_id = ? AND use_pto_points != 0"
+    const q = "SELECT COUNT(*) AS count FROM leaves WHERE requester_id = ? AND use_pto_points != 0"
     
     db.query(q,
         [uid],
@@ -76,7 +76,7 @@ function PaidLeavesTaken(req, res) {
 
 function UnpaidLeavesTaken(req, res) {
     const uid = req.session.user[0].emp_id
-    const q = "SELECT * FROM leaves WHERE requester_id = ? AND use_pto_points = 0"
+    const q = "SELECT COUNT(*) AS count FROM leaves WHERE requester_id = ? AND use_pto_points = 0"
     
     db.query(q,
         [uid],
