@@ -483,7 +483,7 @@ function GetPaginatedAttendanceOfMine(req, res) {
 
     console.log(req.query)
 
-    const q1 = "SELECT COUNT(*) FROM attendance WHERE employee_id = ? ORDER BY date DESC"
+    const q1 = "SELECT COUNT(*) AS count FROM attendance WHERE employee_id = ? ORDER BY date DESC"
     
     db.query(q1, [unum], (err, data1) => {
         if (err){ 
