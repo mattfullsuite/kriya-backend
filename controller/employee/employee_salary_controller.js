@@ -32,7 +32,23 @@ function GetEmployeeSalary(req, res) {
   });
 }
 
+const GetEmployeeLastSalaryIncrease = (req, res) => {
+  const { emp_id } = req.params;
+  console.log("EMP ID: ", emp_id);
+  const query =
+    "SELECT * FROM `emp_salary` WHERE `emp_id` = ? ORDER BY `increase_date` DESC LIMIT 1";
+  db.query(query, [emp_id], (error, data) => {
+    if (error) {
+      console.log("Error: ", error);
+      return res.json(err);
+    }
+    console.log("Data: ", data);
+    return res.json(data);
+  });
+};
+
 module.exports = {
   CreateEmployeeSalary,
   GetEmployeeSalary,
+  GetEmployeeLastSalaryIncrease,
 };
