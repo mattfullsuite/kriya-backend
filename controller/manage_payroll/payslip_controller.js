@@ -265,14 +265,21 @@ const getSumPayItems = (data) => {
 };
 
 function getActiveEmployeeAndSalary(req, res) {
+  const datePeriod = req.params;
+  console.log("To", req.params.To);
+  console.log("FROM", eq.params.From);
   const compID = req.session.user[0].company_id;
   const q =
-    "SELECT e.emp_num AS 'Employee ID', e.s_name AS 'Last Name', e.f_name AS 'First Name', e.m_name AS 'Middle Name', e.work_email AS 'Email', p.position_name AS 'Job Title', e.date_hired AS 'Hire Date', s.base_pay AS 'Basic Pay' FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p ON p.position_id = ed.position_id LEFT JOIN emp_salary s ON s.emp_id = e.emp_id INNER JOIN (SELECT emp_id, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = s.emp_id AND es.latest_salary_date = s.created_at WHERE e.date_offboarding IS NULL AND e.date_separated IS NULL AND ed.company_id = ? ORDER BY e.emp_num;";
+    "SELECT e.emp_num AS 'Employee ID', e.s_name AS 'Last Name', e.f_name AS 'First Name', e.m_name AS 'Middle Name', e.work_email AS 'Email', p.position_name AS 'Job Title', e.date_hired AS 'Hire Date', s.base_pay AS 'Basic Pay', IFNULL(absences.absences, 0) AS 'Absences' FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p ON p.position_id = ed.position_id LEFT JOIN emp_salary s ON s.emp_id = e.emp_id INNER JOIN (SELECT emp_id, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = s.emp_id AND es.latest_salary_date = s.created_at LEFT JOIN (SELECT l.requester_id, ROUND((COUNT(l.leave_id) * (IFNULL(es.base_pay, 0)/cc.configuration_value) * -1),2) AS absences FROM leaves l INNER JOIN emp_designation ed on l.requester_id = ed.emp_id INNER JOIN company_configuration cc on ed.company_id = cc.company_id LEFT JOIN (SELECT emp_id, MAX(base_pay) AS base_pay, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = l.requester_id WHERE ed.company_id = ? AND l.leave_from >= ? AND l.leave_to <= ? AND l.use_pto_points = 0 AND cc.configuration_name = 'Monthly Working Days' GROUP BY l.requester_id, cc.configuration_value) absences ON absences.requester_id = e.emp_id WHERE e.date_offboarding IS NULL AND e.date_separated IS NULL AND ed.company_id = ? ORDER BY e.emp_num;";
 
-  db.query(q, [compID], (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
+  db.query(
+    q,
+    [compID, datePeriod["From"], datePeriod["To"], compID],
+    (err, data) => {
+      if (err) return res.json(err);
+      return res.json(data);
+    }
+  );
 }
 
 module.exports = {
