@@ -21,10 +21,7 @@ router.get(
   "/mp-getEmployeePayslipCurrentYear/:empID",
   getEmployeePayslipCurrentYear
 );
-router.get(
-  "/mp-getActiveEmployeeAndSalary/:datePeriod",
-  getActiveEmployeeAndSalary
-);
+router.get("/mp-getActiveEmployeeAndSalary/", getActiveEmployeeAndSalary);
 router.get("/mp-getOffBoardingEmployees", getOffBoardingEmployees);
 
 module.exports = router;
