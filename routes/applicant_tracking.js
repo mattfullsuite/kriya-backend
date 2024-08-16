@@ -10,7 +10,16 @@ var imports =  {
     //Edit
     EditApplicantData,
     GetNoteDetails,
-    InsertApplicantNotes
+    InsertApplicantNotes,
+
+    //Paginated and Optimized
+    GetPaginatedApplicantsFromDatabase,
+    GetApplicantStatusStatistics,
+    ViewApplicantData,
+
+    //Interviews
+    GetInterviews,
+    GetApplicantNotesFromInterview
 } = require( "../controller/applicant_tracking_controller.js");
 
 const router = express.Router()
@@ -26,5 +35,16 @@ router.post("/ats-editApplicantData", EditApplicantData);
 //Notes
 router.post("/ats-getNoteDetails", GetNoteDetails);
 router.post("/ats-insertApplicantNotes", InsertApplicantNotes);
+
+//Optimized and Paginated
+router.get("/ats-getPaginatedApplicantsFromDatabase", GetPaginatedApplicantsFromDatabase);
+router.get("/ats-getApplicantStatusStatistics", GetApplicantStatusStatistics)
+
+//View Applicant
+router.get("/ats-viewApplicantData/:app_id", ViewApplicantData);
+
+//
+router.get("/ats-getInterviews/:app_id", GetInterviews);
+router.get("/ats-getApplicantInterviewNotes/:app_id", GetApplicantNotesFromInterview);
 
 module.exports = router;
