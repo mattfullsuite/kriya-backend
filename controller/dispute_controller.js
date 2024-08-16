@@ -225,6 +225,64 @@ function AllMyAttendanceDisputes(req, res) {
   });
 }
 
+function GetHRPendingAttendanceDisputes(req, res) {
+  const cid = req.session.user[0].company_id
+
+  const q = `SELECT d.*, er.f_name AS r_f_name, er.s_name AS r_s_name, eh.f_name AS h_f_name, eh.s_name AS h_s_name FROM dispute d LEFT JOIN emp eh ON d.handled_by = eh.emp_id INNER JOIN emp er ON d.requester_id = er.emp_id INNER JOIN emp_designation ed ON d.requester_id = ed.emp_id WHERE dispute_type = 'Attendance Dispute' AND ed.company_id = ? AND d.dispute_status = 0 ORDER BY raised_at DESC`
+
+  db.query(q, [cid], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+
+function GetHRAttendanceDisputes(req, res) {
+  const cid = req.session.user[0].company_id
+
+  const q = `SELECT d.*, er.f_name AS r_f_name, er.s_name AS r_s_name, eh.f_name AS h_f_name, eh.s_name AS h_s_name FROM dispute d LEFT JOIN emp eh ON d.handled_by = eh.emp_id INNER JOIN emp er ON d.requester_id = er.emp_id INNER JOIN emp_designation ed ON d.requester_id = ed.emp_id WHERE dispute_type = 'Attendance Dispute' AND ed.company_id = ? ORDER BY raised_at DESC`
+
+  db.query(q, [cid], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+
+function ApproveDispute(req, res) {
+  const did = req.params.dispute_id;
+  const uid = req.session.user[0].emp_id
+  const q = "UPDATE dispute SET dispute_status = 1, handled_by = ? WHERE dispute_id = ?";
+
+  db.query(q, 
+      [uid, did], 
+      (err,data) => {
+      if (err){
+          console.log(err);
+          res.send("error")
+      } else {
+          console.log(data)
+          res.send(data)
+      }
+  })
+}
+
+function RejectDispute(req, res) {
+  const did = req.params.dispute_id;
+  const uid = req.session.user[0].emp_id
+  const q = "UPDATE dispute SET dispute_status = 2, handled_by = ? WHERE dispute_id = ?";
+
+  db.query(q, 
+      [uid, did], 
+      (err,data) => {
+      if (err){
+          console.log(err);
+          res.send("error")
+      } else {
+          console.log(data)
+          res.send(data)
+      }
+  })
+}
+
 module.exports = {
   createDispute,
   viewDisputes,
@@ -234,4 +292,10 @@ module.exports = {
   //Attendance Dispute
   CreateAttendanceDispute,
   AllMyAttendanceDisputes,
+  GetHRAttendanceDisputes,
+  GetHRPendingAttendanceDisputes,
+
+  //Action Disputes
+  ApproveDispute,
+  RejectDispute
 };
