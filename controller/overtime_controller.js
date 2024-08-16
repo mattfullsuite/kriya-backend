@@ -212,6 +212,7 @@ async function ApproveOvertime(req, res) {
             res.send("error")
         } else {
             console.log(data)
+            res.send(data)
         }
     })
 
