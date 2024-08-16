@@ -35,7 +35,52 @@ function GetApplicantsFromDatabase(req, res) {
     })
 }
 
+function GetPaginatedApplicantsFromDatabase(req, res) {
+    const unum = req.session.user[0].emp_num
+
+    const { limit = 10, page = 1 } = req.query;
+
+    //console.log(req.query)
+
+    const q1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
+    
+    db.query(q1, (err, data1) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            const q2 = `SELECT * FROM applicant_tracking ORDER BY app_id ASC LIMIT ? OFFSET ?`
+            
+            let parsedLimit = parseInt(limit);
+            let parsedPage = parseInt(page);
+        
+            let offset = (parsedPage - 1) * parsedLimit;
+
+            const totalCount = data1[0].count
+            const totalPages = Math.ceil(totalCount / parsedLimit);
+
+
+            let pagination = {
+                page: parsedPage,
+                total_pages: totalPages,
+                total: parseInt(totalCount),
+                limit: parsedLimit,
+                offset,
+            };
+
+            db.query(q2, [parsedLimit, offset], (err, data2) => {
+                if (err){ 
+                    return res.json(err)
+                } else { 
+                    return res.json({ data2, pagination })
+                }
+            });
+        }
+    });
+  
+}
+
 function AddNewApplicant(req, res) {
+    
     const q = "INSERT INTO applicant_tracking (`s_name`, `f_name`, `m_name`, `date_hired`, `cv`, `test_result`, `status`) VALUES (?)"
 
     const values = req.body;
@@ -55,7 +100,7 @@ function ModifiedAddNewApplicant(req, res) {
 
     const values = 
     [
-        req.body.app_start_date,
+        moment(req.body.app_start_date).format("YYYY-MM-DD"),
         req.body.s_name,
         req.body.f_name,
         req.body.m_name,
@@ -63,15 +108,15 @@ function ModifiedAddNewApplicant(req, res) {
         req.body.contact_no,
         req.body.cv_link,
         req.body.source,
-        "Open"
+        req.body.position_applied
     ]
     
     db.query(q, [values], (err, data) => {
         if (err){
             console.log(err)
         } else {
-            res.json(data)
-            console.log("Successfully added to database")
+            // res.json(data)
+            console.log(data)
         }
     })
 
@@ -113,7 +158,7 @@ function EditApplicantData(req, res){
     console.log("Data: ", req.body)
   
     const values = [
-        req.body.app_start_date, //
+        moment(req.body.app_start_date).format("YYYY-MM-DD"), //
         req.body.position_applied, //
         req.body.status, //
         req.body.s_name, //
@@ -153,12 +198,94 @@ function GetNoteDetails(req, res){
     });
 }
 
+function GetApplicantStatusStatistics(req, res){
+    
+    const q = `SELECT 
+    COUNT(case when status = 'Sent Test' then 1 else null end) as sent_test,
+    COUNT(case when status = 'First Interview Stage' then 1 else null end) as first_interview_stage,
+    COUNT(case when status = 'Second Interview Stage' then 1 else null end) as second_interview_stage,
+    COUNT(case when status = 'Third Interview Stage' then 1 else null end) as third_interview_stage,
+    COUNT(case when status = 'Fourth Interview Stage' then 1 else null end) as fourth_interview_stage,
+    COUNT(case when status = 'Final Interview Stage' then 1 else null end) as final_interview_stage,
+    COUNT(case when status = 'For Job Offer' then 1 else null end) as for_job_offer,
+    COUNT(case when status = 'Job Offer Sent' then 1 else null end) as job_offer_sent,
+    COUNT(case when status = 'Job Offer Accepted' then 1 else null end) as job_offer_accepted,
+    COUNT(case when status = 'Started Work' then 1 else null end) as started_work,
+    COUNT(case when status = 'Job Offer Rejected' then 1 else null end) as job_offer_rejected,
+    COUNT(case when status = 'Withdrawn Application' then 1 else null end) as withdrawn_application,
+    COUNT(case when status = 'Not Fit' then 1 else null end) as not_fit,
+    COUNT(case when status = 'Abandoned' then 1 else null end) as abandoned,
+    COUNT(case when status = 'No Show' then 1 else null end) as no_show,
+    COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted
+    FROM applicant_tracking`
+  
+    db.query(q, (err, data) => {
+      if (err) return res.json(err);
+      return res.json(data);
+    });
+}
+
+//View Applicant
+function ViewApplicantData(req, res) {
+    const app_id = req.params.app_id;
+
+    //console.log("APP ID: ", app_id)
+
+    const q =
+      "SELECT * FROM applicant_tracking WHERE app_id = ?";
+  
+    db.query(q, [app_id], (err, data) => {
+      if (err) return res.json(err);
+      else {
+        res.send(data);
+        console.log(data)
+      }
+    });
+  }
+
+//Get Possible 5 Interviews 
+function GetInterviews(req, res){
+    const app_id = req.params.app_id
+    const q = `SELECT ai.*, e.f_name, e.s_name FROM applicant_interview ai INNER JOIN emp e ON ai.interviewer_id = e.emp_id WHERE ai.applicant_id = ? LIMIT 5`
+
+    db.query(q, [app_id], (err, data) => {
+        if (err) return res.json(err);
+        else {
+          res.send(data);
+          console.log(data)
+        }
+      })
+}
+
+//Get Task Notes
+function GetApplicantNotesFromInterview(req, res){
+    const app_id = req.params.app_id
+    const { interviewNo = 1} = req.query;
+    let parsedNumber = parseInt(interviewNo);
+    // console.log("APP: ", app_id)
+    // console.log("No: ", parsedNumber)
+
+    const q = `SELECT an.*, ai.*, e.f_name, e.s_name FROM applicant_notes an INNER JOIN applicant_interview ai ON an.interview_id = ai.applicant_interview_id INNER JOIN emp e ON an.noter_id = e.emp_id WHERE ai.applicant_id = ? AND ai.applicant_interview_id = ?`
+
+    db.query(q, [app_id, parsedNumber], (err, data) => {
+        if (err) return res.json(err);
+        else {
+          res.send(data);
+        //   console.log(data)
+        }
+      });
+}
+
+//Notes
+
 function InsertApplicantNotes(req, res){
     const uid = req.session.user[0].emp_id
-    const q = "INSERT INTO applicant_notes (`note_id`, `note_type`, `noter_id`, `note_body`) VALUES (?)"
+    const q = "INSERT INTO applicant_notes (`interview_id`, `note_type`, `noter_id`, `note_body`) VALUES (?)"
+
+    console.log(req.body)
 
     const values = [
-        req.body.note_id,
+        req.body.interview_id,
         2,
         uid, 
         req.body.note_body,
@@ -169,8 +296,10 @@ function InsertApplicantNotes(req, res){
         (err,data) => {
         if (err){
             res.send("error");
+            console.log(data)
         } else {
             res.sendStatus(200);
+            console.log(data)
         }
     })
 }
@@ -187,5 +316,12 @@ module.exports = {
    //Edit Applicant
    EditApplicantData,
    GetNoteDetails,
-   InsertApplicantNotes
+   InsertApplicantNotes,
+   GetPaginatedApplicantsFromDatabase,
+
+   //Applicant STatus Statistics
+   GetApplicantStatusStatistics,
+   ViewApplicantData,
+   GetInterviews,
+   GetApplicantNotesFromInterview
 }
