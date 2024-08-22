@@ -19,7 +19,14 @@ var imports =  {
 
     //Interviews
     GetInterviews,
-    GetApplicantNotesFromInterview
+    GetApplicantNotesFromInterview,
+
+    //Get Interviewees
+   GetIntervieweesForApplicants,
+   AddNewInterview,
+
+   SearchApplicantList,
+   ChangeStatus
 } = require( "../controller/applicant_tracking_controller.js");
 
 const router = express.Router()
@@ -46,5 +53,13 @@ router.get("/ats-viewApplicantData/:app_id", ViewApplicantData);
 //
 router.get("/ats-getInterviews/:app_id", GetInterviews);
 router.get("/ats-getApplicantInterviewNotes/:app_id", GetApplicantNotesFromInterview);
+
+//Get Interviewees
+router.get("/ats-getIntervieweesForApplicants", GetIntervieweesForApplicants)
+router.post("/ats-addNewInterview/:app_id", AddNewInterview);
+
+//Search
+router.get("/ats-searchApplicantsList", SearchApplicantList);
+router.post("/ats-changeStatusOfApplicant", ChangeStatus)
 
 module.exports = router;
