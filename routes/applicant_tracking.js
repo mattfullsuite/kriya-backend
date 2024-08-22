@@ -26,7 +26,8 @@ var imports =  {
    AddNewInterview,
 
    SearchApplicantList,
-   ChangeStatus
+   ChangeStatus,
+   CreateDiscussionBox
 } = require( "../controller/applicant_tracking_controller.js");
 
 const router = express.Router()
@@ -61,5 +62,6 @@ router.post("/ats-addNewInterview/:app_id", AddNewInterview);
 //Search
 router.get("/ats-searchApplicantsList", SearchApplicantList);
 router.post("/ats-changeStatusOfApplicant", ChangeStatus)
+router.post("/ats-createDiscussionBox", CreateDiscussionBox)
 
 module.exports = router;
