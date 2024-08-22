@@ -345,7 +345,7 @@ function AddNewInterview(req, res){
         [values], 
         (err,data) => {
         if (err){
-            console.log("ERR: ", data)
+            console.log("ERR: ", err)
             res.send("error");
         } else {
             console.log("SUCCESS: ", data)
