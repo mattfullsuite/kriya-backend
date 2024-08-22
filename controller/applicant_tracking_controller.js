@@ -330,6 +330,10 @@ function AddNewInterview(req, res){
 
     console.log("REQ BODY: ", req.body)
 
+    console.log("APP_ID: ", app_id)
+    console.log("INTERVIEWER_ID: ", req.body.interviewer_id)
+    console.log("DATE INTERVIEW: ", req.body.date_of_interview)
+
     const values = [
         app_id,
         req.body.interviewer_id,
