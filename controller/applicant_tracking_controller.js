@@ -250,7 +250,7 @@ function ViewApplicantData(req, res) {
 //Get Possible 5 Interviews 
 function GetInterviews(req, res){
     const app_id = req.params.app_id
-    const q = `SELECT ai.*, e.f_name, e.s_name FROM applicant_interview ai INNER JOIN emp e ON ai.interviewer_id = e.emp_id WHERE ai.applicant_id = ? LIMIT 5`
+    const q = `SELECT ai.*, e.f_name, e.s_name FROM applicant_interview ai LEFT JOIN emp e ON ai.interviewer_id = e.emp_id WHERE ai.applicant_id = ?`
 
     db.query(q, [app_id], (err, data) => {
         if (err) return res.json(err);
@@ -284,7 +284,7 @@ function GetApplicantNotesFromInterview(req, res){
     // console.log("APP: ", app_id)
     // console.log("No: ", parsedNumber)
 
-    const q = `SELECT an.*, ai.*, e.f_name, e.s_name FROM applicant_notes an INNER JOIN applicant_interview ai ON an.interview_id = ai.applicant_interview_id INNER JOIN emp e ON an.noter_id = e.emp_id WHERE ai.applicant_id = ? AND ai.applicant_interview_id = ?`
+    const q = `SELECT an.*, ai.*, e.f_name, e.s_name FROM applicant_notes an INNER JOIN applicant_interview ai ON an.interview_id = ai.applicant_interview_id LEFT JOIN emp e ON an.noter_id = e.emp_id WHERE ai.applicant_id = ? AND ai.applicant_interview_id = ?`
 
     db.query(q, [app_id, parsedNumber], (err, data) => {
         if (err) return res.json(err);
@@ -388,7 +388,20 @@ function ChangeStatus(req, res){
         console.log(data)
       }
     });
-  }
+}
+
+//Create Discussion Box
+function CreateDiscussionBox(req, res) {
+    const aq = "INSERT INTO applicant_interview (`applicant_id`) SELECT app_id FROM applicant_tracking WHERE app_id NOT IN (SELECT DISTINCT at.app_id FROM applicant_tracking AS at INNER JOIN applicant_interview AS ai ON at.app_id = ai.applicant_id)"
+    db.query(aq,  
+        (err,data) => {
+        if (err){
+            console.log(err)
+        } else {
+            console.log(data)
+        }
+    })
+}
 
 
 module.exports = { 
@@ -416,5 +429,6 @@ module.exports = {
    AddNewInterview,
 
    SearchApplicantList,
-   ChangeStatus
+   ChangeStatus,
+   CreateDiscussionBox
 }
