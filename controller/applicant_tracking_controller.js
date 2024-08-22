@@ -8,7 +8,8 @@ function InsertApplicantsData(req, res) {
     const data = req.body;
     console.log(JSON.stringify(data))
 
-    const q = "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `position_applied`, `status`) VALUES (?)"
+    //const q = "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `position_applied`, `status`) VALUES (?)"
+    const q = "INSERT INTO applicant_tracking (`app_start_date`, `position_applied`, `s_name`, `f_name`, `m_name`, `status`, `reason_for_rejection`, `reason_for_blacklist`, `email`, `contact_no`, `test_result`, `cv_link`, `source`, `referrer_name`) VALUES (?)"
 
     data.map((d) => {
         db.query(q, [d], (err, data) => {
@@ -16,6 +17,7 @@ function InsertApplicantsData(req, res) {
                 console.log(err)
             } else {
                 console.log("Added.")
+                // res.send(data)
             }
         })
     })
@@ -24,7 +26,7 @@ function InsertApplicantsData(req, res) {
 }
 
 function GetApplicantsFromDatabase(req, res) {
-    const q = "SELECT * FROM applicant_tracking ORDER BY app_id DESC";
+    const q = "SELECT * FROM applicant_tracking ORDER BY app_start_date ASC";
 
     db.query(q, (err, data) => {
         if (err){
@@ -48,7 +50,7 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         if (err){ 
             return res.json(err)
         } else { 
-            const q2 = `SELECT * FROM applicant_tracking ORDER BY app_id ASC LIMIT ? OFFSET ?`
+            const q2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
             
             let parsedLimit = parseInt(limit);
             let parsedPage = parseInt(page);
@@ -96,7 +98,7 @@ function AddNewApplicant(req, res) {
 }
 
 function ModifiedAddNewApplicant(req, res) {
-    const q = "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `status`) VALUES (?)"
+    const q = "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `position_applied`, `status`) VALUES (?)"
 
     const values = 
     [
@@ -108,15 +110,17 @@ function ModifiedAddNewApplicant(req, res) {
         req.body.contact_no,
         req.body.cv_link,
         req.body.source,
-        req.body.position_applied
+        req.body.position_applied,
+        req.body.status
     ]
     
     db.query(q, [values], (err, data) => {
         if (err){
             console.log(err)
+            res.send(err)
         } else {
-            // res.json(data)
-            console.log(data)
+            res.send(data)
+            //console.log(data)
         }
     })
 
@@ -257,6 +261,21 @@ function GetInterviews(req, res){
       })
 }
 
+//Get Possible Interviewers (Any employee that can access applicant tracking system)
+
+function GetIntervieweesForApplicants(req, res){
+    const cid = req.session.user[0].company_id
+    const q = `SELECT * FROM emp e INNER JOIN hr_access ha ON e.emp_id = ha.hr_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id WHERE ha.access_applicant_tracking = 1 AND ed.company_id = ?`
+
+    db.query(q, [cid], (err, data) => {
+        if (err) return res.json(err);
+        else {
+          res.send(data);
+          console.log(data)
+        }
+      })
+}
+
 //Get Task Notes
 function GetApplicantNotesFromInterview(req, res){
     const app_id = req.params.app_id
@@ -304,6 +323,69 @@ function InsertApplicantNotes(req, res){
     })
 }
 
+//
+function AddNewInterview(req, res){
+    const app_id = req.params.app_id
+    const q = "INSERT INTO applicant_interview (`applicant_id`, `interviewer_id`, `interview_status`, `date_of_interview`) VALUES (?)"
+
+    console.log("REQ BODY: ", req.body)
+
+    const values = [
+        app_id,
+        req.body.interviewer_id,
+        "PENDING",
+        req.body.date_of_interview,
+    ]
+
+    db.query(q, 
+        [values], 
+        (err,data) => {
+        if (err){
+            console.log("ERR: ", data)
+            res.send("error");
+        } else {
+            console.log("SUCCESS: ", data)
+            res.send(data)
+        }
+    })
+}
+
+function SearchApplicantList(req, res) {
+    var cid = req.session.user[0].company_id;
+
+    const { searchTerm = "" } = req.query;
+
+    const q = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`
+
+    const st = "%" + searchTerm + "%";
+
+    db.query(q, [st, cid], (err, data) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            return res.send(data)
+        }
+    })
+}
+
+//Edit Employee
+
+function ChangeStatus(req, res){
+  
+    console.log("Data: ", req.body)
+  
+    const q = "UPDATE applicant_tracking SET `status` = ? WHERE app_id = ?"
+  
+    db.query(q, [req.body.status, req.body.app_id], (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send("success");
+        console.log(data)
+      }
+    });
+  }
+
 
 module.exports = { 
    InsertApplicantsData,
@@ -323,5 +405,12 @@ module.exports = {
    GetApplicantStatusStatistics,
    ViewApplicantData,
    GetInterviews,
-   GetApplicantNotesFromInterview
+   GetApplicantNotesFromInterview,
+
+   //Get Interviewees
+   GetIntervieweesForApplicants,
+   AddNewInterview,
+
+   SearchApplicantList,
+   ChangeStatus
 }
