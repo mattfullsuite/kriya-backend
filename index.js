@@ -13,8 +13,9 @@ var moment = require("moment");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
+const { createServer } = require("http");
+
 const { Server } = require("socket.io");
-const { createServer } = require("node:http");
 
 // var imports =  {
 //   OpenAI,
@@ -111,9 +112,8 @@ app.use(express.json());
 
 const server = createServer(app);
 
-const io = new Server(server);
-
 //"https://geolocation-db.com/"
+
 app.use(
   cors({
     origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
@@ -147,7 +147,88 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.listen(process.env.PORT || 6197, () => {
+// ------- socket.io ------- //
+const io = new Server(server, {
+  cors: {
+    origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
+    methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("A user is connected: " + socket.id);
+
+  socket.on("joinRoom", (joinData) => {
+    if (socket.rooms.has(joinData)) {
+      console.log("Socket is already in the room");
+      console.log("Rooms:")
+      console.log(socket.rooms);
+    } else {
+      console.log("Room: " + joinData)
+      socket.join(joinData);
+      console.log("Socket joined the room");
+      console.log("Rooms:")
+      console.log(socket.rooms);
+    }
+  });
+
+  socket.on("leaveRoom", (leaveData) => {
+    socket.leave(leaveData);
+  })
+
+  socket.on("sendHrRequestMessage", (sendHrRequestData) => {
+    socket.to(sendHrRequestData.request_id).emit("receiveHrRequestMessage", sendHrRequestData);
+  });
+
+  socket.on("sendRequesterMessage", (sendRequesterData) => {
+    socket.to(sendRequesterData.request_id).emit("receiveRequesterMessage", sendRequesterData);
+  })
+
+  socket.on("sendHrComplaintMesssage", (sendHrComplaintData) => {
+    socket.to(sendHrComplaintData.complaint_id).emit("receiveHrComplaintMessage", sendHrComplaintData);
+  })
+
+  socket.on("sendComplainantMessage", (sendHrComplainantData) => {
+    socket.to(sendHrComplainantData.complaint_id).emit("receiveComplainantMessage", sendHrComplainantData);
+  })
+
+  socket.on("closeComplaint", (closeComplaintData) => {
+    socket.to(closeComplaintData.complaintID).emit("receiveCloseComplaint", closeComplaintData.is_resolved);
+  })
+
+  socket.on("closeRequest", (closeRequestData) => {
+    socket.to(closeRequestData.requestID).emit("receiveCloseRequest", closeRequestData.is_resolved);
+  })
+
+  // socket.on("newRequest", (newRequestData) => {
+  //   socket.to(newRequestData.requestID.toString()).emit("receiveNewRequest", newRequestData); 
+  // })
+
+  socket.on("sendHRMessage", (sendHrData) => {
+    socket.to(sendHrData.sb_id).emit("receiveHrData", sendHrData);
+  })
+
+  socket.on("sendBoth", (sendBothData) => {
+    socket.to(sendBothData.sb_id).emit("receiveBothData", sendBothData);
+  })
+
+  socket.on("sendClose", (sendCloseData) => {
+    socket.to(sendCloseData.sb_id).emit("receiveClose", sendCloseData);
+  })
+
+  socket.on("newSuggestionBox", (newSuggestionBoxData) => {
+    if(newSuggestionBoxData.hr_id === null) {
+      socket.to("newSuggestionBoxAll").emit("receiveNewAll", newSuggestionBoxData);
+      io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit("addNewSuggestion", newSuggestionBoxData);
+    } else {
+      socket.to(`newSuggestionBox-${newSuggestionBoxData.hr_id}`).emit("receiveNewOnlyMe", newSuggestionBoxData);
+      io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit("addNewSuggestion", newSuggestionBoxData);
+    }
+  })
+});
+// ------- end of socket.io ------- //
+
+server.listen(process.env.PORT || 6197, () => {
   console.log("Connected to backend mysql database!");
 });
 
@@ -191,6 +272,8 @@ app.use(module_task_notes);
 
 //dispute
 app.use(dispute);
+
+// suggestion box
 app.use(suggestion_box);
 
 //contribution
@@ -550,6 +633,7 @@ app.get("/showdirectory", (req, res) => {
 // })
 
 //TL
+
 app.get("/showalldleaves", (req, res) => {
   const uid = req.session.user[0].emp_id;
 
@@ -2251,3 +2335,66 @@ app.post("/reset-password/:user_key", (req, res) => {
     }
   });
 });
+
+// --- suggestion box --- //
+
+// GET methods
+
+// // suggestion box
+// app.get("/sb-get-request-content/:request_id", (req, res) => {
+//   const uid = req.session.user[0].emp_id;
+//   const requestID = req.params.request_id;
+
+//   const q =
+//     "SELECT * FROM suggestion_box_request WHERE request_id = ? AND requester_id = ?";
+
+//   db.query(q, [requestID, uid], (err, data) => {
+//     if (err) {
+//       return res.json(err);
+//     } else {
+//       if (data.length != 0) {
+//         return res.json(data);
+//       } else {
+//         return res.sendStatus(404);
+//       }
+//     }
+//   });
+// });
+
+// app.get("/sb-get-request-conversation/:request_id", (req, res) => {
+//   const requestID = req.params.request_id;
+
+//   const q =
+//     "SELECT request_id, sender_id, request_chat, request_timestamp, f_name, s_name, emp_pic, emp_role FROM suggestion_box_request_conversation AS sbc INNER JOIN emp ON sbc.sender_id = emp.emp_id  WHERE request_id = ?";
+
+//   db.query(q, [requestID], (err, data) => {
+//     if (err) return res.json(err);
+
+//     return res.json(data);
+//   });
+// });
+
+// // POST methods
+
+// app.post("/sb-insert-request-chat", (req, res) => {
+//   const request_id = req.body.requestID;
+//   const sender_id = req.session.user[0].emp_id;
+//   const request_chat = req.body.request_chat;
+//   const f_name = req.session.user[0].f_name;
+//   const s_name = req.session.user[0].s_name;
+//   const emp_pic = req.session.user[0].emp_pic;
+//   const request_timestamp = "2024-07-15T06:41:46.000Z";
+
+//   const q =
+//     "INSERT INTO suggestion_box_request_conversation (request_id, sender_id, request_chat) VALUES (?, ?, ?)";
+
+//   db.query(q, [request_id, sender_id, request_chat], (err) => {
+//     if (err) {
+//       console.log(err);
+//     } else {
+//       return res.sendStatus(200);
+//     }
+//   });
+// });
+
+// // --- end of suggestion box --- //
