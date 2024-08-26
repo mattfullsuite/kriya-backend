@@ -173,12 +173,10 @@ function EditApplicantData(req, res){
         req.body.contact_no, //
         req.body.cv_link, //
         req.body.referrer, 
-        req.body.next_interview_date ? moment(req.body.next_interview_date).format("YYYY-MM-DD") : null, 
-        req.body.interviewer, 
         req.body.app_id, //
     ]
   
-    const q = "UPDATE applicant_tracking SET `app_start_date` = ?, `position_applied` = ?, `status` = ?, `s_name` = ?, `f_name` = ?, `m_name` = ?, `email` = ?, `source` = ?, `contact_no` = ?, `cv_link` = ?, `referrer_name` = ?, `next_interview_date` = ?, `interviewer` = ? WHERE app_id = ?"
+    const q = "UPDATE applicant_tracking SET `app_start_date` = ?, `position_applied` = ?, `status` = ?, `s_name` = ?, `f_name` = ?, `m_name` = ?, `email` = ?, `source` = ?, `contact_no` = ?, `cv_link` = ?, `referrer_name` = ? WHERE app_id = ?"
   
     db.query(q, values, (err, data) => {
       if (err) {
