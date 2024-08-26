@@ -22,7 +22,7 @@ function GetRequestMessageContent(req, res) {
   const requestID = req.params.request_id;
 
   const q =
-    "SELECT * FROM suggestion_box_request WHERE request_id = ? AND requester_id = ?";
+    "SELECT sbr.*, hr.f_name AS hr_fname, hr.s_name AS hr_sname FROM suggestion_box_request sbr LEFT JOIN emp hr ON sbr.hr_id = hr.emp_id WHERE request_id = ? AND requester_id = ?";
 
   db.query(q, [requestID, uid], (err, data) => {
     if (err) {
@@ -34,19 +34,6 @@ function GetRequestMessageContent(req, res) {
         return res.sendStatus(404);
       }
     }
-  });
-}
-
-function GetRequestMessageChat(req, res) {
-  const requestID = req.params.request_id;
-
-  const q =
-    "SELECT request_id, sender_id, request_chat, request_timestamp, f_name, s_name, emp_pic FROM suggestion_box_request_conversation AS sbc INNER JOIN emp ON sbc.sender_id = emp.emp_id  WHERE request_id = ?";
-
-  db.query(q, [requestID], (err, data) => {
-    if (err) return res.json(err);
-
-    return res.json(data);
   });
 }
 
@@ -63,12 +50,19 @@ function InsertRequest(req, res) {
   db.query(
     q,
     [request_id, requester_id, hr_id, request_subject, request_content],
-    (err) => {
+    (err, data) => {
       if (err) {
-        console.log(err);
+        console.log(data);
       }
 
-      return res.sendStatus(200);
+      return res.send({
+        requestID: request_id,
+        requesterID: requester_id,
+        hrID: hr_id,
+        requestSubject: request_subject,
+        requestContent: request_content,
+        requestDate: moment().format(),
+      });
     }
   );
 }
@@ -81,10 +75,13 @@ function InsertRequestChat(req, res) {
   const q =
     "INSERT INTO suggestion_box_request_conversation (request_id, sender_id, request_chat) VALUES (?, ?, ?)";
 
-  db.query(q, [request_id, sender_id, request_chat], (err) => {
-    if (err) console.log(err);
-
-    return res.sendStatus(200);
+  db.query(q, [request_id, sender_id, request_chat], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(data);
+      res.send(data);
+    }
   });
 }
 
@@ -108,7 +105,7 @@ function GetComplaintMessagesContent(req, res) {
   const complaintID = req.params.complaint_id;
 
   const q =
-    "SELECT * FROM suggestion_box_complaint WHERE complaint_id = ? AND complainant_id = ?";
+    "SELECT sbc.*, hr.f_name AS hr_fname, hr.s_name AS hr_sname FROM suggestion_box_complaint sbc LEFT JOIN emp hr ON sbc.hr_id = hr.emp_id WHERE complaint_id = ? AND complainant_id = ?";
 
   db.query(q, [complaintID, uid], (err, data) => {
     if (err) {
@@ -126,7 +123,8 @@ function GetComplaintMessagesContent(req, res) {
 function GetComplaintMessageChat(req, res) {
   const complaintID = req.params.complaint_id;
 
-  const q = "SELECT sbc.*, f_name, s_name, emp_pic FROM suggestion_box_complaint_conversation sbc INNER JOIN emp ON sbc.sender_id = emp.emp_id WHERE sbc.complaint_id = ?";
+  const q =
+    "SELECT sbc.*, f_name, s_name, emp_pic FROM suggestion_box_complaint_conversation sbc INNER JOIN emp ON sbc.sender_id = emp.emp_id WHERE sbc.complaint_id = ?";
 
   db.query(q, [complaintID], (err, data) => {
     if (err) return res.json(err);
@@ -143,13 +141,25 @@ function InsertComplaint(req, res) {
   const complaint_content = req.body.complaint_content;
   const is_anonymous = req.body.is_anonymous;
 
-  const q = "INSERT INTO suggestion_box_complaint (complaint_id, complainant_id, hr_id, complaint_subject, complaint_content, is_anonymous) VALUES (?, ?, ?, ?, ?, ?)";
+  const q =
+    "INSERT INTO suggestion_box_complaint (complaint_id, complainant_id, hr_id, complaint_subject, complaint_content, is_anonymous) VALUES (?, ?, ?, ?, ?, ?)";
 
-  db.query(q, [complaint_id, complainant_id, hr_id, complaint_subject, complaint_content, is_anonymous], (err, data) => {
-    if(err) console.log(err);
+  db.query(
+    q,
+    [
+      complaint_id,
+      complainant_id,
+      hr_id,
+      complaint_subject,
+      complaint_content,
+      is_anonymous,
+    ],
+    (err, data) => {
+      if (err) console.log(err);
 
-    return res.sendStatus(200);
-  })
+      return res.sendStatus(200);
+    }
+  );
 }
 
 function InsertComplaintChat(req, res) {
@@ -157,14 +167,14 @@ function InsertComplaintChat(req, res) {
   const sender_id = req.session.user[0].emp_id;
   const complaint_chat = req.body.complaint_chat;
 
-  const q = "INSERT INTO suggestion_box_complaint_conversation (complaint_id, sender_id, complaint_chat) VALUES (?, ?, ?)";
+  const q =
+    "INSERT INTO suggestion_box_complaint_conversation (complaint_id, sender_id, complaint_chat) VALUES (?, ?, ?)";
 
   db.query(q, [complaint_id, sender_id, complaint_chat], (err, data) => {
-    if(err) console.log(err);
-
+    if (err) console.log(err);
 
     return res.sendStatus(200);
-  })
+  });
 }
 
 // controllers for utilities in suggestion box
@@ -182,9 +192,279 @@ function GetHr(req, res) {
   });
 }
 
+function GetRequestChat(req, res) {
+  const requestID = req.params.request_id;
+
+  const q =
+    "SELECT request_id, sender_id, request_chat, request_timestamp, f_name, s_name, emp_pic, emp_role FROM suggestion_box_request_conversation AS sbc INNER JOIN emp ON sbc.sender_id = emp.emp_id WHERE request_id = ? ORDER BY sbc.request_timestamp ASC";
+
+  db.query(q, [requestID], (err, data) => {
+    if (err) return res.json(err);
+
+    return res.json(data);
+  });
+}
+
+// controllers for HR tickets
+
+function GetRequestTickets(req, res) {
+  const uid = req.session.user[0].emp_id;
+
+  const q =
+    "SELECT sbr.request_id, sbr.request_subject, sbr.request_content, sbr.request_date, sbr.is_resolved, requester.f_name AS requester_fname, requester.s_name AS requester_sname FROM suggestion_box_request sbr INNER JOIN emp requester ON sbr.requester_id = requester.emp_id WHERE (hr_id = ? OR hr_id IS NULL) AND (requester_id != ?)";
+
+  db.query(q, [uid, uid], (err, data) => {
+    if (err) return res.json(err);
+
+    return res.json(data);
+  });
+}
+
+function GetRequestTicketContent(req, res) {
+  const uid = req.session.user[0].emp_id;
+  const requestID = req.params.request_id;
+
+  const q =
+    "SELECT sbr.*, requester.f_name AS requester_fname, requester.s_name AS requester_sname FROM suggestion_box_request sbr INNER JOIN emp requester ON sbr.requester_id = requester.emp_id WHERE (sbr.hr_id = ? OR sbr.hr_id IS NULL) AND (sbr.request_id = ?)";
+
+  db.query(q, [uid, requestID], (err, data) => {
+    if (err) {
+      return res.json(err);
+    } else {
+      if (data.length != 0) {
+        return res.json(data);
+      } else {
+        return res.sendStatus(404);
+      }
+    }
+  });
+}
+
+function GetComplaintTickets(req, res) {
+  const uid = req.session.user[0].emp_id;
+
+  const q =
+    "SELECT sbc.complaint_id, sbc.complaint_subject, sbc.complaint_content, sbc.complaint_date, sbc.is_anonymous, sbc.is_resolved, complainant.f_name AS complainant_fname, complainant.s_name AS complainant_sname FROM suggestion_box_complaint sbc INNER JOIN emp complainant ON sbc.complainant_id = complainant.emp_id WHERE (hr_id = ? OR hr_id IS NULL) AND (complainant_id != ?)";
+
+  db.query(q, [uid, uid], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+
+function GetComplaintTicketContent(req, res) {
+  const uid = req.session.user[0].emp_id;
+  const complaintID = req.params.complaint_id;
+
+  const q =
+    "SELECT sbc.*, complainant.f_name AS complainant_fname, complainant.s_name AS complainant_sname, hr.f_name AS hr_fname, hr.s_name AS hr_sname FROM suggestion_box_complaint sbc INNER JOIN emp complainant ON sbc.complainant_id = complainant.emp_id LEFT JOIN emp hr ON sbc.hr_id = hr.emp_id WHERE (sbc.hr_id = ? OR sbc.hr_id IS NULL) AND (sbc.complaint_id = ?)";
+
+  db.query(q, [uid, complaintID], (err, data) => {
+    if (err) {
+      return res.json(err);
+    } else {
+      if (data.length != 0) {
+        return res.json(data);
+      } else {
+        return res.sendStatus(404);
+      }
+    }
+  });
+}
+
+function UpdateRequestStatus(req, res) {
+  const requestID = req.body.requestID;
+  const status = req.body.status;
+
+  const q =
+    "UPDATE suggestion_box_request SET is_resolved = ? WHERE request_id = ?";
+
+  db.query(q, [status, requestID], (err, data) => {
+    if (err) return res.json(err);
+
+    return res.json(data);
+  });
+}
+
+function UpdateComplaintStatus(req, res) {
+  const complaintID = req.body.complaintID;
+  const status = req.body.status;
+
+  const q =
+    "UPDATE suggestion_box_complaint SET is_resolved = ? WHERE complaint_id = ?";
+
+  db.query(q, [status, complaintID], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+
+// controller for suggestion box
+
+// post
+function InsertNewSuggestionBox(req, res) {
+  const sb_id = uuidv4();
+  const creator_id = req.session.user[0].emp_id;
+  const hr_id = req.body.hr_id;
+  const sb_type = req.body.sb_type;
+  const sb_subject = req.body.sb_subject;
+  const sb_content = req.body.sb_content;
+
+  const q =
+    "INSERT INTO suggestion_box (sb_id, creator_id, hr_id, sb_type, sb_subject, sb_content) VALUES (?, ?, ?, ?, ?, ?)";
+
+  db.query(
+    q,
+    [sb_id, creator_id, hr_id, sb_type, sb_subject, sb_content],
+    (err, data) => {
+      if (err) {
+        res.json(err);
+      } else {
+        res.json({
+          sb_id: sb_id,
+          creator_id: creator_id,
+          hr_id: hr_id,
+          sb_type: sb_type,
+          sb_subject: sb_subject,
+          sb_content, sb_content,
+          sb_date: moment().format(),
+          is_resolved: 0,
+        });
+      }
+    }
+  );
+}
+
+function InsertNewSuggestionBoxConversation(req, res) {
+  const sb_id = req.body.sb_id;
+  const sender_id = req.session.user[0].emp_id;
+  const sb_chat = req.body.sb_chat;
+
+  const q =
+    "INSERT INTO suggestion_box_conversation (sb_id, sender_id, sb_chat) VALUES (?, ?, ?)";
+
+  db.query(q, [sb_id, sender_id, sb_chat], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.sendStatus(200);
+    }
+  });
+}
+// end of post
+
+// get
+function GetSuggestionBox(req, res) {
+  const uid = req.session.user[0].emp_id;
+
+  const q =
+    "SELECT * FROM suggestion_box sb LEFT JOIN emp hr ON sb.hr_id = hr.emp_id WHERE sb.creator_id = ?";
+
+  db.query(q, [uid], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
+function GetSuggestionBoxInfo(req, res) {
+  const sb_id = req.params.sbID;
+  const uid = req.session.user[0].emp_id;
+
+  const q =
+    "SELECT sb.*, hr.f_name AS hr_fname, hr.s_name AS hr_sname FROM suggestion_box sb LEFT JOIN emp hr ON sb.hr_id = hr.emp_id WHERE sb_id = ? AND sb.creator_id = ?";
+
+  db.query(q, [sb_id, uid], (err, data) => {
+    if (err) {
+      return res.json(err);
+    } else {
+      if (data.length != 0) {
+        return res.json(data);
+      } else {
+        return res.sendStatus(404);
+      }
+    }
+  });
+}
+
+function GetSuggestionBoxConversation(req, res) {
+  const sb_id = req.params.sbID;
+
+  const q =
+    "SELECT sbc.*, sender.f_name AS sender_fname, sender.s_name AS sender_sname FROM suggestion_box_conversation sbc INNER JOIN emp sender ON sbc.sender_id = sender.emp_id WHERE sbc.sb_id = ? ORDER BY sbc.sb_timestamp ASC";
+
+  db.query(q, [sb_id], (err, data) => {
+    if (err) {
+      res.json(err);
+    } else {
+      res.json(data);
+    }
+  });
+}
+// end of get
+
+// controller for hr tickets
+
+// get
+function GetEmployeeInitiated(req, res) {
+  const uid = req.session.user[0].emp_id;
+
+  const q = "SELECT * FROM suggestion_box WHERE (hr_id = ? OR hr_id IS NULL) AND creator_id != ?";
+
+  db.query(q, [uid, uid], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
+function GetEmployeeInitiatedInfo(req, res) {
+  const uid = req.session.user[0].emp_id;
+  const sb_id = req.params.sbID;
+
+  const q =
+    "SELECT * FROM suggestion_box sb WHERE (sb.hr_id = ? OR hr_id IS NULL) AND (sb.sb_id =?)";
+
+  db.query(q, [uid, sb_id], (err, data) => {
+    if (err) {
+      return res.json(err);
+    } else {
+      if (data.length != 0) {
+        return res.json(data);
+      } else {
+        return res.sendStatus(404);
+      }
+    }
+  });
+}
+// end of get
+
+// post
+
+function UpdateSuggestionBoxStatus(req, res) {
+  const sb_id = req.body.sb_id;
+  const sb_status = req.body.status;
+
+  const q = "UPDATE suggestion_box SET is_resolved = ? WHERE sb_id = ?";
+
+  db.query(q, [sb_status, sb_id], (err, data) => {
+    if(err) {
+      console.log(err);
+    } else {
+      res.sendStatus(200);
+    }
+  })
+}
+
+// end of post
+
 module.exports = {
   GetRequestMessages,
-  GetRequestMessageChat,
+  GetRequestChat,
   GetRequestMessageContent,
   InsertRequest,
   InsertRequestChat,
@@ -194,4 +474,19 @@ module.exports = {
   InsertComplaint,
   InsertComplaintChat,
   GetHr,
+  GetRequestTickets,
+  GetRequestTicketContent,
+  GetComplaintTickets,
+  GetComplaintTicketContent,
+  UpdateRequestStatus,
+  UpdateComplaintStatus,
+
+  InsertNewSuggestionBox,
+  GetSuggestionBox,
+  GetSuggestionBoxInfo,
+  GetSuggestionBoxConversation,
+  InsertNewSuggestionBoxConversation,
+  GetEmployeeInitiated,
+  GetEmployeeInitiatedInfo,
+  UpdateSuggestionBoxStatus,
 };
