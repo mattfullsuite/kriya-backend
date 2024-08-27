@@ -128,14 +128,11 @@ const getUserYTD = (req, res) => {
 };
 
 const getAllPaySlipGroups = (req, res) => {
-  const uid = req.session.user[0].emp_num;
   const compID = req.session.user[0].company_id;
   const q =
-    "SELECT DISTINCT DATE_FORMAT(`created_at`, '%m/%d/%Y %H:%i:%s' ) AS `created_at`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `date_from`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `date_to`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `date_payment`, `source`  FROM payslip WHERE company_id = " +
-    compID +
-    " GROUP BY `created_at`, `date_from`, `date_to`, `date_payment`, `source` ORDER BY `created_at` DESC;";
+    "SELECT DISTINCT DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `date_from`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `date_to`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `date_payment`, `source`  FROM payslip WHERE company_id = ? GROUP BY `date_from`, `date_to`, `date_payment`, `source` ORDER BY `date_payment` DESC;";
 
-  db.query(q, [uid], (err, rows) => {
+  db.query(q, [compID], (err, rows) => {
     if (err) return res.json(err);
     return res.status(200).json(rows);
   });
