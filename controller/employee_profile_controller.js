@@ -453,6 +453,17 @@ function GetActiveEmployees(req, res) {
 }
 // Payrun Functions End
 
+function GetEmploymentRecords(req, res) {
+  const fetchid = req.params.emp_id;
+  const q =
+    "SELECT * FROM emp_contributions ec INNER JOIN emp e ON e.emp_id = ec.emp_id WHERE e.emp_id = ?";
+
+  db.query(q, [fetchid], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+
 module.exports = {
   GetDataOfLoggedInUser,
   GetSuperiorDataOfLoggedInUser,
@@ -464,4 +475,5 @@ module.exports = {
   EditEmployeePTO,
   GetEmployeeInfoForUploadPayrun,
   GetActiveEmployees,
+  GetEmploymentRecords,
 };
