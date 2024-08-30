@@ -1,4 +1,5 @@
 var express = require("express");
+const upload = require('../upload.js');
 var imports =  {
     InsertApplicantsData,
     GetApplicantsFromDatabase,
@@ -27,7 +28,10 @@ var imports =  {
 
    SearchApplicantList,
    ChangeStatus,
-   CreateDiscussionBox
+   CreateDiscussionBox,
+
+   RetrieveOfferTemplates,
+   SendEmailToApplicant
 } = require( "../controller/applicant_tracking_controller.js");
 
 const router = express.Router()
@@ -63,5 +67,8 @@ router.post("/ats-addNewInterview/:app_id", AddNewInterview);
 router.get("/ats-searchApplicantsList", SearchApplicantList);
 router.post("/ats-changeStatusOfApplicant", ChangeStatus)
 router.post("/ats-createDiscussionBox", CreateDiscussionBox)
+
+router.get("/ats-getOfferLetters", RetrieveOfferTemplates);
+router.post("/ats-sendEmailLetter/:app_id", upload.single('file'), SendEmailToApplicant)
 
 module.exports = router;
