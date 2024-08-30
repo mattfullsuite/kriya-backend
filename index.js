@@ -136,10 +136,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: true,
-      httpOnly: false,
+      secure: (process.env.JAWSDB_URL) ? true : false,
+      httpOnly: (process.env.JAWSDB_URL) ? false : true,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: "none",
+      sameSite: (process.env.JAWSDB_URL) ? "none" : null,
     },
   })
 );
@@ -1187,10 +1187,7 @@ function cronLogs() {
       let reason;
 
       category = "AUTO";
-      reason =
-        "EMP#" +
-        id +
-        " has been given 5 PTO credits for being regularized. Congratulations!";
+      reason = "You have gained 5 PTO days for being regularized. Congratulations!";
 
       const VALUES = [category, reason, id];
 
@@ -1207,8 +1204,10 @@ function cronLogs() {
 
   let reg_array;
 
-  const reg_q =
-    "SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+  //const reg_q =
+    //"SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+  const reg_q = `SELECT emp_id FROM emp WHERE CURDATE() < DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
+  //const reg_q = `SELECT emp_id FROM emp WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   db.query(reg_q, (err, data) => {
     if (err) {
@@ -1229,9 +1228,7 @@ function cronLogs() {
 
       category = "AUTO";
       reason =
-        "EMP#" +
-        id +
-        " has been given 0.83 PTO credits because it's PTO accrual day!";
+        "You have gained 0.83 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1249,7 +1246,7 @@ function cronLogs() {
   let tenure_array;
 
   const tenure_q =
-    "SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+  `SELECT emp_id FROM emp WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   db.query(tenure_q, (err, data) => {
     if (err) {
@@ -1270,9 +1267,46 @@ function cronLogs() {
 
       category = "AUTO";
       reason =
-        "EMP#" +
-        id +
-        " has been given 1.25 PTO credits because it's PTO accrual day!";
+        "You have gained 1.25 PTO days.";
+
+      const VALUES = [category, reason, id];
+
+      db.query(min_q_log, [VALUES], (err, data) => {
+        if (err) {
+          return console.log(err);
+        }
+        console.log("Log done.");
+      });
+    }
+  });
+
+  // ---------------------------------------- TENURE ---------------------------------------------- //
+
+  let scholar_array;
+
+  const scholar_q =
+  `SELECT emp_id FROM emp WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()`
+
+  db.query(scholar_q, (err, data) => {
+    if (err) {
+      return console.log(err);
+    }
+    scholar_array = data;
+    console.log(scholar_array);
+
+    for (var i = 0; i < scholar_array.length; i++) {
+      console.log(scholar_array[i].emp_id);
+      var id = scholar_array[i].emp_id;
+
+      const min_q_log =
+        "INSERT INTO pto_logs (`log_type`, `log_desc`, `emp_id`) VALUES (?) ";
+
+      let category;
+      let reason;
+
+      category = "AUTO";
+      reason =
+        "You have gained 0.625 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1286,40 +1320,32 @@ function cronLogs() {
   });
 }
 
-function yearlyAccrual() {
-  const year_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 6 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time'";
+// function yearlyAccrual() {
+//   const year_q =
+//     "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
+//     "SET leave_balance = leave_balance + 6 " +
+//     "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time'";
 
-  db.query(year_q, (err, data) => {
-    if (err) {
-      return console.log(err);
-    }
-    console.log("Working Scholar yearly accrual done.");
-  });
-}
+//   db.query(year_q, (err, data) => {
+//     if (err) {
+//       return console.log(err);
+//     }
+//     console.log("Working Scholar yearly accrual done.");
+//   });
+// }
 
 function dailyPtoAccrual() {
   const prob_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET emp_status = 'Regular', leave_balance = leave_balance + 5 " +
-    "WHERE emp_status = 'Probationary' AND date_regularization = CURDATE()";
+    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET emp_status = 'Regular', leave_balance = leave_balance + 5 WHERE emp_status = 'Probationary' AND date_regularization = CURDATE()`
 
   const reg_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 0.83 " +
-    "WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 0.83 WHERE CURDATE() < DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   const tenure_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 1.25 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 1.25 WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   const scholar_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 0.625 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()";
+    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 0.625 WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   db.query(prob_q, (err, data) => {
     if (err) {
