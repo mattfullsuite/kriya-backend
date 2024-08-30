@@ -2,7 +2,6 @@ var db = require("../config.js");
 var isEmpty = require("lodash.isempty");
 var moment = require("moment");
 var nodemailer = require("nodemailer");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 var Slack = require("@slack/bolt")
 var dotenv = require("dotenv")
