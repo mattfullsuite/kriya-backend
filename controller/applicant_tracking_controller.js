@@ -26,8 +26,8 @@ async function SendEmailToApplicant(req, res) {
           port: 465,
           secure: true,
           auth: {
-            user: "marvin@fullsuite.ph",
-            pass: "uggm nyyd ymnb szrx",
+            user: process.env.EMAIL_ADDRESS_ATS,
+            pass: process.env.EMAIL_PASSWORD_ATS,
           },
         });
 
