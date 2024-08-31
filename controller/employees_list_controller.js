@@ -25,7 +25,7 @@ function SearchAllEmployees(req, res) {
 
     const { searchTerm = "" } = req.query;
 
-    const q = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE CONCAT(e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, p.position_name, s.f_name, s.s_name) LIKE ? AND em.company_id = ? ORDER BY e.s_name;`;
+    const q = `SELECT e.emp_id,e.emp_pic, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE CONCAT(e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, p.position_name, s.f_name, s.s_name) LIKE ? AND em.company_id = ? ORDER BY e.s_name;`;
 
     const st = "%" + searchTerm + "%";
 
@@ -49,7 +49,7 @@ function PaginatedAllEmployees(req, res) {
         if (err){ 
             return res.json(err)
         } else { 
-            const q2 = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable 
+            const q2 = `SELECT e.emp_pic, e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable 
             FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? ORDER BY e.s_name LIMIT ? OFFSET ? `
             
             let parsedLimit = parseInt(limit);
@@ -89,7 +89,7 @@ function SearchProbationaryEmployees(req, res) {
 
     const { searchTerm = "" } = req.query;
 
-    const q = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE CONCAT(e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, p.position_name, s.f_name, s.s_name) LIKE ? AND em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Probationary' ORDER BY e.s_name;`;
+    const q = `SELECT e.emp_id, e.emp_pic, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE CONCAT(e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, p.position_name, s.f_name, s.s_name) LIKE ? AND em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Probationary' ORDER BY e.s_name;`;
 
     const st = "%" + searchTerm + "%";
 
@@ -113,7 +113,7 @@ function PaginatedProbationaryEmployees(req, res) {
         if (err){ 
             return res.json(err)
         } else { 
-            const q2 = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable 
+            const q2 = `SELECT e.emp_id, e.emp_pic, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable 
             FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Probationary' ORDER BY e.s_name LIMIT ? OFFSET ? `
             
             let parsedLimit = parseInt(limit);
@@ -153,7 +153,7 @@ function SearchRegularEmployees(req, res) {
 
     const { searchTerm = "" } = req.query;
 
-    const q = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE CONCAT(e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, p.position_name, s.f_name, s.s_name) LIKE ? AND em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Regular' ORDER BY e.s_name;`;
+    const q = `SELECT e.emp_id,e.emp_pic, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE CONCAT(e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, p.position_name, s.f_name, s.s_name) LIKE ? AND em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Regular' ORDER BY e.s_name;`;
 
     const st = "%" + searchTerm + "%";
 
@@ -177,7 +177,7 @@ function PaginatedRegularEmployees(req, res) {
         if (err){ 
             return res.json(err)
         } else { 
-            const q2 = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable 
+            const q2 = `SELECT e.emp_id, e.emp_pic, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_offboarding, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable 
             FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL AND e.emp_status = 'Regular' ORDER BY e.s_name LIMIT ? OFFSET ? `
             
             let parsedLimit = parseInt(limit);
@@ -214,7 +214,7 @@ function PaginatedRegularEmployees(req, res) {
 
 function NewEmployeesList(req, res) {
   var cid = req.session.user[0].company_id;
-  const q = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_hired >= CURRENT_DATE - 180 ORDER BY e.date_hired DESC;`;
+  const q = `SELECT e.emp_id, e.emp_pic, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_hired >= CURRENT_DATE - 180 ORDER BY e.date_hired DESC;`;
 
   db.query(q, cid, (err, data) => {
     if (err) return res.json(err);
@@ -224,7 +224,7 @@ function NewEmployeesList(req, res) {
 
 function RegularEmployeesList(req, res) {
   var cid = req.session.user[0].company_id;
-  const q = `SELECT e.emp_id, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_regularization < CURRENT_DATE ORDER BY e.s_name;`;
+  const q = `SELECT e.emp_id,e.emp_pic, e.f_name, e.m_name, e.s_name, e.emp_num, e.date_hired, e.date_separated, s.f_name AS superior_f_name, s.s_name AS superior_s_name, p.position_name, CONCAT(e.f_name, e.m_name, e.s_name, e.emp_num, s.f_name, s.s_name, p.position_name) AS searchable FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id=em.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN leave_credits AS lc ON e.emp_id = lc.emp_id INNER JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ? AND e.date_regularization < CURRENT_DATE ORDER BY e.s_name;`;
 
   db.query(q, cid, (err, data) => {
     if (err) return res.json(err);

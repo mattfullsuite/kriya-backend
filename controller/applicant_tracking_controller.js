@@ -342,7 +342,7 @@ function GetApplicantNotesFromInterview(req, res) {
   // console.log("APP: ", app_id)
   // console.log("No: ", parsedNumber)
 
-  const q = `SELECT an.*, ai.*, e.f_name, e.s_name FROM applicant_notes an INNER JOIN applicant_interview ai ON an.interview_id = ai.applicant_interview_id LEFT JOIN emp e ON an.noter_id = e.emp_id WHERE ai.applicant_id = ? AND ai.applicant_interview_id = ?`;
+  const q = `SELECT an.*, ai.*, e.emp_pic, e.f_name, e.s_name FROM applicant_notes an INNER JOIN applicant_interview ai ON an.interview_id = ai.applicant_interview_id LEFT JOIN emp e ON an.noter_id = e.emp_id WHERE ai.applicant_id = ? AND ai.applicant_interview_id = ?`;
 
   db.query(q, [app_id, parsedNumber], (err, data) => {
     if (err) return res.json(err);
