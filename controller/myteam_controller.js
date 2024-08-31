@@ -271,6 +271,7 @@ function ModifiedShowAllDownlineLeaves(req, res) {
 
   const q = `(SELECT  e1.f_name AS f1,
 		e1.s_name AS s1,
+    e1.emp_pic AS ep1,
 		c1.leave_balance AS c1,
 		(SELECT COUNT(*) FROM leaves WHERE leave_status = 0 AND requester_id = e1.emp_id) AS p1, 
 		(SELECT COUNT(*) FROM leaves WHERE leave_status = 1 AND requester_id = e1.emp_id) AS a1, 
@@ -283,7 +284,7 @@ FROM    emp e
 		LEFT JOIN leave_credits AS c1
 			ON e1.emp_id = c1.emp_id
 WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e1.f_name IS NOT NULL
-GROUP   BY f1, s1, c1, p1, a1, d1)
+GROUP   BY f1, s1, ep1, c1, p1, a1, d1)
 
 
 UNION
@@ -291,6 +292,7 @@ UNION
 
 (SELECT  e2.f_name AS f1,
 		e2.s_name AS s1,
+    e2.emp_pic AS ep1,
 		c2.leave_balance AS c1,
 		(SELECT COUNT(*) FROM leaves WHERE leave_status = 0 AND requester_id = e2.emp_id) AS p1, 
 		(SELECT COUNT(*) FROM leaves WHERE leave_status = 1 AND requester_id = e2.emp_id) AS a1, 
@@ -309,12 +311,13 @@ FROM    emp e
                 LEFT JOIN leave_credits AS c2
                     ON e2.emp_id = c2.emp_id
 WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e2.date_separated IS NULL AND e2.f_name IS NOT NULL
-GROUP BY f1, s1, c1, p1, a1, d1)
+GROUP BY f1, s1,ep1,c1, p1, a1, d1)
 
 UNION 
 
 (SELECT e3.f_name AS f1,
 		e3.s_name AS s1,
+    e3.emp_pic AS ep1,
 		c3.leave_balance AS c1,
 		(SELECT COUNT(*) FROM leaves WHERE leave_status = 0 AND requester_id = e3.emp_id) AS p1, 
 		(SELECT COUNT(*) FROM leaves WHERE leave_status = 1 AND requester_id = e3.emp_id) AS a1, 
@@ -339,12 +342,13 @@ FROM    emp e
                         LEFT JOIN leave_credits AS c3
                             ON e3.emp_id = c3.emp_id
 WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e2.date_separated IS NULL AND e3.date_separated IS NULL AND e3.f_name IS NOT NULL
-GROUP BY f1, s1, c1, p1, a1, d1)
+GROUP BY f1, s1, ep1, c1, p1, a1, d1)
 
 UNION 
 
 (SELECT e4.f_name AS f1,
 		e4.s_name AS s1,
+    e4.emp_pic AS ep1,
 		c4.leave_balance AS c1,
 		(SELECT COUNT(*) FROM leaves WHERE leave_status = 0 AND requester_id = e4.emp_id) AS p1, 
 		(SELECT COUNT(*) FROM leaves WHERE leave_status = 1 AND requester_id = e4.emp_id) AS a1, 
@@ -375,7 +379,7 @@ FROM    emp e
                                 LEFT JOIN leave_credits AS c4
                                     ON e4.emp_id = c4.emp_id
 WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e2.date_separated IS NULL AND e3.date_separated IS NULL AND e4.date_separated IS NULL AND e4.f_name IS NOT NULL
-GROUP   BY f1, s1, c1, p1, a1, d1)`;
+GROUP   BY f1, ep1, s1, c1, p1, a1, d1)`;
 
   db.query(q, [uid, uid, uid, uid], (err, data) => {
     if (err) {
