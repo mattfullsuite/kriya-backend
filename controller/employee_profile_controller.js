@@ -18,7 +18,7 @@ function GetDataOfLoggedInUser(req, res) {
 function GetDataForCertainEmployee(req, res) {
   const emp_id = req.params.emp_id;
   const q =
-    "SELECT *, base_pay AS 'salary' FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id INNER JOIN leave_credits lc ON e.emp_id = lc.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN dept AS d ON d.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = d.div_id INNER JOIN company AS c ON c.company_id = em.company_id LEFT JOIN emp_salary es ON es.emp_id = e.emp_id WHERE e.emp_id = ? ";
+    "SELECT *, base_pay AS 'salary' FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id INNER JOIN leave_credits lc ON e.emp_id = lc.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN dept AS d ON d.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = d.div_id INNER JOIN company AS c ON c.company_id = em.company_id LEFT JOIN emp_salary es ON es.emp_id = e.emp_id WHERE e.emp_id = ? ORDER BY es.created_at DESC LIMIT 1 ";
 
   db.query(q, [emp_id], (err, data) => {
     if (err) return res.json(err);
@@ -456,7 +456,7 @@ function GetActiveEmployees(req, res) {
 function GetEmploymentRecords(req, res) {
   const fetchid = req.params.emp_id;
   const q =
-    "SELECT * FROM emp_contributions ec INNER JOIN emp e ON e.emp_id = ec.emp_id WHERE e.emp_id = ?";
+    "SELECT * FROM emp_contributions ec INNER JOIN emp e ON e.emp_id = ec.emp_id WHERE e.emp_id = ? ORDER BY created_at DESC LIMIT 4";
 
   db.query(q, [fetchid], (err, data) => {
     if (err) return res.json(err);
