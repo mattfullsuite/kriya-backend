@@ -77,7 +77,7 @@ function GetAllCompanyMasterlist(req, res){
     LEFT JOIN position AS p ON ed.position_id = p.position_id
     WHERE ed.company_id = ? AND 
     CONCAT(e.emp_num, e.f_name, e.s_name, e.m_name, e.work_email, e.personal_email, 
-        e.p_address, e.c_address, e.emp_status, e.emergency_contact_name, e.emergency_contact_num,
+        e.p_address, e.c_address, e.emp_status,
         e.sex, e.civil_status, p.position_name, es.shift_type) 
         LIKE ? 
         ORDER BY e.emp_num ASC`
