@@ -358,7 +358,7 @@ function GetSuggestionBox(req, res) {
   const uid = req.session.user[0].emp_id;
 
   const q =
-    "SELECT * FROM suggestion_box sb LEFT JOIN emp hr ON sb.hr_id = hr.emp_id WHERE sb.creator_id = ?";
+    "SELECT * FROM suggestion_box sb LEFT JOIN emp hr ON sb.hr_id = hr.emp_id WHERE sb.creator_id = ? ORDER BY sb_date DESC";
 
   db.query(q, [uid], (err, data) => {
     if (err) {
@@ -411,7 +411,7 @@ function GetSuggestionBoxConversation(req, res) {
 function GetEmployeeInitiated(req, res) {
   const uid = req.session.user[0].emp_id;
 
-  const q = "SELECT * FROM suggestion_box WHERE (hr_id = ? OR hr_id IS NULL) AND creator_id != ?";
+  const q = "SELECT * FROM suggestion_box WHERE (hr_id = ? OR hr_id IS NULL) AND creator_id != ? ORDER BY sb_date DESC";
 
   db.query(q, [uid, uid], (err, data) => {
     if (err) {

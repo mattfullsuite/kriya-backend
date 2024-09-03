@@ -225,6 +225,10 @@ io.on("connection", (socket) => {
       io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit("addNewSuggestion", newSuggestionBoxData);
     }
   })
+
+  socket.on("newEmployeeTickets", (newEmployeeTicketsData) => {
+    io.to(`employeeTicket-${newEmployeeTicketsData.requester_id}`).emit("newRequesterTicket", newEmployeeTicketsData);
+  });
 });
 // ------- end of socket.io ------- //
 
