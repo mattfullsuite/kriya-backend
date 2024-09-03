@@ -208,6 +208,27 @@ function AddCommentToCheerPost(req, res) {
     });
 }
 
+async function appendMentions (peersArr) {
+    let tempArr = []
+
+    peersArr.map((p) => {
+        const email_q = "SELECT work_email FROM emp WHERE emp_id = ?";
+
+        db.query(email_q, [p.id], (err, data) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log("Added email of employee# " + p.id)
+                tempArr.push(`<@${data[0].work_email.substring(0, data[0].work_email.indexOf("@"))}>`)
+            }
+        })
+    })
+
+    console.log("TEMP ARR", tempArr)
+
+    return tempArr;
+}
+
 async function ModifiedCreateACheerPost(req, res){
     const uid = req.session.user[0].emp_id
     const q = "INSERT INTO cheer_post (`cheerer_id`, `post_body`, `hashtags`) VALUES (?)";
@@ -220,13 +241,16 @@ async function ModifiedCreateACheerPost(req, res){
 
     const hb_given = req.body.heartbits_given
     const peers = req.body.peer_id
-    
 
-    db.query(q, [values], (err, data) => {
+    let peerEmails = [];
+
+    await db.query(q, [values], (err, data) => {
         if (err) {
             console.log("Error 1: ", err);
         } else {
             console.log("Level 1: Success")
+
+            var tempArr = [];
 
             const q2 = "INSERT INTO cheer_designation (`cheer_post_id`,`peer_id`, `heartbits_given`) VALUES ((SELECT `cheer_post_id` FROM `cheer_post` ORDER BY cheer_post_id DESC LIMIT 1), ?, ?)";
                 
@@ -259,26 +283,42 @@ async function ModifiedCreateACheerPost(req, res){
                     }
                 })
 
-            })
-            res.send("success")
+                // const email_q = "SELECT work_email FROM emp WHERE emp_id = ?";
 
-            
+                // db.query(email_q, [p.id], (err, data) => {
+                //     if (err) {
+                //         console.log(err);
+                //     } else {
+                //         console.log("Added email of employee# " + p.id)
+                //         peerEmails.push(`<@${data[0].work_email.substring(0, data[0].work_email.indexOf("@"))}>`)
+                //         console.log("INSIDE: ", peerEmails)
+                //     }
+                // })
+            })
+            res.send("success")    
         }
     })
 
     //Slack API Configuration
 
+    console.log("PEER EMAILS", peerEmails)
+
     const fn = req.session.user[0].f_name;
     const sn = req.session.user[0].s_name;
 
     const peerNames = []
+
     peers.map((p) => {
         peerNames.push(p.display)
     })
 
     const mentionedPeers = peerNames.join(", ")
 
+    const email1 = req.session.user[0].work_email.substring(0, req.session.user[0].work_email.indexOf("@"))
+
     console.log("Mentioned Peers", mentionedPeers)
+
+    const mentionedEmails = peerEmails.join(", ")
 
     const blocks = [
             {
@@ -295,6 +335,7 @@ async function ModifiedCreateACheerPost(req, res){
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
+                    //"text": `*<@${email1}>* > *${mentionedEmails}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
                     "text": `*${fn} ${sn}* > *${mentionedPeers}*\n${hb_given} heartbits gained!\n ${req.body.post_body}`
                 }
             },
@@ -613,7 +654,7 @@ function GetWeeklyLeaderboards(req, res) {
 function GetModifiedCheersPost(req, res) {
     const cid = req.session.user[0].company_id;
     //const q = `SELECT c.*, ch.f_name AS cheerer_f_name, ch.s_name AS cheerer_s_name, p.position_name AS cheerer_job, pe.f_name AS peer_f_name, pe.s_name AS peer_s_name, p2.position_name AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cc.cheer_post_id = c.cheer_post_id) AS num_comments FROM cheer_post AS c INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON c.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? ORDER BY posted_at DESC`
-    const q = `SELECT c.*, MAX(cd.heartbits_given) AS hb_given, MAX(ch.f_name) AS cheerer_f_name, MAX(ch.s_name) AS cheerer_s_name, MAX(p.position_name) AS cheerer_job, MAX(pe.f_name) AS peer_f_name, MAX(pe.s_name) AS peer_s_name, MAX(p2.position_name) AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_comments, (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? GROUP BY c.cheer_post_id ORDER BY posted_at DESC`
+    const q = `SELECT c.*, MAX(cd.heartbits_given) AS hb_given, MAX(ch.emp_pic) AS cheerer_emp_pic, MAX(ch.f_name) AS cheerer_f_name, MAX(ch.s_name) AS cheerer_s_name, MAX(p.position_name) AS cheerer_job, MAX(pe.emp_pic) AS peer_emp_pic, MAX(pe.f_name) AS peer_f_name, MAX(pe.s_name) AS peer_s_name, MAX(p2.position_name) AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_comments, (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? GROUP BY c.cheer_post_id ORDER BY posted_at DESC`
     db.query(q, [cid], (err, data) => {
         if (err) {
             res.send("error");
@@ -786,6 +827,156 @@ function GetTopTenHashtags(req, res) {
     })
 }
 
+// PAGINATION OPTIMIZED
+
+function GetModifiedPaginatedCheersPost(req, res) {
+    var cid = req.session.user[0].company_id;
+
+    const { limit = 10, page = 1 } = req.query;
+
+    const q1 = `SELECT COUNT(*) AS count FROM (SELECT c.*, MAX(cd.heartbits_given) AS hb_given, MAX(ch.f_name) AS cheerer_f_name, MAX(ch.s_name) AS cheerer_s_name, MAX(p.position_name) AS cheerer_job, MAX(pe.f_name) AS peer_f_name, MAX(pe.s_name) AS peer_s_name, MAX(p2.position_name) AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_comments, (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? GROUP BY c.cheer_post_id ORDER BY posted_at DESC) a`
+
+    db.query(q1, [cid], (err, data1) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            const q2 = `SELECT c.*, MAX(cd.heartbits_given) AS hb_given, MAX(ch.emp_pic) AS cheerer_emp_pic, MAX(ch.f_name) AS cheerer_f_name, MAX(ch.s_name) AS cheerer_s_name, MAX(p.position_name) AS cheerer_job, MAX(pe.emp_pic) AS peer_emp_pic, MAX(pe.f_name) AS peer_f_name, MAX(pe.s_name) AS peer_s_name, MAX(p2.position_name) AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_comments, (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? GROUP BY c.cheer_post_id ORDER BY posted_at DESC LIMIT ? OFFSET ? `
+            
+            let parsedLimit = parseInt(limit);
+            let parsedPage = parseInt(page);
+        
+            let offset = (parsedPage - 1) * parsedLimit;
+
+            const totalCount = data1[0].count
+            const totalPages = Math.ceil(totalCount / parsedLimit);
+
+            console.log("REQ QUERY: ", req.query)
+            console.log("Parsed Limit: ", parsedLimit)
+            console.log("OFFSITE",  offset)
+
+            let pagination = {
+                page: parsedPage,
+                total_pages: totalPages,
+                total: parseInt(totalCount),
+                limit: parsedLimit,
+                offset,
+            };
+
+            db.query(q2, [cid, parsedLimit, offset], (err, data2) => {
+                if (err){ 
+                    return res.json(err)
+                } else { 
+                    return res.json({ data2, pagination })
+                }
+            });
+        }
+    });
+  
+}
+
+// PAGINATION OPTIMIZED
+
+function GetPaginatedMyCheersPost(req, res) {
+    const uid = req.session.user[0].emp_id;
+
+    const { limit = 10, page = 1 } = req.query;
+    //const { offset = 10, limit = 12} = req.query;
+
+    const q1 = `SELECT COUNT(*) AS count FROM (SELECT c.*, cd.peer_id AS my_id, MAX(cd.heartbits_given) AS hb_given, MAX(ch.f_name) AS cheerer_f_name, MAX(ch.s_name) AS cheerer_s_name, MAX(p.position_name) AS cheerer_job, MAX(pe.f_name) AS peer_f_name, MAX(pe.s_name) AS peer_s_name, MAX(p2.position_name) AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_comments, (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE cd.peer_id = ? GROUP BY c.cheer_post_id ORDER BY posted_at DESC) a`
+
+    db.query(q1, [uid], (err, data1) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            const q2 = `SELECT c.*, cd.peer_id AS my_id, MAX(cd.heartbits_given) AS hb_given, MAX(ch.f_name) AS cheerer_f_name,MAX(ch.emp_pic) AS cheerer_emp_pic, MAX(ch.s_name) AS cheerer_s_name, MAX(p.position_name) AS cheerer_job, MAX(pe.emp_pic) AS peer_emp_pic, MAX(pe.f_name) AS peer_f_name, MAX(pe.s_name) AS peer_s_name, MAX(p2.position_name) AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_comments, (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE cd.peer_id = ? GROUP BY c.cheer_post_id ORDER BY posted_at DESC LIMIT ? OFFSET ? `
+            
+            let parsedLimit = parseInt(limit);
+            let parsedPage = parseInt(page);
+        
+            let offset = (parsedPage - 1) * parsedLimit;
+            //let offset = 10
+
+            const totalCount = data1[0].count
+            const totalPages = Math.ceil(totalCount / parsedLimit);
+
+            console.log("REQ QUERY: ", req.query)
+            console.log("Parsed Limit: ", parsedLimit)
+            console.log("OFFSET",  offset)
+
+            let pagination = {
+                page: parsedPage,
+                total_pages: totalPages,
+                total: parseInt(totalCount),
+                limit: parsedLimit,
+                offset,
+            };
+
+            db.query(q2, [uid, parsedLimit, offset], (err, data2) => {
+                if (err){ 
+                    return res.json(err)
+                } else { 
+                    return res.json({ data2, pagination })
+                }
+            });
+        }
+    });
+}
+
+function GetPaginatedMostEngagedPosts(req, res) {
+    var cid = req.session.user[0].company_id;
+
+    const { limit = 10, page = 1 } = req.query;
+
+    const q1 = `SELECT COUNT(*) AS count FROM (
+        SELECT c.*, MAX(cd.heartbits_given) AS hb_given, MAX(ch.f_name) AS cheerer_f_name, MAX(ch.s_name) AS cheerer_s_name, MAX(p.position_name) AS cheerer_job, MAX(pe.f_name) AS peer_f_name, MAX(pe.s_name) AS peer_s_name, MAX(p2.position_name) AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_comments,
+
+    (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) + (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_engagements,
+    
+    (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? GROUP BY c.cheer_post_id ORDER BY num_engagements DESC
+    ) a`
+
+    db.query(q1, [cid], (err, data1) => {
+        if (err){ 
+            return res.json(err)
+        } else { 
+            const q2 = `SELECT c.*, MAX(cd.heartbits_given) AS hb_given, MAX(ch.emp_pic) AS cheerer_emp_pic, MAX(ch.f_name) AS cheerer_f_name, MAX(ch.s_name) AS cheerer_s_name, MAX(p.position_name) AS cheerer_job, MAX(pe.f_name) AS peer_f_name, MAX(pe.emp_pic) AS peer_emp_pic, MAX(pe.s_name) AS peer_s_name, MAX(p2.position_name) AS peer_job, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_likes, (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_comments,
+
+            (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_likes cl ON cp.cheer_post_id = cl.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) + (SELECT COUNT(*) FROM cheer_post cp INNER JOIN cheer_comments cc ON cp.cheer_post_id = cc.cheer_post_id WHERE cp.cheer_post_id = c.cheer_post_id) AS num_engagements,
+            
+            (SELECT COUNT(ccp.cheer_post_id) FROM cheer_designation ccp WHERE ccp.cheer_post_id = c.cheer_post_id) AS num_tagged FROM cheer_post AS c INNER JOIN cheer_designation cd ON c.cheer_post_id = cd.cheer_post_id INNER JOIN emp AS ch ON c.cheerer_id = ch.emp_id INNER JOIN emp_designation AS em ON ch.emp_id = em.emp_id INNER JOIN position AS p ON p.position_id = em.position_id INNER JOIN emp AS pe ON cd.peer_id = pe.emp_id INNER JOIN emp_designation AS em2 ON pe.emp_id = em2.emp_id INNER JOIN position AS p2 ON p2.position_id = em2.position_id WHERE em.company_id = ? GROUP BY c.cheer_post_id ORDER BY num_engagements DESC
+            LIMIT ? OFFSET ? `
+            
+            let parsedLimit = parseInt(limit);
+            let parsedPage = parseInt(page);
+        
+            let offset = (parsedPage - 1) * parsedLimit;
+
+            const totalCount = data1[0].count
+            const totalPages = Math.ceil(totalCount / parsedLimit);
+
+            console.log("REQ QUERY: ", req.query)
+            console.log("Parsed Limit: ", parsedLimit)
+            console.log("OFFSITE",  offset)
+
+            let pagination = {
+                page: parsedPage,
+                total_pages: totalPages,
+                total: parseInt(totalCount),
+                limit: parsedLimit,
+                offset,
+            };
+
+            db.query(q2, [cid, parsedLimit, offset], (err, data2) => {
+                if (err){ 
+                    return res.json(err)
+                } else { 
+                    return res.json({ data2, pagination })
+                }
+            });
+        }
+    });
+}
+
 
 module.exports = { 
     CreateHeartbitsForAllInactiveEmployees,
@@ -841,5 +1032,10 @@ module.exports = {
     //Hashtags
     GetHashtags,
 
-    GetTopTenHashtags
+    GetTopTenHashtags,
+
+    //Paginated Optimized
+    GetModifiedPaginatedCheersPost,
+    GetPaginatedMyCheersPost,
+    GetPaginatedMostEngagedPosts
 }

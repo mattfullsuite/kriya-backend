@@ -67,11 +67,13 @@ var module_north_star = require("./routes/north_star.js");
 var module_task_notes = require("./routes/task_notes.js");
 var dispute = require("./routes/dispute.js");
 var suggestion_box = require("./routes/suggestion_box.js");
-var employee_contributions = require("./routes/employee/employee_contribution.js");
 
 // company
 var company_configuration = require("./routes/company/company_configuration.js");
 var company_management = require("./routes/company/company_management.js");
+// employee
+var employee_contributions = require("./routes/employee/employee_contribution.js");
+var employee_salaries = require("./routes/employee/employee_salary.js");
 
 ///ep-getDataOfLoggedInUser
 
@@ -108,7 +110,8 @@ db.connect((error) => {
   }
 });
 
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const server = createServer(app);
 
@@ -123,7 +126,6 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
   session({
@@ -134,10 +136,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      // secure: true,
-      // httpOnly: false,
+      secure: (process.env.JAWSDB_URL) ? true : false,
+      httpOnly: (process.env.JAWSDB_URL) ? false : true,
       expires: 60 * 60 * 24 * 1000,
-      // sameSite: "none",
+      sameSite: (process.env.JAWSDB_URL) ? "none" : null,
     },
   })
 );
@@ -282,6 +284,8 @@ app.use(suggestion_box);
 
 //contribution
 app.use(employee_contributions);
+//salary
+app.use(employee_salaries);
 
 //company
 app.use(company_management);
@@ -746,7 +750,7 @@ app.get("/numofdeptleavestoday", (req, res) => {
   const today = moment().format("YYYY/MM/DD");
 
   const q =
-    "SELECT * FROM leaves WHERE leave_status = 1 AND approver_id = ? AND ? BETWEEN leave_from AND leave_to";
+    "SELECT COUNT(*) as count FROM leaves WHERE leave_status = 1 AND approver_id = ? AND ? BETWEEN leave_from AND leave_to";
 
   db.query(q, [uid, today], (err, data) => {
     if (err) {
@@ -768,7 +772,7 @@ app.get("/numofdeptleavesweek", (req, res) => {
   //const today7 = moment().endOf('week').format("YYYY/MM/DD");
 
   const q =
-    "SELECT * FROM leaves WHERE " +
+    "SELECT COUNT(*) AS count FROM leaves WHERE " +
     "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " +
     "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " +
     "approver_id = ? AND leave_status = 1 AND ? BETWEEN leave_from AND leave_to OR " +
@@ -1231,7 +1235,7 @@ cron.schedule("0 0 1 1 *", function () {
 // ---------------------------------------- CHEER A PEER ---------------------------------------------- //
 function giveMonthlyHeartbits() {
   const q2 =
-    "UPDATE heartbits SET `heartbits_balance` = 100 WHERE LAST_DAY(CURDATE()) = CURDATE()";
+    "UPDATE heartbits SET `heartbits_balance` = 100 WHERE ADDDATE(LAST_DAY(CURDATE()), 1) = CURDATE()";
   //AND LAST_DAY(CURDATE()) = CURDATE()
   //UPDATE attendance SET `hours_logged` = CAST(CAST(`time_out` AS time) - CAST(`time_in` AS time) AS time) WHERE time_in IS NOT NULL AND time_out IS NOT NULL
 
@@ -1271,10 +1275,7 @@ function cronLogs() {
       let reason;
 
       category = "AUTO";
-      reason =
-        "EMP#" +
-        id +
-        " has been given 5 PTO credits for being regularized. Congratulations!";
+      reason = "You have gained 5 PTO days for being regularized. Congratulations!";
 
       const VALUES = [category, reason, id];
 
@@ -1291,8 +1292,10 @@ function cronLogs() {
 
   let reg_array;
 
-  const reg_q =
-    "SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+  //const reg_q =
+    //"SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+  const reg_q = `SELECT emp_id FROM emp WHERE CURDATE() < DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
+  //const reg_q = `SELECT emp_id FROM emp WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   db.query(reg_q, (err, data) => {
     if (err) {
@@ -1313,9 +1316,7 @@ function cronLogs() {
 
       category = "AUTO";
       reason =
-        "EMP#" +
-        id +
-        " has been given 0.83 PTO credits because it's PTO accrual day!";
+        "You have gained 0.83 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1333,7 +1334,7 @@ function cronLogs() {
   let tenure_array;
 
   const tenure_q =
-    "SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+  `SELECT emp_id FROM emp WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   db.query(tenure_q, (err, data) => {
     if (err) {
@@ -1354,9 +1355,46 @@ function cronLogs() {
 
       category = "AUTO";
       reason =
-        "EMP#" +
-        id +
-        " has been given 1.25 PTO credits because it's PTO accrual day!";
+        "You have gained 1.25 PTO days.";
+
+      const VALUES = [category, reason, id];
+
+      db.query(min_q_log, [VALUES], (err, data) => {
+        if (err) {
+          return console.log(err);
+        }
+        console.log("Log done.");
+      });
+    }
+  });
+
+  // ---------------------------------------- TENURE ---------------------------------------------- //
+
+  let scholar_array;
+
+  const scholar_q =
+  `SELECT emp_id FROM emp WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()`
+
+  db.query(scholar_q, (err, data) => {
+    if (err) {
+      return console.log(err);
+    }
+    scholar_array = data;
+    console.log(scholar_array);
+
+    for (var i = 0; i < scholar_array.length; i++) {
+      console.log(scholar_array[i].emp_id);
+      var id = scholar_array[i].emp_id;
+
+      const min_q_log =
+        "INSERT INTO pto_logs (`log_type`, `log_desc`, `emp_id`) VALUES (?) ";
+
+      let category;
+      let reason;
+
+      category = "AUTO";
+      reason =
+        "You have gained 0.625 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1370,40 +1408,32 @@ function cronLogs() {
   });
 }
 
-function yearlyAccrual() {
-  const year_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 6 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time'";
+// function yearlyAccrual() {
+//   const year_q =
+//     "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
+//     "SET leave_balance = leave_balance + 6 " +
+//     "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time'";
 
-  db.query(year_q, (err, data) => {
-    if (err) {
-      return console.log(err);
-    }
-    console.log("Working Scholar yearly accrual done.");
-  });
-}
+//   db.query(year_q, (err, data) => {
+//     if (err) {
+//       return console.log(err);
+//     }
+//     console.log("Working Scholar yearly accrual done.");
+//   });
+// }
 
 function dailyPtoAccrual() {
   const prob_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET emp_status = 'Regular', leave_balance = leave_balance + 5 " +
-    "WHERE emp_status = 'Probationary' AND date_regularization = CURDATE()";
+    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET emp_status = 'Regular', leave_balance = leave_balance + 5 WHERE emp_status = 'Probationary' AND date_regularization = CURDATE()`
 
   const reg_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 0.83 " +
-    "WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 0.83 WHERE CURDATE() < DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   const tenure_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 1.25 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 1.25 WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   const scholar_q =
-    "UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id " +
-    "SET leave_balance = leave_balance + 0.625 " +
-    "WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()";
+    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 0.625 WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   db.query(prob_q, (err, data) => {
     if (err) {

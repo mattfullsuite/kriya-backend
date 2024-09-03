@@ -100,9 +100,10 @@ function InsertHRAccessData(req, res){
 }
 
 function GetHRAccessData(req, res){
-  const q = "SELECT e.f_name, e.s_name, h.* FROM hr_access AS h INNER JOIN emp e ON h.hr_id = e.emp_id WHERE e.date_separated IS NULL"
+  const cid = req.session.user[0].company_id;
+  const q = "SELECT e.f_name, e.s_name, h.* FROM hr_access AS h INNER JOIN emp e ON h.hr_id = e.emp_id INNER JOIN emp_designation em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND e.date_separated IS NULL"
 
-  db.query(q, (err, data) => {
+  db.query(q, [cid], (err, data) => {
     if (err) {
       console.log(err);
     } else {
@@ -177,6 +178,39 @@ function MakeAnEmployeeHR(req, res){
   });
 }
 
+// SHift Change 
+function GetAllEmployeeShifts(req, res){
+  const cid = req.session.user[0].company_id
+  const q = "SELECT es.*, e.f_name, e.s_name, e.emp_num FROM emp e LEFT JOIN emp_shift es ON e.emp_num = es.emp_num LEFT JOIN emp_designation ed ON e.emp_id = ed.emp_id WHERE ed.company_id = ? AND e.date_separated IS NULL ORDER BY e.f_name ASC"
+
+  db.query(q, [cid], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
+function ChangeEmployeeShift(req, res){
+    console.log("req body, ", req.body);
+  
+    const values = [
+      req.body.emp_num,
+      (req.body.time_out > req.body.time_in) ? "SD" : "DD",
+      req.body.time_in,
+      req.body.time_out,
+    ];
+  
+    const q =
+      "INSERT INTO `emp_shift`(`emp_num`,`shift_type`,`start`,`end`) VALUES (?)";
+  
+    db.query(q, [values], (err, data) => {
+      if (err) return res.send("err");
+      return res.send("success");
+    });
+}
+
 module.exports = {
   CreateHoliday,
   DeleteHoliday,
@@ -191,5 +225,7 @@ module.exports = {
   UpdateHRAccess,
   GetMyHRAccessData,
   GetAllEmployeesFromCompanyNotHR,
-  MakeAnEmployeeHR
+  MakeAnEmployeeHR,
+  GetAllEmployeeShifts,
+  ChangeEmployeeShift
 };
