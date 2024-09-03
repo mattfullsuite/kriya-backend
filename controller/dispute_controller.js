@@ -1,7 +1,9 @@
 var db = require("../config.js");
 var moment = require("moment");
+
 var Slack = require("@slack/bolt");
 var dotenv = require("dotenv");
+
 const tix_app = new Slack.App({
   signingSecret: process.env.SLACK_SIGNING_SECRET_TIX,
   token: process.env.SLACK_BOT_TOKEN_TIX,
@@ -20,8 +22,10 @@ async function createDispute(req, res) {
       return res.sendStatus(200);
     }
   );
+
   const fn = req.session.user[0].f_name;
   const sn = req.session.user[0].s_name;
+
   const blocks = [
     {
       type: "section",
@@ -31,11 +35,11 @@ async function createDispute(req, res) {
       },
     },
     {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Appellant's Name:* ${fn} ${sn}`,
-      },
+      "type": "section",
+      "text": {
+          "type": "mrkdwn",
+          "text": `*Appellant's Name:* ${fn} ${sn}`
+      }
     },
     {
       type: "section",
@@ -66,13 +70,14 @@ async function createDispute(req, res) {
       ],
     },
   ];
+
   await tix_app.client.chat.postMessage({
     token: process.env.SLACK_BOT_TOKEN_TIX,
     channel: process.env.SLACK_CHANNEL_TIX,
     text: "Attendance Dispute Ticket",
     blocks,
   });
-}
+};
 
 const viewDisputes = (req, res) => {
   const cid = req.session.user[0].company_id;

@@ -18,7 +18,7 @@ function GetDataOfLoggedInUser(req, res) {
 function GetDataForCertainEmployee(req, res) {
   const emp_id = req.params.emp_id;
   const q =
-    "SELECT * FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id INNER JOIN leave_credits lc ON e.emp_id = lc.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN dept AS d ON d.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = d.div_id INNER JOIN company AS c ON c.company_id = em.company_id WHERE e.emp_id = ? ";
+    "SELECT *, base_pay AS 'salary' FROM emp AS e INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id INNER JOIN leave_credits lc ON e.emp_id = lc.emp_id INNER JOIN position AS p ON em.position_id = p.position_id INNER JOIN dept AS d ON d.dept_id = p.dept_id INNER JOIN division AS di ON di.div_id = d.div_id INNER JOIN company AS c ON c.company_id = em.company_id LEFT JOIN emp_salary es ON es.emp_id = e.emp_id WHERE e.emp_id = ? ORDER BY es.created_at DESC LIMIT 1 ";
 
   db.query(q, [emp_id], (err, data) => {
     if (err) return res.json(err);
@@ -51,8 +51,6 @@ function GetSuperiorDataOfLoggedInUser(req, res) {
 function OffboardEmployee(req, res) {
   const fetchid = req.params.emp_id;
 
-  console.log("DATA: " + req.body.date_separated);
-
   const q =
     "UPDATE emp SET date_offboarding = '" +
     req.body.date_offboarding +
@@ -73,8 +71,6 @@ function OffboardEmployee(req, res) {
         if (err) {
           console.log(err);
         } else {
-          console.log("DATA lvl 2 : " + data[0].superior_id);
-
           const q2 =
             "UPDATE emp SET superior_id = " +
             data[0].superior_id +
@@ -85,8 +81,6 @@ function OffboardEmployee(req, res) {
             if (err) {
               console.log(err);
             } else {
-              console.log("DATA lvl 3 : " + data);
-
               res.send("success");
             }
           });
@@ -450,7 +444,7 @@ function GetEmployeeInfoForUploadPayrun(req, res) {
 function GetActiveEmployees(req, res) {
   const compID = req.session.user[0].company_id;
   const q =
-    "SELECT e.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', e.`work_email` AS 'Email', p.`position_name` AS 'Job Title', e.`date_hired` AS 'Hire Date' FROM `emp` e INNER JOIN `emp_designation` ed ON ed.emp_id = e.emp_id  INNER JOIN `position` p ON p.position_id = ed.position_id WHERE date_offboarding IS NULL AND date_separated IS NULL AND ed.company_id = ? ORDER BY p.`position_name`;";
+    "SELECT e.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', e.`work_email` AS 'Email', p.`position_name` AS 'Job Title', e.`date_hired` AS 'Hire Date', s.base_pay AS 'Basic Pay' FROM `emp` e INNER JOIN `emp_designation` ed ON ed.emp_id = e.emp_id  INNER JOIN `position` p ON p.position_id = ed.position_id LEFT JOIN `emp_salary` s ON s.emp_id = e.emp_id WHERE date_offboarding IS NULL AND date_separated IS NULL AND ed.company_id = ? ORDER BY e.`emp_num`;";
 
   db.query(q, [compID], (err, data) => {
     if (err) return res.json(err);
@@ -458,6 +452,17 @@ function GetActiveEmployees(req, res) {
   });
 }
 // Payrun Functions End
+
+function GetEmploymentRecords(req, res) {
+  const fetchid = req.params.emp_id;
+  const q =
+    "SELECT * FROM emp_contributions ec INNER JOIN emp e ON e.emp_id = ec.emp_id WHERE e.emp_id = ? ORDER BY created_at DESC LIMIT 4";
+
+  db.query(q, [fetchid], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
 
 module.exports = {
   GetDataOfLoggedInUser,
@@ -470,4 +475,5 @@ module.exports = {
   EditEmployeePTO,
   GetEmployeeInfoForUploadPayrun,
   GetActiveEmployees,
+  GetEmploymentRecords,
 };

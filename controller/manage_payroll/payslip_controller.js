@@ -12,12 +12,12 @@ const createPayslip = async (req, res) => {
   const dataProcessed = data.map((items) => {
     const {
       "Employee ID": employeeID,
-      "Last Name": lastName,
-      "First Name": firstName,
-      "Middle Name": middleName,
+      // "Last Name": lastName,
+      // "First Name": firstName,
+      // "Middle Name": middleName,
       Email,
-      "Job Title": jobTitle,
-      "Hire Date": hireDate,
+      // "Job Title": jobTitle,
+      // "Hire Date": hireDate,
       Dates,
       "Pay Items": payItems,
       Totals,
@@ -78,9 +78,6 @@ const removeZeroValues = (data) => {
 };
 
 const generatePDF = async (data) => {
-  // console.log("Data to Generate: ", data);
-  console.log("Generating PDF!");
-
   // const result = await axios
   //   .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data)
   //   .then(function (response) {
@@ -102,7 +99,6 @@ const generatePDF = async (data) => {
         },
       }
     );
-    console.log("Response:", response);
     return response;
   } catch (error) {
     console.error("Error: ", error);
@@ -132,14 +128,11 @@ const getUserYTD = (req, res) => {
 };
 
 const getAllPaySlipGroups = (req, res) => {
-  const uid = req.session.user[0].emp_num;
   const compID = req.session.user[0].company_id;
   const q =
-    "SELECT DISTINCT DATE_FORMAT(`created_at`, '%m/%d/%Y %H:%i:%s' ) AS `created_at`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `date_from`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `date_to`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `date_payment`, `source`  FROM payslip WHERE company_id = " +
-    compID +
-    " GROUP BY `created_at`, `date_from`, `date_to`, `date_payment`, `source` ORDER BY `created_at` DESC;";
+    "SELECT DISTINCT DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `date_from`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `date_to`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `date_payment`, `source`  FROM payslip WHERE company_id = ? GROUP BY `date_from`, `date_to`, `date_payment`, `source` ORDER BY `date_payment` DESC;";
 
-  db.query(q, [uid], (err, rows) => {
+  db.query(q, [compID], (err, rows) => {
     if (err) return res.json(err);
     return res.status(200).json(rows);
   });
@@ -161,7 +154,7 @@ const getAllPaySlip = (req, res) => {
 // Get Offboarding Employees
 const getOffBoardingEmployees = (req, res) => {
   const compID = req.session.user[0].company_id;
-  const q = `SELECT e.emp_id, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL AND e.m_name != '', CONCAT(LEFT(e.m_name, 1), '. '), ' '), e.s_name) AS name, e.f_name, e.m_name, e.s_name, e.emp_num, e.work_email, pos.position_name, e.date_hired, e.date_separated, 0.00 AS 'base_pay', 0.00 AS 'daily_rate', 0.00 AS 'hourly_rate', rp.recent_payment, rp.recent_duration_to, c.company_name, c.company_loc FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position pos ON pos.position_id = ed.position_id INNER JOIN company c ON c.company_id = ed.company_id LEFT JOIN (SELECT p.emp_num, JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.Payment')) AS recent_payment, JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.To')) AS recent_duration_to, p.source FROM payslip p INNER JOIN (SELECT emp_num, MAX(JSON_UNQUOTE(JSON_EXTRACT(dates, '$.To'))) AS recent_duration_to FROM payslip WHERE SUBSTRING(JSON_EXTRACT(dates, '$.To'), 2, 4) = YEAR(NOW()) GROUP BY emp_num) rp ON p.emp_num = rp.emp_num AND JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.To')) = rp.recent_duration_to) rp ON e.emp_num = rp.emp_num WHERE ed.company_id = ? AND e.date_separated > CURDATE() AND (rp.source IS NULL OR rp.source != "Last Payrun") ORDER BY e.date_separated DESC;`;
+  const q = `SELECT e.emp_id, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL AND e.m_name != '', CONCAT(LEFT(e.m_name, 1), '. '), ' '), e.s_name) AS name, e.f_name, e.m_name, e.s_name, e.emp_num, e.work_email, pos.position_name, e.date_hired, e.date_separated, 0.00 AS 'base_pay', 0.00 AS 'daily_rate', 0.00 AS 'hourly_rate', rp.recent_payment, rp.recent_duration_to, c.company_name, c.company_loc FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position pos ON pos.position_id = ed.position_id INNER JOIN company c ON c.company_id = ed.company_id LEFT JOIN (SELECT p.emp_num, JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.Payment')) AS recent_payment, JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.To')) AS recent_duration_to, p.source FROM payslip p INNER JOIN (SELECT emp_num, MAX(JSON_UNQUOTE(JSON_EXTRACT(dates, '$.To'))) AS recent_duration_to FROM payslip WHERE SUBSTRING(JSON_EXTRACT(dates, '$.To'), 2, 4) = YEAR(NOW()) GROUP BY emp_num) rp ON p.emp_num = rp.emp_num AND JSON_UNQUOTE(JSON_EXTRACT(p.dates, '$.To')) = rp.recent_duration_to) rp ON e.emp_num = rp.emp_num WHERE ed.company_id = ? AND e.date_separated IS NOT NULL AND (rp.source IS NULL OR rp.source != "Last Payrun") ORDER BY e.date_separated DESC;`;
   db.query(q, compID, (err, rows) => {
     if (err) return res.json(err);
     return res.status(200).json(rows);
@@ -189,7 +182,7 @@ const getEmployeePayslipCurrentYear = async (req, res) => {
   const payItems = await getAllPayItems(compID);
 
   const q =
-    "SELECT e.emp_num, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL and e.m_name != '', LEFT(e.m_name, 1), 'N/A'), '.', ' ',e.s_name) AS 'name', p.dates, p.payables, p.totals, p.net_salary, p.source FROM `payslip` p INNER JOIN emp e ON e.emp_num = p.emp_num INNER JOIN emp_designation ed on ed.emp_id = e.emp_id WHERE ed.company_id = ? AND e.emp_num = ? AND SUBSTRING(JSON_EXTRACT(p.`dates`, '$.To'), 2,4) = YEAR(NOW()) ORDER BY JSON_EXTRACT(p.`dates`, '$.Payment') DESC";
+    "SELECT e.emp_num, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL and e.m_name != '', LEFT(e.m_name, 1), 'N/A'), '.', ' ',e.s_name) AS 'name', p.dates, p.payables, p.totals, p.net_salary, p.source FROM `payslip` p INNER JOIN emp e ON e.emp_num = p.emp_num INNER JOIN emp_designation ed on ed.emp_id = e.emp_id WHERE ed.company_id = ? AND e.emp_num = ? AND SUBSTRING(JSON_EXTRACT(p.`dates`, '$.Payment'), 2,4) = YEAR(NOW()) ORDER BY JSON_EXTRACT(p.`dates`, '$.Payment') DESC";
   db.query(q, [compID, empID], (err, rows) => {
     if (err) return res.json(err);
     const processedData = appendPayItemValues(tranformData(rows), payItems);
@@ -268,6 +261,21 @@ const getSumPayItems = (data) => {
   }, {});
 };
 
+function getActiveEmployeeAndSalary(req, res) {
+  const compID = req.session.user[0].company_id;
+  const q =
+    "WITH ranked_rows AS (SELECT emp_num, net_salary, JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) AS payment_date, ROW_NUMBER() OVER (PARTITION BY emp_num ORDER BY JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) DESC) AS `rank` FROM payslip WHERE JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) < ?) SELECT e.emp_num AS 'Employee ID', e.s_name AS 'Last Name', e.f_name AS 'First Name', e.m_name AS 'Middle Name', e.work_email AS 'Email', p.position_name AS 'Job Title', e.date_hired AS 'Hire Date', s.base_pay AS 'Basic Pay', IFNULL(absences.absences, 0) AS 'Absences', IFNULL(rr.net_salary_1, 'N/A') AS 'Previous Net Pay 1',  IFNULL(rr.net_salary_2, 'N/A') AS 'Previous Net Pay 2',  IFNULL(rr.net_salary_3, 'N/A') AS 'Previous Net Pay 3' FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p ON p.position_id = ed.position_id LEFT JOIN emp_salary s ON s.emp_id = e.emp_id INNER JOIN (SELECT emp_id, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = s.emp_id AND es.latest_salary_date = s.created_at LEFT JOIN (SELECT l.requester_id, ROUND((COUNT(l.leave_id) * (IFNULL(es.base_pay, 0)/cc.configuration_value) * -1),2) AS absences FROM leaves l INNER JOIN emp_designation ed on l.requester_id = ed.emp_id INNER JOIN company_configuration cc on ed.company_id = cc.company_id LEFT JOIN (SELECT emp_id, MAX(base_pay) AS base_pay, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = l.requester_id WHERE ed.company_id = ? AND l.leave_from >= ? AND l.leave_to <= ? AND l.use_pto_points = 0 AND cc.configuration_name = 'Monthly Working Days' GROUP BY l.requester_id, cc.configuration_value) absences ON absences.requester_id = e.emp_id LEFT JOIN (SELECT emp_num, MAX(CASE WHEN `rank` = 1 THEN net_salary END) AS net_salary_1, MAX(CASE WHEN `rank` = 1 THEN payment_date END) AS payment_date_1, MAX(CASE WHEN `rank` = 2 THEN net_salary END) AS net_salary_2, MAX(CASE WHEN `rank` = 2 THEN payment_date END) AS payment_date_2, MAX(CASE WHEN `rank` = 3 THEN net_salary END) AS net_salary_3, MAX(CASE WHEN `rank` = 3 THEN payment_date END) AS payment_date_3 FROM ranked_rows GROUP BY emp_num) rr ON e.emp_num = rr.emp_num WHERE e.date_offboarding IS NULL AND e.date_separated IS NULL AND ed.company_id = ? ORDER BY e.emp_num;";
+
+  db.query(
+    q,
+    [req.query.payment, compID, req.query.from, req.query.to, compID],
+    (err, data) => {
+      if (err) return res.json(err);
+      return res.json(data);
+    }
+  );
+}
+
 module.exports = {
   createPayslip,
   getUserPayslip,
@@ -275,5 +283,6 @@ module.exports = {
   getAllPaySlipGroups,
   getAllPaySlip,
   getEmployeePayslipCurrentYear,
+  getActiveEmployeeAndSalary,
   getOffBoardingEmployees,
 };

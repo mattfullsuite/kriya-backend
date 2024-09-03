@@ -2,19 +2,23 @@ var db = require("../config.js");
 var isEmpty = require("lodash.isempty");
 var moment = require("moment");
 var nodemailer = require("nodemailer");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// var Slack = require("@slack/bolt")
-// var dotenv = require("dotenv")
+var Slack = require("@slack/bolt")
+var dotenv = require("dotenv")
 
 // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// const api_app = new Slack.App({
-//     signingSecret: process.env.SLACK_SIGNING_SECRET,
-//     token: process.env.SLACK_BOT_TOKEN,
-// })
+const api_app = new Slack.App({
+    signingSecret: process.env.SLACK_SIGNING_SECRET_PTO,
+    token: process.env.SLACK_BOT_TOKEN_PTO,
+})
 
-function FileLeave(req, res){
+const universal_app = new Slack.App({
+  signingSecret: process.env.SLACK_SIGNING_SECRET_UNIVERSAL,
+  token: process.env.SLACK_BOT_TOKEN_UNIVERSAL,
+})
+
+async function FileLeave(req, res){
 
     const uid = req.session.user[0].emp_id;
     const sid = req.session.user[0].superior_id;
@@ -28,57 +32,43 @@ function FileLeave(req, res){
     const sfn = req.session.user[0].superior_f_name;
     const ssn = req.session.user[0].superior_s_name;
 
-    // const blocks = [{
-    //     "type": "section",
-    //     "text": {
-    //         "type": "mrkdwn",
-    //         "text": "(" + emp_num + ") " + req.session.user[0].f_name + " " + req.session.user[0].s_name + ` filed a `+ req.body.leave_type + `  on ` + req.body.leave_from + " to " + req.body.leave_to + ". Request sent to " + sfn + " " + ssn + " (" + sen + ")."
-    //     }
-    // }]
+    const emp_email = req.session.user[0].work_email.substring(0, req.session.user[0].work_email.indexOf("@"))
+    const superior_email = req.session.user[0].superior_work_email.substring(0, req.session.user[0].superior_work_email.indexOf("@"))
+   
 
     const blocks2 = [
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": `Hi. ${fn} ${sn} (${emp_num}) has filed a ${req.body.leave_type} on ${req.body.leave_from} to ${req.body.leave_to}`
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": `Request sent to ${sfn} ${ssn} (${sen}) on Kriya for approval. Thank you!`
-			},
-		},
-	]
-
-    const blocks = [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*Leave Request:*\n ${fn} ${sn} (${emp_num}) - ${req.body.leave_type} Request`
+                    "text": `*Leave Request:*\n <@${emp_email}> | ${fn} ${sn} (${emp_num}) - ${req.body.leave_type} Request`
                 }
             },
             {
                 "type": "section",
                 "fields": [
+                    (req.body.leave_from === req.body.leave_to) ?
                     {
                         "type": "mrkdwn",
-                        "text": `*Type:*\n ${req.body.leave_type}`
-                    },
+                        "text": `*When:*\n ${moment(req.body.leave_from).format("MMMM DD YYYY")}`
+                    }
+                    :
                     {
-                        "type": "mrkdwn",
-                        "text": `*When:*\n ${moment(req.body.leave_from).format("MMM DD YYYY")} to ${moment(req.body.leave_to).format("MMM DD YYYY")}`
-                    },
+                      "type": "mrkdwn",
+                      "text": `*When:*\n ${moment(req.body.leave_from).format("MMMM DD YYYY")} to ${moment(req.body.leave_to).format("MMMM DD YYYY")}`
+                    }
+                    ,
+                    (req.body.use_pto_points > 0) ? 
                     {
-                        "type": "mrkdwn",
-                        "text": `*PTOs Used:*\n ${req.body.use_pto_points}`
-                    },
+                      "type": "mrkdwn",
+                      "text": `*Type:*\n Paid Leave (${req.body.use_pto_points} PTO used) | ${req.body.leave_type}`
+                    }
+                    :
+                    {
+                      "type": "mrkdwn",
+                      "text": `*Type:*\n Unpaid Leave | ${req.body.leave_type}`
+                    }
+                    ,
                     {
                         "type": "mrkdwn",
                         "text": `*Reason:*\n ${req.body.leave_reason}`
@@ -90,6 +80,13 @@ function FileLeave(req, res){
                 ]
             },
             {
+              "type": "section",
+              "text": {
+                  "type": "mrkdwn",
+                  "text": `*Approver:*\n <@${superior_email}> (${sfn} ${ssn})`
+              }
+            },
+            {
                 "type": "actions",
                 "elements": [
                     {
@@ -97,33 +94,42 @@ function FileLeave(req, res){
                         "text": {
                             "type": "plain_text",
                             "emoji": true,
-                            "text": "Approve"
+                            "text": "Check Request"
                         },
                         "style": "primary",
-                        "value": "click_me_123"
+                        "url": `https://app.kriyahr.com/hr/team-management/team-pto-and-attendance}`
                     },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "emoji": true,
-                            "text": "Escalate"
-                        },
-                        "style": "primary",
-                        "value": "click_me_123"
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "emoji": true,
-                            "text": "Deny"
-                        },
-                        "style": "danger",
-                        "value": "click_me_123"
-                    }
                 ]
             }
+        ]
+
+    const blocks = [
+        (JSON.stringify(req.body.leave_type).includes("Half Day")) ?
+        {
+          "type": "section",
+          "text": {
+              "type": "mrkdwn",
+              "text": `Hi! <@${emp_email}> is on half day leave on ${moment(req.body.leave_from).format("MMM DD YYYY")}. Sent a request to <@${superior_email}> for approval. Thank you!`
+          }
+        }
+        :
+        (req.body.leave_from === req.body.leave_to) ?
+          {
+              "type": "section",
+              "text": {
+                  "type": "mrkdwn",
+                  "text": `Hi! <@${emp_email}> will be out of office on ${moment(req.body.leave_from).format("MMM DD YYYY")}. Sent a request to <@${superior_email}> for approval. Thank you!`
+              }
+          }
+          :
+          {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `Hi! <@${emp_email}> will be out of office on ${moment(req.body.leave_from).format("MMM DD YYYY")} to ${moment(req.body.leave_to).format("MMM DD YYYY")}. Sent a request to <@${superior_email}> for approval. Thank you!`
+            }
+          }
+          ,
         ]
     
 
@@ -141,12 +147,58 @@ function FileLeave(req, res){
     ]
 
 
-    // await api_app.client.chat.postMessage({
-    //     token: process.env.SLACK_BOT_TOKEN,
-    //     channel: process.env.SLACK_CHANNEL,
-    //     text: "Leave Filed",
-    //     blocks,
-    // })
+    await api_app.client.chat.postMessage({
+        token: process.env.SLACK_BOT_TOKEN_PTO,
+        channel: process.env.SLACK_CHANNEL_PTO,
+        text: "Leave Filed",
+        blocks,
+    })
+
+    // You probably want to use a database to store any user information ;)
+    let userId = '';
+
+    try {
+      // Call the users.list method using the WebClient
+      const result = await universal_app.client.users.list();
+
+      saveUsers(result.members);
+    }
+    catch (error) {
+      console.error(error);
+    }
+
+    // Put users into the JavaScript object
+    function saveUsers(usersArray) {
+      usersArray.forEach(function(user){
+        if(user.profile.email === req.session.user[0].superior_work_email)
+        // Key user info on their unique user ID
+          userId = user["id"];
+
+          console.log(user)
+        
+        // Store the entire user object (you may not need all of the info)
+          //usersStore[userId] = user;
+      });
+      console.log("User ID: ", userId)
+    }
+
+
+    try {
+      const result = await universal_app.client.chat.postMessage({
+      token: process.env.SLACK_BOT_TOKEN_UNIVERSAL,
+      channel: userId,
+      //channel: 'U05JF329F18', //percy
+      //channel: 'U05Q1FLRFD5', matt
+      text: `You received a leave request from <@${emp_email}>.`,
+      blocks: blocks2,
+    })
+      console.log(result);
+    }
+      catch (error) {
+        console.log(error)
+    }
+
+
 
     if (!isEmpty(req.body.leave_type) && !isEmpty(req.body.leave_from) && !isEmpty(req.body.leave_to)){
 
@@ -158,8 +210,6 @@ function FileLeave(req, res){
             else {
                 res.send("success")
             }
-            // if (err) return console.log(err);
-            // return res.json(data);
         })
 
     const q1 =
@@ -290,11 +340,13 @@ function FileLeave(req, res){
   }
 }
 
-function ApproveLeave(req, res) {
+async function ApproveLeave(req, res) {
   const leave_id = req.params.leave_id;
   const q = "UPDATE leaves SET leave_status = ? WHERE leave_id = ?";
 
-  db.query(q, [1, leave_id], (err, data) => {
+  let emp_email = ""
+
+  await db.query(q, [1, leave_id], (err, data) => {
     if (err) {
       console.log(err);
     } else {
@@ -311,6 +363,9 @@ function ApproveLeave(req, res) {
             if (err) {
               console.log(err);
             } else {
+
+              emp_email = data3[0].work_email;
+
               try {
                 let transporter = nodemailer.createTransport({
                   service: "Gmail",
@@ -402,13 +457,66 @@ function ApproveLeave(req, res) {
       });
     }
   });
+
+  const blocks = [
+      {
+          "type": "section",
+          "text": {
+              "type": "mrkdwn",
+              "text": `Your leave request (L#${req.params.leave_id}) has been approved.`
+          }
+      }
+    ]
+
+  // You probably want to use a database to store any user information ;)
+  let userId = '';
+
+  try {
+    // Call the users.list method using the WebClient
+    const result = await universal_app.client.users.list();
+
+    saveUsers(result.members);
+  }
+  catch (error) {
+    console.error(error);
+  }
+
+  // Put users into the JavaScript object
+  function saveUsers(usersArray) {
+    usersArray.forEach(function(user){
+      if(user.profile.email === emp_email)
+      // Key user info on their unique user ID
+        userId = user["id"];
+
+        console.log(user)
+      
+      // Store the entire user object (you may not need all of the info)
+        //usersStore[userId] = user;
+    });
+    console.log("User ID: ", userId)
+  }
+
+  try {
+    const result = await universal_app.client.chat.postMessage({
+    token: process.env.SLACK_BOT_TOKEN_UNIVERSAL,
+    channel: userId,
+    text: `Your leave request has been approved.`,
+    blocks: blocks,
+  })
+    console.log(result);
+  }
+    catch (error) {
+      console.log(error)
+  }
 }
 
-function RejectLeave(req, res) {
+async function RejectLeave(req, res) {
   const leave_id = req.params.leave_id;
   const q = "UPDATE leaves SET leave_status = ? WHERE leave_id = ?";
 
-  db.query(q, [2, leave_id], (err, data) => {
+  let emp_email = ""
+
+  await db.query(q, [2, leave_id], (err, data) => {
     if (err) {
       console.log(err);
     } else {
@@ -425,6 +533,9 @@ function RejectLeave(req, res) {
             if (err) {
               console.log(err);
             } else {
+
+              emp_email = data3[0].work_email;
+
               try {
                 let transporter = nodemailer.createTransport({
                   service: "Gmail",
@@ -517,6 +628,168 @@ function RejectLeave(req, res) {
       });
     }
   });
+
+  const blocks = [
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": `Your leave request [LR#${req.params.leave_id}] has been rejected.`
+        }
+    }
+  ]
+
+  // You probably want to use a database to store any user information ;)
+  let userId = '';
+
+  try {
+    // Call the users.list method using the WebClient
+    const result = await universal_app.client.users.list();
+
+    saveUsers(result.members);
+  }
+  catch (error) {
+    console.error(error);
+  }
+
+  // Put users into the JavaScript object
+  function saveUsers(usersArray) {
+    usersArray.forEach(function(user){
+      if(user.profile.email === emp_email)
+      // Key user info on their unique user ID
+        userId = user["id"];
+
+        //console.log(user)
+      
+      // Store the entire user object (you may not need all of the info)
+        //usersStore[userId] = user;
+    });
+    console.log("User ID: ", userId)
+  }
+
+  try {
+    const result = await universal_app.client.chat.postMessage({
+    token: process.env.SLACK_BOT_TOKEN_UNIVERSAL,
+    channel: userId,
+    text: `Your leave request has been rejected.`,
+    blocks: blocks,
+  })
+    console.log(result);
+  }
+  catch (error) {
+    console.log(error)
+  }
+}
+
+async function EscalateLeaves(req, res) {
+  const leave_id = req.params.leave_id;
+  const superior_id = req.session.user[0].superior_id
+  const q = "UPDATE leaves SET approver_id = ? WHERE leave_id = ?";
+
+  db.query(q, [superior_id, leave_id], (err, data2) => {
+      if (err){
+          console.log(err)
+      } else {
+          console.log("1st step done: " + data2)
+          console.log("Successfully escalated " + leave_id + " to " + superior_id)
+
+          q3 = "SELECT work_email FROM emp WHERE emp_id = ?";
+
+                  db.query(q3, [req.session.user[0].superior_id], (err, data3) => {
+                      if(err) {
+                          console.log(err);
+                      } else {
+
+                          try {
+                              let transporter = nodemailer.createTransport({
+                                service: "Gmail",
+                                host: "smtp.gmail.com",
+                                port: 465,
+                                secure: true,
+                                auth: {
+                                  user: "marvin@fullsuite.ph",
+                                  pass: "uggm nyyd ymnb szrx",
+                                },
+                              });
+                  
+                              transporter.sendMail({
+                                from: "marvin@fullsuite.ph", // sender address
+                                to: data3[0].work_email, // list of receivers
+                                subject: `Leave Request | Escalated by ${req.session.user[0].f_name} `, // Subject line
+                                text: "Leave Request", // plain text body
+                                html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" lang="en">
+                      
+                                          <head></head>
+                                            
+                                            <body bgcolor="#F5F8FA" style="width: 100%; margin: auto 0; padding:0; font-family:Lato, sans-serif; font-size:18px; color:#33475B; word-break:break-word">
+                                              
+                                        <div id="email" style="margin: auto;width: 600px;background-color: white;">
+                                          
+                                        
+                                                 <table role="presentation" width="100%">
+                                                    <tr>
+                                                 
+                                                      <td bgcolor="#0097B2" align="center" style="color: white;vertical-align: top;">
+                                                    
+                                                     <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/2-2.png" width="100%" align="middle">
+                                                        
+                                                    
+                                                    </td> 
+                                        
+                                        
+                                                </tr></table>
+                                          
+                                          <table role="presentation" border="0" cellpadding="0" cellspacing="10px" style="padding: 30px 30px 30px 60px;">
+                                             <tr>
+                                               <td style="vertical-align: top;">
+                                                <h2 style="font-size: 28px;font-weight: 900;">Leave Request | Escalated by ${req.session.user[0].f_name}</h2>
+                                                    
+                                                    <p style="font-weight: 100;">
+                                                      A leave was escalated to your name.
+                                                    </p>
+                  
+                                                    <br><br>
+                  
+                                                    <h2 style="font-size: 28px;font-weight: 900;">the <span style="color: #0097B2">f</span>ull<span style="color: #0097B2">s</span>uite HRIS team.</h2>
+                                                  </td> 
+                                                  </tr>
+                                          </table>
+                                          
+                                             
+                                                <!--Footer Row-->
+                                          <table role="presentation" bgcolor="#EAF0F6" width="100%" style="margin-top: 50px;">
+                                              <tr>
+                                                  <td align="center" style="padding: 30px 30px;vertical-align: top;">
+                                        
+                                                      <p style="font-size: 11px;font-weight: 100;">166-C Military Cutoff Road, Baguio City, Benguet
+                                                        Purok 2, Poblacion, Lianga, Surigao del Sur</p>
+                                                      
+                                           
+                                                  </td>
+                                                  </tr>
+                                              </table>
+                                        
+                                              <table role="presentation" width="100%">
+                                                <tr>
+                                             
+                                                
+                                                 <img alt="logo" src="https://fullsuite.ph/wp-content/uploads/2023/09/3-1-1.png" height="200px" width="100%" align="middle">
+                                        
+                                            </tr></table>
+                                          
+                                              </div>
+                                            </body>
+                                              </html>`,
+                              }); } catch(e) {
+                                  console.log(e);
+                              }
+                              
+                              res.json("Leave #" + leave_id + "has been escalated successfully.");
+                      }
+                  })
+      }
+  })
+
 }
 
 function ReturnTemporaryPTO(req, res) {
@@ -613,5 +886,6 @@ module.exports = {
   ReturnTemporaryPTO,
   BlockMyPendingLeaves,
   BlockMyApprovedLeaves,
+  EscalateLeaves
   //GenerateReason,
 };
