@@ -72,15 +72,14 @@ function GetAllCompanyMasterlist(req, res){
     var st = `%${searchterm}%`
 
     const q = `SELECT * FROM emp AS e
-    INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id 
-    INNER JOIN emp_shift AS es ON e.emp_num = es.emp_num
-    INNER JOIN position AS p ON ed.position_id = p.position_id
+    LEFT JOIN emp_designation ed ON e.emp_id = ed.emp_id 
+    LEFT JOIN emp_shift AS es ON e.emp_num = es.emp_num
+    LEFT JOIN position AS p ON ed.position_id = p.position_id
     WHERE ed.company_id = ? AND 
     CONCAT(e.emp_num, e.f_name, e.s_name, e.m_name, e.work_email, e.personal_email, 
         e.p_address, e.c_address, e.emp_status, e.emergency_contact_name, e.emergency_contact_num,
         e.sex, e.civil_status, p.position_name, es.shift_type) 
         LIKE ? 
-        AND (e.date_separated IS NULL OR CURDATE() < e.date_separated) 
         ORDER BY e.emp_num ASC`
 
     db.query(q, [cid, st], (err,data)=> {
