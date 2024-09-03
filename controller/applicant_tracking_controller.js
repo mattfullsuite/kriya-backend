@@ -232,11 +232,12 @@ function EditApplicantData(req, res) {
     req.body.contact_no, //
     req.body.cv_link, //
     req.body.referrer,
+    req.body.test_result,
     req.body.app_id, //
   ];
 
   const q =
-    "UPDATE applicant_tracking SET `app_start_date` = ?, `position_applied` = ?, `status` = ?, `s_name` = ?, `f_name` = ?, `m_name` = ?, `email` = ?, `source` = ?, `contact_no` = ?, `cv_link` = ?, `referrer_name` = ? WHERE app_id = ?";
+    "UPDATE applicant_tracking SET `app_start_date` = ?, `position_applied` = ?, `status` = ?, `s_name` = ?, `f_name` = ?, `m_name` = ?, `email` = ?, `source` = ?, `contact_no` = ?, `cv_link` = ?, `referrer_name` = ?, `test_result` = ? WHERE app_id = ?";
 
   db.query(q, values, (err, data) => {
     if (err) {
