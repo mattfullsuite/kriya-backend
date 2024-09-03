@@ -12,12 +12,7 @@ const createPayslip = async (req, res) => {
   const dataProcessed = data.map((items) => {
     const {
       "Employee ID": employeeID,
-      // "Last Name": lastName,
-      // "First Name": firstName,
-      // "Middle Name": middleName,
       Email,
-      // "Job Title": jobTitle,
-      // "Hire Date": hireDate,
       Dates,
       "Pay Items": payItems,
       Totals,
@@ -144,6 +139,25 @@ const getAllPaySlip = (req, res) => {
     "SELECT ps.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', ps.`email` AS 'Email', p.position_name AS 'Job Title', DATE_FORMAT(e.`date_hired`, '%m/%d/%Y') AS 'Hire Date', DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `Date From`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `Date To`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `Date Payment`, ps.payables, ps.totals, ps.net_salary, CONCAT(emp.f_name, ' ', emp.s_name) AS `generated_by`, ps.source, DATE_FORMAT(ps.`created_at`, '%m/%d/%Y %H:%i:%s') AS 'created_at' FROM `payslip` ps INNER JOIN `emp` e on e.emp_num = ps.emp_num INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p on p.position_id = ed.position_id INNER JOIN `emp` emp ON emp.emp_num = ps.generated_by WHERE ed.company_id = ? ORDER BY `created_at` DESC;";
 
   db.query(q, [compID], (err, rows) => {
+    if (err) return res.json(err);
+    return res.status(200).json(rows);
+  });
+};
+
+const getPayslipsUsingFilter = (req, res) => {
+  const compID = req.session.user[0].company_id;
+  const { type, option, from, to } = req.query;
+
+  let q = "";
+
+  if (type == "department") {
+    q = "";
+  } else {
+    q =
+      "SELECT ps.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', ps.`email` AS 'Email', p.position_name AS 'Job Title', DATE_FORMAT(e.`date_hired`, '%m/%d/%Y') AS 'Hire Date', DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')),'%m/%d/%Y') AS `Date From`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')),'%m/%d/%Y') AS `Date To`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')),'%m/%d/%Y') AS `Date Payment`, ps.payables, ps.totals, ps.net_salary, CONCAT(emp.f_name, ' ', emp.s_name) AS `generated_by`, ps.source, DATE_FORMAT(ps.`created_at`, '%m/%d/%Y %H:%i:%s') AS 'created_at' FROM `payslip` ps INNER JOIN `emp` e on e.emp_num = ps.emp_num INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p on p.position_id = ed.position_id INNER JOIN `emp` emp ON emp.emp_num = ps.generated_by WHERE ed.company_id = ? AND e.emp_id = ? AND JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')) >= ? AND JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')) <= ? ORDER BY `created_at` DESC;";
+  }
+
+  db.query(q, [compID, option, from, to], (err, rows) => {
     if (err) return res.json(err);
     return res.status(200).json(rows);
   });
@@ -282,6 +296,7 @@ module.exports = {
   getUserYTD,
   getAllPaySlipGroups,
   getAllPaySlip,
+  getPayslipsUsingFilter,
   getEmployeePayslipCurrentYear,
   getActiveEmployeeAndSalary,
   getOffBoardingEmployees,
