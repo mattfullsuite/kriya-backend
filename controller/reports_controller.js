@@ -146,6 +146,26 @@ function GetAllCompanyOvertime(req, res){
     })
 }
 
+function GetAllCompanyCheers(req, res){
+    const {} = req.query;
+    var cid = req.session.user[0].company_id
+
+    // var sd = moment(startdate).format("YYYY-MM-DD")
+    // var ld = moment(lastdate).format("YYYY-MM-DD")
+    // var st = `%${searchterm}%`
+
+    // console.log("isPaid: ", ispaid)
+    // console.log("startDate: ", sd)
+    // console.log("lastDate: ", ld)
+    // console.log("searchTerm: ", st)
+
+    const q = "SELECT * FROM cheer_post cp INNER JOIN cheer_designation cd ON cp.cheer_post_id = cd.cheer_post_id INNER JOIN emp e ON cd.peer_id = e.emp_id INNER JOIN heartbits h ON h.emp_id = cd.peer_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id WHERE ed.company_id = ?"
+    db.query(q, [cid], (err,data)=> {
+        if(err) return res.json(err)
+        return res.json(data)
+    })
+}
+
 
 module.exports = {
     GetAllLeaves,
@@ -158,5 +178,6 @@ module.exports = {
     GetAllCompanyLeaves,
     GetAllCompanyPTOs,
     GetAllCompanyOvertime,
-    GetAllCompanyMasterlist
+    GetAllCompanyMasterlist,
+    GetAllCompanyCheers
 }
