@@ -497,16 +497,16 @@ function CreateDiscussionBoxAndLockedNotes(req, res) {
     }
   });
 
-  const locked_q =
-  "INSERT INTO applicant_locked_box (`applicant_id`) SELECT app_id FROM applicant_tracking WHERE app_id NOT IN (SELECT DISTINCT at.app_id FROM applicant_tracking AS at INNER JOIN applicant_locked_box AS ai ON at.app_id = ai.applicant_id)";
+  // const locked_q =
+  // "INSERT INTO applicant_locked_box (`applicant_id`) SELECT app_id FROM applicant_tracking WHERE app_id NOT IN (SELECT DISTINCT at.app_id FROM applicant_tracking AS at INNER JOIN applicant_locked_box AS ai ON at.app_id = ai.applicant_id)";
 
-  db.query(locked_q, (err, data) => {
-    if (err) {
-      console.log(err)
-    } else {
-      console.log(data);
-    }
-  });
+  // db.query(locked_q, (err, data) => {
+  //   if (err) {
+  //     console.log(err)
+  //   } else {
+  //     console.log(data);
+  //   }
+  // });
 }
 
 //Email Templates
