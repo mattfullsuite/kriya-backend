@@ -114,17 +114,44 @@ function GetApplicantsFromDatabase(req, res) {
 function GetPaginatedApplicantsFromDatabase(req, res) {
   const unum = req.session.user[0].emp_num;
 
-  const { limit = 10, page = 1 } = req.query;
+  const { limit = 10, page = 1, active = 0 } = req.query;
+
+  console.log("Active: ", active)
+
+  let query1
+  let query2
+
+  (active == 0) ?
+  query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
+  :
+  query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE status != 'Withdrawn Application' 
+  AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show' 
+  AND status != 'Blacklisted' AND status != 'Started Work'`
+
+  // (active == 0) ?
+  // query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
+  // query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+  // : 
+  // query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
+  // query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+
+  //const q2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
 
   //console.log(req.query)
 
-  const q1 = "SELECT COUNT(*) AS count FROM applicant_tracking";
+  //const q1 = "SELECT COUNT(*) AS count FROM applicant_tracking";
 
-  db.query(q1, (err, data1) => {
+  db.query(query1, (err, data1) => {
     if (err) {
       return res.json(err);
     } else {
-      const q2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+      //const q2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+      (active == 0) ?
+      query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+      : 
+      query2 = `SELECT * FROM applicant_tracking WHERE status != 'Withdrawn Application' 
+      AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show' 
+      AND status != 'Blacklisted' AND status != 'Started Work' ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
 
       let parsedLimit = parseInt(limit);
       let parsedPage = parseInt(page);
@@ -142,7 +169,7 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         offset,
       };
 
-      db.query(q2, [parsedLimit, offset], (err, data2) => {
+      db.query(query2, [parsedLimit, offset], (err, data2) => {
         if (err) {
           return res.json(err);
         } else {
@@ -273,29 +300,68 @@ function GetNoteDetails(req, res) {
   });
 }
 
-function GetApplicantStatusStatistics(req, res) {
-  const q = `SELECT 
-    COUNT(case when status = 'Sent Test' then 1 else null end) as sent_test,
-    COUNT(case when status = 'First Interview Stage' then 1 else null end) as first_interview_stage,
-    COUNT(case when status = 'Second Interview Stage' then 1 else null end) as second_interview_stage,
-    COUNT(case when status = 'Third Interview Stage' then 1 else null end) as third_interview_stage,
-    COUNT(case when status = 'Fourth Interview Stage' then 1 else null end) as fourth_interview_stage,
-    COUNT(case when status = 'Final Interview Stage' then 1 else null end) as final_interview_stage,
-    COUNT(case when status = 'For Job Offer' then 1 else null end) as for_job_offer,
-    COUNT(case when status = 'Job Offer Sent' then 1 else null end) as job_offer_sent,
-    COUNT(case when status = 'Job Offer Accepted' then 1 else null end) as job_offer_accepted,
-    COUNT(case when status = 'Started Work' then 1 else null end) as started_work,
-    COUNT(case when status = 'Job Offer Rejected' then 1 else null end) as job_offer_rejected,
-    COUNT(case when status = 'Withdrawn Application' then 1 else null end) as withdrawn_application,
-    COUNT(case when status = 'Not Fit' then 1 else null end) as not_fit,
-    COUNT(case when status = 'Abandoned' then 1 else null end) as abandoned,
-    COUNT(case when status = 'No Show' then 1 else null end) as no_show,
-    COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted
-    FROM applicant_tracking`;
+function GetListOfPositions(req, res) {
+  const q = `SELECT DISTINCT position_applied FROM applicant_tracking`
 
   db.query(q, (err, data) => {
     if (err) return res.json(err);
     return res.json(data);
+  });
+}
+
+function GetApplicantStatusStatistics(req, res) {
+  const { position = "" } = req.query;
+
+  let jobApplied = position;
+  console.log("JA: ", jobApplied)
+
+  let query
+
+  (jobApplied !== "") ?
+    query = `SELECT 
+      COUNT(case when status = 'Sent Test' then 1 else null end) as sent_test,
+      COUNT(case when status = 'First Interview Stage' then 1 else null end) as first_interview_stage,
+      COUNT(case when status = 'Second Interview Stage' then 1 else null end) as second_interview_stage,
+      COUNT(case when status = 'Third Interview Stage' then 1 else null end) as third_interview_stage,
+      COUNT(case when status = 'Fourth Interview Stage' then 1 else null end) as fourth_interview_stage,
+      COUNT(case when status = 'Final Interview Stage' then 1 else null end) as final_interview_stage,
+      COUNT(case when status = 'For Job Offer' then 1 else null end) as for_job_offer,
+      COUNT(case when status = 'Job Offer Sent' then 1 else null end) as job_offer_sent,
+      COUNT(case when status = 'Job Offer Accepted' then 1 else null end) as job_offer_accepted,
+      COUNT(case when status = 'Started Work' then 1 else null end) as started_work,
+      COUNT(case when status = 'Job Offer Rejected' then 1 else null end) as job_offer_rejected,
+      COUNT(case when status = 'Withdrawn Application' then 1 else null end) as withdrawn_application,
+      COUNT(case when status = 'Not Fit' then 1 else null end) as not_fit,
+      COUNT(case when status = 'Abandoned' then 1 else null end) as abandoned,
+      COUNT(case when status = 'No Show' then 1 else null end) as no_show,
+      COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted
+      FROM applicant_tracking WHERE position_applied = ?`
+  : query = `SELECT 
+      COUNT(case when status = 'Sent Test' then 1 else null end) as sent_test,
+      COUNT(case when status = 'First Interview Stage' then 1 else null end) as first_interview_stage,
+      COUNT(case when status = 'Second Interview Stage' then 1 else null end) as second_interview_stage,
+      COUNT(case when status = 'Third Interview Stage' then 1 else null end) as third_interview_stage,
+      COUNT(case when status = 'Fourth Interview Stage' then 1 else null end) as fourth_interview_stage,
+      COUNT(case when status = 'Final Interview Stage' then 1 else null end) as final_interview_stage,
+      COUNT(case when status = 'For Job Offer' then 1 else null end) as for_job_offer,
+      COUNT(case when status = 'Job Offer Sent' then 1 else null end) as job_offer_sent,
+      COUNT(case when status = 'Job Offer Accepted' then 1 else null end) as job_offer_accepted,
+      COUNT(case when status = 'Started Work' then 1 else null end) as started_work,
+      COUNT(case when status = 'Job Offer Rejected' then 1 else null end) as job_offer_rejected,
+      COUNT(case when status = 'Withdrawn Application' then 1 else null end) as withdrawn_application,
+      COUNT(case when status = 'Not Fit' then 1 else null end) as not_fit,
+      COUNT(case when status = 'Abandoned' then 1 else null end) as abandoned,
+      COUNT(case when status = 'No Show' then 1 else null end) as no_show,
+      COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted
+      FROM applicant_tracking`
+
+
+  db.query(query, jobApplied, (err, data) => {
+    if (err) return res.json(err);
+    else {
+      console.log("JOB:", data);
+      res.json(data);
+    }
   });
 }
 
@@ -452,13 +518,24 @@ function AddNewInterview(req, res) {
 function SearchApplicantList(req, res) {
   var cid = req.session.user[0].company_id;
 
-  const { searchTerm = "" } = req.query;
+  const { searchTerm = "", active = 0 } = req.query;
 
-  const q = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`;
+  let query
+
+  (active == 0) ?
+  query = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`
+  :
+  query = `SELECT * FROM applicant_tracking
+  WHERE status != 'Withdrawn Application' 
+  AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show' 
+  AND status != 'Blacklisted' AND status != 'Started Work'
+  CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`
+
+  //const q = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`;
 
   const st = "%" + searchTerm + "%";
 
-  db.query(q, [st, cid], (err, data) => {
+  db.query(query, [st, cid], (err, data) => {
     if (err) {
       return res.json(err);
     } else {
@@ -612,5 +689,6 @@ module.exports = {
   InsertApplicantLockedNotes,
   GetLockedNoteDetails,
   GetApplicantLockedNotes,
-  GetMentionInterviewers
+  GetMentionInterviewers,
+  GetListOfPositions
 };
