@@ -181,11 +181,12 @@ function InsertComplaintChat(req, res) {
 
 function GetHr(req, res) {
   const uid = req.session.user[0].emp_id;
+  const companyID = req.session.user[0].company_id;
 
   const q =
-    "SELECT emp_id, f_name, s_name FROM emp WHERE emp_role = 1 AND emp_id != ? AND date_separated IS NULL ORDER BY f_name ASC";
+    "SELECT hr.emp_id, hr.f_name, hr.s_name FROM emp hr INNER JOIN emp_designation ed ON hr.emp_id = ed.emp_id WHERE ed.company_id = ? AND hr.emp_role = 1 AND hr.emp_id != ? AND hr.date_separated IS NULL ORDER BY hr.f_name ASC";
 
-  db.query(q, [uid], (err, data) => {
+  db.query(q, [companyID, uid], (err, data) => {
     if (err) return res.json(err);
 
     return res.json(data);
