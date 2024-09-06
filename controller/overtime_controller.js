@@ -329,7 +329,7 @@ async function RejectOvertime(req, res) {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `Your overtime request (OTR#${req.params.overtime_id}) has been approved.`
+                "text": `Your overtime request (OTR#${req.params.overtime_id}) has been rejected.`
             }
         }
       ]

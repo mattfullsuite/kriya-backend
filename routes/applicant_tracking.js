@@ -28,10 +28,16 @@ var imports =  {
 
    SearchApplicantList,
    ChangeStatus,
-   CreateDiscussionBox,
+   CreateDiscussionBoxAndLockedNotes,
 
    RetrieveOfferTemplates,
-   SendEmailToApplicant
+   SendEmailToApplicant,
+
+   //Locked Box
+  InsertApplicantLockedNotes,
+  GetLockedNoteDetails,
+  GetApplicantLockedNotes,
+  GetMentionInterviewers
 } = require( "../controller/applicant_tracking_controller.js");
 
 const router = express.Router()
@@ -47,6 +53,7 @@ router.post("/ats-editApplicantData", EditApplicantData);
 //Notes
 router.post("/ats-getNoteDetails", GetNoteDetails);
 router.post("/ats-insertApplicantNotes", InsertApplicantNotes);
+router.get("/ats-getMentions", GetMentionInterviewers)
 
 //Optimized and Paginated
 router.get("/ats-getPaginatedApplicantsFromDatabase", GetPaginatedApplicantsFromDatabase);
@@ -66,9 +73,14 @@ router.post("/ats-addNewInterview/:app_id", AddNewInterview);
 //Search
 router.get("/ats-searchApplicantsList", SearchApplicantList);
 router.post("/ats-changeStatusOfApplicant", ChangeStatus)
-router.post("/ats-createDiscussionBox", CreateDiscussionBox)
+router.post("/ats-createDiscussionBoxAndLockedNotes", CreateDiscussionBoxAndLockedNotes)
 
 router.get("/ats-getOfferLetters", RetrieveOfferTemplates);
 router.post("/ats-sendEmailLetter/:app_id", upload.single('file'), SendEmailToApplicant)
+
+//Locked Notes
+router.post("/ats-getLockedNoteDetails", GetLockedNoteDetails);
+router.post("/ats-insertApplicantLockedNotes/:app_id", InsertApplicantLockedNotes);
+router.get("/ats-getApplicantLockedNotes/:app_id", GetApplicantLockedNotes)
 
 module.exports = router;
