@@ -518,18 +518,18 @@ function AddNewInterview(req, res) {
 function SearchApplicantList(req, res) {
   var cid = req.session.user[0].company_id;
 
-  const { searchTerm = "", active = 0 } = req.query;
+  const { searchTerm = "" } = req.query;
 
   let query
 
-  (active == 0) ?
+  // (active == 0) ?
   query = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`
-  :
-  query = `SELECT * FROM applicant_tracking
-  WHERE status != 'Withdrawn Application' 
-  AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show' 
-  AND status != 'Blacklisted' AND status != 'Started Work'
-  CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`
+  // :
+  // query = `SELECT * FROM applicant_tracking
+  // WHERE status != 'Withdrawn Application' 
+  // AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show' 
+  // AND status != 'Blacklisted' AND status != 'Started Work'
+  // CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`
 
   //const q = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`;
 
