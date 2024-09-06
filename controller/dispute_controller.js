@@ -256,13 +256,24 @@ function RejectDispute(req, res) {
   });
 }
 
-// controllers for Tickets
+// controllers for tickets disputes
 
 function GetRequesters(req, res) {
   const uid = req.session.user[0].emp_id;
+  const type = req.params.dispute_type;
 
-  const q =
-    "SELECT requester.emp_id, CONCAT(requester.f_name, ' ', requester.s_name) AS requester_name, COUNT(d.dispute_id) AS pending_dispute_count FROM emp AS requester INNER JOIN dispute AS d ON requester.emp_id = d.requester_id AND d.dispute_status = 0 WHERE requester_id != ? GROUP BY requester.emp_id";
+  var q = "";
+
+  if(type == "all") {
+    q =
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? GROUP BY e.emp_id, p.position_name;";
+  } else if(type == "attendance") {
+    q =
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND dispute_type = 'Attendance Dispute' GROUP BY e.emp_id, p.position_name;";
+  } else if(type == "payroll") {
+    q =
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND dispute_type = 'Pay Dispute' GROUP BY e.emp_id, p.position_name;";
+  }
 
   db.query(q, [uid], (err, data) => {
     if (err) {
@@ -273,15 +284,28 @@ function GetRequesters(req, res) {
   });
 }
 
+
 function GetRequesterDisputes(req, res) {
   const requester_id = req.params.requesterID;
+  const type = req.params.type
   const uid = req.session.user[0].emp_id;
+  console.log(type);
 
   if (uid == requester_id) {
     res.sendStatus(403);
   } else {
-    const q =
+    var q = "";
+
+    if(type == "all") {
+      var q =
       "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 ORDER BY raised_at DESC";
+    }else if(type == "attendance") {
+      var q =
+      "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 AND dispute_type = 'Attendance Dispute' ORDER BY raised_at DESC";
+    } else if(type == "payroll") {
+      var q =
+      "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 AND dispute_type = 'Pay Dispute' ORDER BY raised_at DESC";
+    }
 
     db.query(q, [requester_id], (err, data) => {
       if (err) {
@@ -292,6 +316,7 @@ function GetRequesterDisputes(req, res) {
     });
   }
 }
+
 
 function RequesterPastDisputes(req, res) {
   const requester_id = req.params.requesterID;
@@ -313,6 +338,7 @@ function RequesterPastDisputes(req, res) {
   }
 }
 
+// employee services center
 function GetPendingDisputes(req, res) {
   const uid = req.session.user[0].emp_id;
 

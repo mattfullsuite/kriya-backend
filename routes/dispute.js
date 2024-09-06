@@ -36,9 +36,9 @@ router.post("/d-rejectDispute/:dispute_id", RejectDispute);
 
 
 // get methods for tickets
-router.get("/d-get-requesters", GetRequesters);
-router.get("/d-get-requester-disputes/:requesterID", GetRequesterDisputes);
-router.get("/d-get-requester-past-disputes/:requesterID", RequesterPastDisputes);
+router.get("/d-get-requesters/:dispute_type", GetRequesters);
+router.get("/d-get-requester-disputes/:type/:requesterID", GetRequesterDisputes);
+router.get("/d-get-requester-past-disputes/:type/:requesterID", RequesterPastDisputes);
 
 router.get("/d-get-my-pending-disputes", GetPendingDisputes);
 router.get("/d-get-recent-disputes", GetRecentDisputes);
