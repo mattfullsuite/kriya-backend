@@ -154,6 +154,7 @@ const io = new Server(server, {
   cors: {
     origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
+    credentials: true,
   },
 });
 
