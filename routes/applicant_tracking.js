@@ -7,6 +7,7 @@ var imports =  {
     ModifiedAddNewApplicant,
     GetPositionsFromCompany,
     GetPossibleReferrers,
+    GetListOfPositions,
 
     //Edit
     EditApplicantData,
@@ -23,21 +24,21 @@ var imports =  {
     GetApplicantNotesFromInterview,
 
     //Get Interviewees
-   GetIntervieweesForApplicants,
-   AddNewInterview,
+    GetIntervieweesForApplicants,
+    AddNewInterview,
 
-   SearchApplicantList,
-   ChangeStatus,
-   CreateDiscussionBoxAndLockedNotes,
+    SearchApplicantList,
+    ChangeStatus,
+    CreateDiscussionBoxAndLockedNotes,
 
-   RetrieveOfferTemplates,
-   SendEmailToApplicant,
+    RetrieveOfferTemplates,
+    SendEmailToApplicant,
 
-   //Locked Box
-  InsertApplicantLockedNotes,
-  GetLockedNoteDetails,
-  GetApplicantLockedNotes,
-  GetMentionInterviewers
+    //Locked Box
+    InsertApplicantLockedNotes,
+    GetLockedNoteDetails,
+    GetApplicantLockedNotes,
+    GetMentionInterviewers
 } = require( "../controller/applicant_tracking_controller.js");
 
 const router = express.Router()
@@ -49,6 +50,7 @@ router.post("/ats-modifiedAddNewApplicant", ModifiedAddNewApplicant);
 router.get("/ats-getPositionsFromCompany", GetPositionsFromCompany);
 router.get("/ats-getPossibleReferrers", GetPossibleReferrers);
 router.post("/ats-editApplicantData", EditApplicantData);
+router.get("/ats-getJobPositions", GetListOfPositions);
 
 //Notes
 router.post("/ats-getNoteDetails", GetNoteDetails);
