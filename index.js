@@ -150,12 +150,7 @@ app.use(function (req, res, next) {
 });
 
 // ------- socket.io ------- //
-const io = new Server(server, {
-  cors: {
-    origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
-    methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
-  },
-});
+const io = new Server(server);
 
 io.on("connection", (socket) => {
   console.log("A user is connected: " + socket.id);
