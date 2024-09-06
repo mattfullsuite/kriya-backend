@@ -3,6 +3,16 @@ var nodemailer = require("nodemailer");
 const moment = require("moment");
 const fs = require("fs");
 
+var Slack = require("@slack/bolt")
+var dotenv = require("dotenv")
+
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const ats_app = new Slack.App({
+    signingSecret: process.env.SLACK_SIGNING_SECRET_ATS,
+    token: process.env.SLACK_BOT_TOKEN_ATS,
+})
+
 async function SendEmailToApplicant(req, res) {
   const work_email = req.session.user[0].work_email;
   const app_id = req.params.app_id;
@@ -354,12 +364,38 @@ function GetApplicantNotesFromInterview(req, res) {
   });
 }
 
+function GetMentionInterviewers(req, res) {
+    const cid = req.session.user[0].company_id;
+    const uid = req.session.user[0].emp_id;
+    // const q = "SELECT e.emp_id AS id, CONCAT(e.f_name, ' ', e.s_name) AS display FROM emp AS e INNER JOIN hr_access ha ON e.emp_id = ha.hr_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND e.emp_id != ? AND e.date_separated IS NULL AND ha.access_applicant_tracking = 1 ORDER BY e.f_name"
+    const q = "SELECT e.emp_id AS id, substring_index(work_email, '@', 1) AS display FROM emp AS e INNER JOIN hr_access ha ON e.emp_id = ha.hr_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND e.emp_id != ? AND e.date_separated IS NULL AND ha.access_applicant_tracking = 1 ORDER BY e.f_name"
+
+    db.query(q, [cid, uid], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data);
+        }
+    });
+}
+
 //Notes
 
-function InsertApplicantNotes(req, res) {
+async function InsertApplicantNotes(req, res) {
   const uid = req.session.user[0].emp_id;
+  const emp_email = req.session.user[0].work_email.substring(0, req.session.user[0].work_email.indexOf("@"))
   const q =
     "INSERT INTO applicant_notes (`interview_id`, `note_type`, `noter_id`, `note_body`) VALUES (?)";
+
+    const blocks = [
+        {
+          "type": "section",
+          "text": {
+              "type": "mrkdwn",
+              "text": `<@${emp_email}>: ${req.body.note_body}`
+          }
+        }
+    ]
 
   console.log(req.body);
 
@@ -374,6 +410,13 @@ function InsertApplicantNotes(req, res) {
       console.log(data);
     }
   });
+
+  await ats_app.client.chat.postMessage({
+    token: process.env.SLACK_BOT_TOKEN_ATS,
+    channel: process.env.SLACK_CHANNEL_ATS,
+    text: "New ATS Message",
+    blocks,
+    })
 }
 
 //
@@ -443,16 +486,27 @@ function ChangeStatus(req, res) {
 }
 
 //Create Discussion Box
-function CreateDiscussionBox(req, res) {
-  const aq =
+function CreateDiscussionBoxAndLockedNotes(req, res) {
+  const discussion_q =
     "INSERT INTO applicant_interview (`applicant_id`) SELECT app_id FROM applicant_tracking WHERE app_id NOT IN (SELECT DISTINCT at.app_id FROM applicant_tracking AS at INNER JOIN applicant_interview AS ai ON at.app_id = ai.applicant_id)";
-  db.query(aq, (err, data) => {
+  db.query(discussion_q, (err, data) => {
     if (err) {
       console.log(err);
     } else {
       console.log(data);
     }
   });
+
+  // const locked_q =
+  // "INSERT INTO applicant_locked_box (`applicant_id`) SELECT app_id FROM applicant_tracking WHERE app_id NOT IN (SELECT DISTINCT at.app_id FROM applicant_tracking AS at INNER JOIN applicant_locked_box AS ai ON at.app_id = ai.applicant_id)";
+
+  // db.query(locked_q, (err, data) => {
+  //   if (err) {
+  //     console.log(err)
+  //   } else {
+  //     console.log(data);
+  //   }
+  // });
 }
 
 //Email Templates
@@ -469,6 +523,59 @@ function RetrieveOfferTemplates(req, res) {
     }
   });
 }
+
+//Locked Notes
+function GetLockedNoteDetails(req, res) {
+    const note_id = req.body.note_id;
+    const q =
+      "SELECT * FROM applicant_locked_notes INNER JOIN emp ON emp_id = noter_id WHERE note_id = ? ORDER BY noted_at;";
+  
+    db.query(q, [note_id], (err, data) => {
+      if (err) return res.json(err);
+      return res.json(data);
+    });
+  }
+
+  function InsertApplicantLockedNotes(req, res) {
+    const app_id = req.params.app_id;
+    const uid = req.session.user[0].emp_id;
+
+    const q =
+      "INSERT INTO applicant_locked_notes (`applicant_id`, `noter_id`, `note_body`) VALUES (?)";
+  
+    console.log(req.body);
+  
+    const values = [app_id, uid, req.body.note_body];
+  
+    db.query(q, [values], (err, data) => {
+      if (err) {
+        res.send("error");
+        console.log(data);
+      } else {
+        res.sendStatus(200);
+        console.log(data);
+      }
+    });
+  }
+
+  function GetApplicantLockedNotes(req, res) {
+    const app_id = req.params.app_id;
+    const { interviewNo = 1 } = req.query;
+    let parsedNumber = parseInt(interviewNo);
+    // console.log("APP: ", app_id)
+    // console.log("No: ", parsedNumber)
+  
+    const q = `SELECT aln.*, e.emp_pic, e.f_name, e.s_name FROM applicant_locked_notes aln LEFT JOIN emp e ON aln.noter_id = e.emp_id WHERE aln.applicant_id = ?`;
+  
+    db.query(q, [app_id], (err, data) => {
+      if (err) return res.json(err);
+      else {
+        res.send(data);
+        //   console.log(data)
+      }
+    });
+  }
+  
 
 module.exports = {
   InsertApplicantsData,
@@ -496,8 +603,14 @@ module.exports = {
 
   SearchApplicantList,
   ChangeStatus,
-  CreateDiscussionBox,
+  CreateDiscussionBoxAndLockedNotes,
 
   RetrieveOfferTemplates,
   SendEmailToApplicant,
+
+  //Locked Box
+  InsertApplicantLockedNotes,
+  GetLockedNoteDetails,
+  GetApplicantLockedNotes,
+  GetMentionInterviewers
 };

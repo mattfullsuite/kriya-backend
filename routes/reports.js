@@ -11,6 +11,7 @@ var imports =  {
     GetAllCompanyLeaves,
     GetAllCompanyPTOs,
     GetAllCompanyOvertime,
+    GetAllCompanyCheers
 } = require( "../controller/reports_controller.js");
 
 const router = express.Router()
@@ -25,5 +26,6 @@ router.get("/r-retrieveAllCompanyMasterlist", GetAllCompanyMasterlist);
 router.get("/r-retrieveAllCompanyLeaves", GetAllCompanyLeaves);
 router.get("/r-retrieveAllCompanyPTOs", GetAllCompanyPTOs);
 router.get("/r-retrieveAllCompanyOvertime", GetAllCompanyOvertime);
+router.get("/r-retrieveAllCompanyCheers", GetAllCompanyCheers);
 
 module.exports = router;
