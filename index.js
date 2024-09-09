@@ -71,6 +71,8 @@ var suggestion_box = require("./routes/suggestion_box.js");
 // company
 var company_configuration = require("./routes/company/company_configuration.js");
 var company_management = require("./routes/company/company_management.js");
+var company_department = require("./routes/company/company_departments.js");
+
 // employee
 var employee_contributions = require("./routes/employee/employee_contribution.js");
 var employee_salaries = require("./routes/employee/employee_salary.js");
@@ -291,6 +293,7 @@ app.use(employee_salaries);
 //company
 app.use(company_management);
 app.use(company_configuration);
+app.use(company_department);
 
 //app.use(ai)
 
