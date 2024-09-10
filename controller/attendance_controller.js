@@ -375,11 +375,29 @@ function ChangeAttendanceOfOne(req, res){
                 const tin = moment(req.body.time_in, "HH:mm:ss a");
                 const tout = moment(req.body.time_out, "HH:mm:ss a");
 
-                var hw = (tin !== null && tout !== null) ? ('0' + parseInt(moment.duration(tout.diff(tin)).asHours())).slice(-2) 
-                + "h " 
-                + ('0' + (parseInt(moment.duration(tout.diff(tin)).asMinutes()) % 60)).slice(-2)
-                + "m"
-                : null
+                // var hw = (tin !== null && tout !== null) ? ('0' + parseInt(moment.duration(tout.diff(tin)).asHours())).slice(-2) 
+                // + "h " 
+                // + ('0' + (parseInt(moment.duration(tout.diff(tin)).asMinutes()) % 60)).slice(-2)
+                // + "m"
+                // : null
+
+                var hw = 
+                    //(!parseInt(d[4]) || !parseInt(d[5])) 
+                    // tin !== null && tout !== null
+                    // ?   
+                    // null
+                    // :
+                    (tin < tout) 
+                    ?
+                    ('0' + parseInt(moment.duration(tout.diff(tin)).asHours())).slice(-2) 
+                    + "h " 
+                    + ('0' + (parseInt(moment.duration(tout.add(1, "days").diff(tin)).asMinutes()) % 60)).slice(-2)
+                    + "m"
+                    :
+                    ('0' + parseInt(moment.duration(tout.add(1, "days").diff(tin)).asHours())).slice(-2) 
+                    + "h " 
+                    + ('0' + (parseInt(moment.duration(tout.diff(tin)).asMinutes()) % 60)).slice(-2)
+                    + "m"
 
                 //var st = (tin == null || tin == "" || tout == null || tout == "") ? "Data Incomplete" : "Early Start"
 
