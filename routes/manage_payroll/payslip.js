@@ -8,6 +8,7 @@ var imports = ({
   getAllPaySlipGroups,
   getAllPaySlip,
   getPayslipsUsingFilter,
+  getEmployeeListUsingFilter,
   getEmployeePayslipCurrentYear,
   getActiveEmployeeAndSalary,
   getOffBoardingEmployees,
@@ -19,6 +20,7 @@ router.get("/mp-getUserYTD", getUserYTD);
 router.get("/mp-getAllPayslipGroups", getAllPaySlipGroups);
 router.get("/mp-getAllPayslip", getAllPaySlip);
 router.get("/mp-getPayslipsUsingFilter", getPayslipsUsingFilter);
+router.get("/mp-getEmployeeUsingFilter", getEmployeeListUsingFilter);
 router.get(
   "/mp-getEmployeePayslipCurrentYear/:empID",
   getEmployeePayslipCurrentYear
