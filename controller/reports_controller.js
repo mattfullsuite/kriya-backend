@@ -166,6 +166,38 @@ function GetAllCompanyCheers(req, res){
     })
 }
 
+function GetAllCompanyAttendance(req, res){
+    const { searchterm = "", startdate = `1990-01-01`, lastdate = `2050-01-01`} = req.query;
+    var cid = req.session.user[0].company_id
+
+    var sd = moment(startdate).format("YYYY-MM-DD")
+    var ld = moment(lastdate).format("YYYY-MM-DD")
+    var st = `%${searchterm}%`
+
+    console.log("startDate: ", sd)
+    console.log("lastDate: ", ld)
+    console.log("searchTerm: ", st)
+
+    //const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND l.use_pto_points >= ? AND (l.leave_from > ?) AND (l.leave_from < ?) AND CONCAT(e.emp_num, e.f_name, e.s_name, l.leave_type) LIKE ?"
+
+    const q = `SELECT * FROM attendance AS a 
+    INNER JOIN emp AS e ON a.employee_id = e.emp_num 
+    INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id 
+    LEFT JOIN leaves AS l ON (e.emp_id = l.requester_id AND a.date = l.leave_from)
+    LEFT JOIN overtime AS o ON (e.emp_id = o.requester_id AND a.date = o.overtime_date)
+    WHERE em.company_id = ?
+    AND (a.date >= ?) AND (a.date <= ?) 
+    AND CONCAT(e.emp_num, e.f_name, e.s_name, a.status) LIKE ?`
+
+    db.query(q, [cid, sd, ld, st], (err,data)=> {
+        if(err) return res.json(err)
+        else {
+            console.log(data)
+            return res.json(data)
+        }
+    })
+}
+
 
 module.exports = {
     GetAllLeaves,
@@ -179,5 +211,6 @@ module.exports = {
     GetAllCompanyPTOs,
     GetAllCompanyOvertime,
     GetAllCompanyMasterlist,
-    GetAllCompanyCheers
+    GetAllCompanyCheers,
+    GetAllCompanyAttendance
 }
