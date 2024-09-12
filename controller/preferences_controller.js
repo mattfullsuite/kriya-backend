@@ -3,8 +3,8 @@ var db = require("../config.js");
 function CreateHoliday(req, res) {
   const cid = req.session.user[0].company_id;
   const q =
-    "INSERT INTO holiday (`h_name`, `h_date`, `company_id`) VALUES (?) ";
-  const values = [req.body.h_name, req.body.h_date, cid];
+    "INSERT INTO holiday (`h_name`, `h_type`, `h_date`, `company_id`) VALUES (?) ";
+  const values = [req.body.h_name, req.body.h_type, req.body.h_date, cid];
 
   db.query(q, [values], (err, data) => {
     if (err) {
