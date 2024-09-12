@@ -114,19 +114,50 @@ function GetApplicantsFromDatabase(req, res) {
 function GetPaginatedApplicantsFromDatabase(req, res) {
   const unum = req.session.user[0].emp_num;
 
-  const { limit = 10, page = 1, active = 0 } = req.query;
+  const { limit = 10, page = 1, active = 0, filter = ""} = req.query;
 
   console.log("Active: ", active)
+  console.log("Filter: ", filter)
 
   let query1
   let query2
+  let values2
 
-  (active == 0) ?
-  query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
-  :
-  query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE status != 'Withdrawn Application' 
-  AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show' 
-  AND status != 'Blacklisted' AND status != 'Started Work'`
+  // (active == 0) ?
+  // query1 = "SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ?"
+  // :
+  // query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ? 
+  // AND status != 'Withdrawn Application' 
+  // AND status != 'Job Offer Rejected' 
+  // AND status != 'Not Fit' 
+  // AND status != 'Abandoned' 
+  // AND status != 'No Show' 
+  // AND status != 'Blacklisted' 
+  // AND status != 'Started Work'`
+
+  if (filter == "" && active == 0){
+    query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
+  } else if (filter !== "" && active == 0){
+    query1 = "SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ?"
+  } else if (filter == "" && active == 1) {
+    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE
+      status != 'Withdrawn Application' 
+      AND status != 'Job Offer Rejected' 
+      AND status != 'Not Fit' 
+      AND status != 'Abandoned' 
+      AND status != 'No Show' 
+      AND status != 'Blacklisted' 
+      AND status != 'Started Work'`
+  } else if (filter !== "" && active == 1){
+    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ? 
+      AND status != 'Withdrawn Application' 
+      AND status != 'Job Offer Rejected' 
+      AND status != 'Not Fit' 
+      AND status != 'Abandoned' 
+      AND status != 'No Show' 
+      AND status != 'Blacklisted' 
+      AND status != 'Started Work'`
+  }
 
   // (active == 0) ?
   // query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
@@ -141,17 +172,38 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
 
   //const q1 = "SELECT COUNT(*) AS count FROM applicant_tracking";
 
-  db.query(query1, (err, data1) => {
+  db.query(query1, (filter !== "") && filter, (err, data1) => {
     if (err) {
       return res.json(err);
     } else {
+
       //const q2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-      (active == 0) ?
-      query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-      : 
-      query2 = `SELECT * FROM applicant_tracking WHERE status != 'Withdrawn Application' 
-      AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show' 
-      AND status != 'Blacklisted' AND status != 'Started Work' ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+      // (filter != "") ?
+      //   query2 = `SELECT * FROM applicant_tracking WHERE status != 'Withdrawn Application' 
+      //   AND status != 'Job Offer Rejected' 
+      //   AND status != 'Not Fit' 
+      //   AND status != 'Abandoned' 
+      //   AND status != 'No Show' 
+      //   AND status != 'Blacklisted' 
+      //   AND status != 'Started Work' 
+      //   ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+      //   :
+      //   query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+        
+      //   (active == 0) ?
+      //   //query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+      //   query2 = `SELECT * FROM applicant_tracking WHERE status = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+      //   : 
+      //   query2 = `SELECT * FROM applicant_tracking WHERE status = ? 
+      //   AND status != 'Withdrawn Application' 
+      //   AND status != 'Job Offer Rejected' 
+      //   AND status != 'Not Fit' 
+      //   AND status != 'Abandoned' 
+      //   AND status != 'No Show' 
+      //   AND status != 'Blacklisted' 
+      //   AND status != 'Started Work' 
+      //   ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+      
 
       let parsedLimit = parseInt(limit);
       let parsedPage = parseInt(page);
@@ -169,10 +221,40 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         offset,
       };
 
-      db.query(query2, [parsedLimit, offset], (err, data2) => {
+      if (filter == "" && active == 0){
+        query2 = `SELECT * FROM applicant_tracking WHERE status != 'Withdrawn Application' 
+        AND status != 'Job Offer Rejected' 
+        AND status != 'Not Fit' 
+        AND status != 'Abandoned' 
+        AND status != 'No Show' 
+        AND status != 'Blacklisted' 
+        AND status != 'Started Work' 
+        ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+        values2 = [parsedLimit, offset]
+      } else if (filter !== "" && active == 0){
+        query2 = `SELECT * FROM applicant_tracking WHERE status = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+        values2 = [filter, parsedLimit, offset]
+      } else if (filter == "" && active == 1) {
+        query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+        values2 = [parsedLimit, offset]
+      } else if (filter !== "" && active == 1){
+        query2 = `SELECT * FROM applicant_tracking WHERE status = ? 
+        AND status != 'Withdrawn Application' 
+        AND status != 'Job Offer Rejected' 
+        AND status != 'Not Fit' 
+        AND status != 'Abandoned' 
+        AND status != 'No Show' 
+        AND status != 'Blacklisted' 
+        AND status != 'Started Work' 
+        ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
+        values2 = [filter, parsedLimit, offset]
+      }
+
+      db.query(query2, values2, (err, data2) => {
         if (err) {
           return res.json(err);
         } else {
+          console.log(data2)
           return res.json({ data2, pagination });
         }
       });
@@ -458,7 +540,17 @@ async function InsertApplicantNotes(req, res) {
           "type": "section",
           "text": {
               "type": "mrkdwn",
-              "text": `<@${emp_email}>: ${req.body.note_body}`
+              "text": `<@${emp_email}> shared a note for ${req.body.applicant}`
+          }
+        },
+        {
+          "type": "divider"
+         },
+        {
+          "type": "section",
+          "text": {
+              "type": "mrkdwn",
+              "text": `${req.body.note_body}`
           }
         }
     ]
