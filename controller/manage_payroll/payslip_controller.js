@@ -17,6 +17,9 @@ const createPayslip = async (req, res) => {
       "Pay Items": payItems,
       Totals,
       "Net Pay": netPay,
+      Filter: filter,
+      "Filter ID": filter_id,
+      Draft: draft,
     } = items;
 
     return [
@@ -29,12 +32,15 @@ const createPayslip = async (req, res) => {
       netPay,
       uid,
       source,
+      filter,
+      filter_id,
+      draft,
     ];
   });
 
   try {
     await db.query(
-      `INSERT INTO payslip (company_id, emp_num, email, dates, payables, totals, net_salary, generated_by, source) VALUES ?;`,
+      `INSERT INTO payslip (company_id, emp_num, email, dates, payables, totals, net_salary, generated_by, source, filter, filter_id, draft) VALUES ?;`,
       [dataProcessed],
       async (error, data) => {
         if (error) {
@@ -48,56 +54,6 @@ const createPayslip = async (req, res) => {
   } catch (error) {
     console.error("Catch Error: ", error);
     return res.sendStatus(500).json({ "Error: ": error });
-  }
-};
-
-const removeZeroValues = (data) => {
-  return data.map((employee) => {
-    const updatedPayItems = {};
-
-    for (const [category, items] of Object.entries(employee["Pay Items"])) {
-      updatedPayItems[category] = {};
-
-      for (const [item, value] of Object.entries(items)) {
-        if (parseFloat(value) !== 0) {
-          updatedPayItems[category][item] = value;
-        }
-      }
-    }
-
-    return {
-      ...employee,
-      "Pay Items": updatedPayItems,
-    };
-  });
-};
-
-const generatePDF = async (data) => {
-  // const result = await axios
-  //   .post(`https://pdf-generation-test.onrender.com/generate-and-send`, data)
-  //   .then(function (response) {
-  //     return response;
-  //   })
-  //   .catch(function (error) {
-  //     console.error("Error: ", error);
-  //   });
-  // return result;
-
-  try {
-    const response = await axios.post(
-      "https://pdf-generation-test.onrender.com/generate-and-send",
-      data,
-      {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response;
-  } catch (error) {
-    console.error("Error: ", error);
-    return error;
   }
 };
 
