@@ -523,7 +523,7 @@ function SearchApplicantList(req, res) {
   let query
 
   // (active == 0) ?
-  query = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`
+  query = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, position_applied, email, source, status) LIKE ?`
   // :
   // query = `SELECT * FROM applicant_tracking
   // WHERE status != 'Withdrawn Application' 
