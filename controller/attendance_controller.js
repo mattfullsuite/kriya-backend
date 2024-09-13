@@ -382,11 +382,10 @@ function ChangeAttendanceOfOne(req, res){
                 // : null
 
                 var hw = 
-                    //(!parseInt(d[4]) || !parseInt(d[5])) 
-                    // tin !== null && tout !== null
-                    // ?   
-                    // null
-                    // :
+                    (!moment(tin, "HH:mm:ss a", true).isValid() || !moment(tout, "HH:mm:ss a", true).isValid())
+                    ?   
+                    null
+                    :
                     (tin < tout) 
                     ?
                     ('0' + parseInt(moment.duration(tout.diff(tin)).asHours())).slice(-2) 
@@ -398,6 +397,7 @@ function ChangeAttendanceOfOne(req, res){
                     + "h " 
                     + ('0' + (parseInt(moment.duration(tout.diff(tin)).asMinutes()) % 60)).slice(-2)
                     + "m"
+ 
 
                 //var st = (tin == null || tin == "" || tout == null || tout == "") ? "Data Incomplete" : "Early Start"
 
@@ -407,7 +407,7 @@ function ChangeAttendanceOfOne(req, res){
 
                 // console.log("Time In: ", req.body.time_in)
                 // console.log("Time Out: ", req.body.time_out)
-                console.log("Hours Worked: ", hw)
+                //console.log("Hours Worked: ", hw)
                 // console.log("Start Status: ", st)
                 // console.log("Completion Status: ", un)
 
