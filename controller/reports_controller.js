@@ -184,7 +184,9 @@ function GetAllCompanyAttendance(req, res){
     INNER JOIN emp AS e ON a.employee_id = e.emp_num 
     INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id 
     LEFT JOIN leaves AS l ON (e.emp_id = l.requester_id AND a.date = l.leave_from)
-    LEFT JOIN overtime AS o ON (e.emp_id = o.requester_id AND a.date = o.overtime_date)
+    LEFT JOIN overtime AS o ON (e.emp_id = o.requester_id AND a.date = o.overtime_date) 
+    LEFT JOIN holiday AS h ON h.h_date = a.date 
+    LEFT JOIN emp_shift AS es ON es.emp_num = e.emp_num 
     WHERE em.company_id = ?
     AND (a.date >= ?) AND (a.date <= ?) 
     AND CONCAT(e.emp_num, e.f_name, e.s_name, a.status) LIKE ?`
