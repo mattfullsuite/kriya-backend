@@ -12,6 +12,8 @@ var imports = ({
   getEmployeePayslipCurrentYear,
   getActiveEmployeeAndSalary,
   getOffBoardingEmployees,
+  checkForDraftedPayslip,
+  deleteDraftedPayslips,
 } = require("../../controller/manage_payroll/payslip_controller"));
 
 router.post("/mp-createPayslip/:source", createPayslip);
@@ -27,5 +29,7 @@ router.get(
 );
 router.get("/mp-getActiveEmployeeAndSalary/", getActiveEmployeeAndSalary);
 router.get("/mp-getOffBoardingEmployees", getOffBoardingEmployees);
+router.get("/mp-checkForDraftedPayslip", checkForDraftedPayslip);
+router.delete("/mp-deleteDraftedPayslips", deleteDraftedPayslips);
 
 module.exports = router;
