@@ -17,6 +17,9 @@ const createPayslip = async (req, res) => {
       "Pay Items": payItems,
       Totals,
       "Net Pay": netPay,
+      "Previous Net Pay 1": previous_net_pay_1,
+      "Previous Net Pay 2": previous_net_pay_2,
+      "Previous Net Pay 3": previous_net_pay_3,
       Filter: filter,
       "Filter ID": filter_id,
       Draft: draft,
@@ -30,6 +33,9 @@ const createPayslip = async (req, res) => {
       JSON.stringify(payItems),
       JSON.stringify(Totals),
       netPay,
+      previous_net_pay_1,
+      previous_net_pay_2,
+      previous_net_pay_3,
       uid,
       source,
       filter,
@@ -40,7 +46,7 @@ const createPayslip = async (req, res) => {
 
   try {
     await db.query(
-      `INSERT INTO payslip (company_id, emp_num, email, dates, payables, totals, net_salary, generated_by, source, filter, filter_id, draft) VALUES ?;`,
+      `INSERT INTO payslip (company_id, emp_num, email, dates, payables, totals, net_salary, previous_net_pay_1, previous_net_pay_2, previous_net_pay_3, generated_by, source, filter, filter_id, draft) VALUES ?;`,
       [dataProcessed],
       async (error, data) => {
         if (error) {
@@ -109,10 +115,10 @@ const getEmployeeListUsingFilter = (req, res) => {
 
   if (category === "division") {
     q =
-      "WITH ranked_rows AS (SELECT emp_num, net_salary, JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) AS payment_date, ROW_NUMBER() OVER (PARTITION BY emp_num ORDER BY JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) DESC) AS `rank` FROM payslip WHERE JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) < ?) SELECT e.emp_num AS 'Employee ID', e.s_name AS 'Last Name', e.f_name AS 'First Name', e.m_name AS 'Middle Name', e.work_email AS 'Email', p.position_name AS 'Job Title', e.date_hired AS 'Hire Date', s.base_pay AS 'Basic Pay', IFNULL(absences.absences, 0) AS 'Absences', IFNULL(rr.net_salary_1, 'N/A') AS 'Previous Net Pay 1', IFNULL(rr.net_salary_2, 'N/A') AS 'Previous Net Pay 2', IFNULL(rr.net_salary_3, 'N/A') AS 'Previous Net Pay 3' FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p ON p.position_id = ed.position_id INNER JOIN dept de ON de.dept_id = p.dept_id INNER JOIN division di ON di.div_id = de.div_id LEFT JOIN emp_salary s ON s.emp_id = e.emp_id INNER JOIN (SELECT emp_id, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = s.emp_id AND es.latest_salary_date = s.created_at LEFT JOIN (SELECT l.requester_id, ROUND((COUNT(l.leave_id) * (IFNULL(es.base_pay, 0) / cc.configuration_value) * -1), 2) AS absences FROM leaves l INNER JOIN emp_designation ed ON l.requester_id = ed.emp_id INNER JOIN company_configuration cc ON ed.company_id = cc.company_id LEFT JOIN (SELECT emp_id, MAX(base_pay) AS base_pay, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = l.requester_id WHERE ed.company_id = ? AND l.leave_from >= ? AND l.leave_to <= ? AND l.use_pto_points = 0 AND cc.configuration_name = 'Monthly Working Days' GROUP BY l.requester_id, cc.configuration_value) absences ON absences.requester_id = e.emp_id LEFT JOIN (SELECT emp_num, MAX(CASE WHEN `rank` = 1 THEN net_salary END) AS net_salary_1, MAX(CASE WHEN `rank` = 1 THEN payment_date END) AS payment_date_1, MAX(CASE WHEN `rank` = 2 THEN net_salary END) AS net_salary_2, MAX(CASE WHEN `rank` = 2 THEN payment_date END) AS payment_date_2, MAX(CASE WHEN `rank` = 3 THEN net_salary END) AS net_salary_3, MAX(CASE WHEN `rank` = 3 THEN payment_date END) AS payment_date_3 FROM ranked_rows GROUP BY emp_num) rr ON e.emp_num = rr.emp_num WHERE e.date_offboarding IS NULL AND e.date_separated IS NULL AND ed.company_id = ? AND di.div_id = ? ORDER BY e.emp_num;";
+      "WITH ranked_rows AS (SELECT emp_num, net_salary, JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) AS payment_date, ROW_NUMBER() OVER (PARTITION BY emp_num ORDER BY JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) DESC) AS `rank` FROM payslip WHERE JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) < ?) SELECT e.emp_num AS 'Employee ID', e.s_name AS 'Last Name', e.f_name AS 'First Name', e.m_name AS 'Middle Name', e.work_email AS 'Email', p.position_name AS 'Job Title', e.date_hired AS 'Hire Date', s.base_pay AS 'Basic Pay', IFNULL(absences.absences, 0) AS 'Absences', IFNULL(rr.net_salary_1, '0.00') AS 'Previous Net Pay 1', IFNULL(rr.net_salary_2, '0.00') AS 'Previous Net Pay 2', IFNULL(rr.net_salary_3, '0.00') AS 'Previous Net Pay 3' FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p ON p.position_id = ed.position_id INNER JOIN dept de ON de.dept_id = p.dept_id INNER JOIN division di ON di.div_id = de.div_id LEFT JOIN emp_salary s ON s.emp_id = e.emp_id INNER JOIN (SELECT emp_id, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = s.emp_id AND es.latest_salary_date = s.created_at LEFT JOIN (SELECT l.requester_id, ROUND((COUNT(l.leave_id) * (IFNULL(es.base_pay, 0) / cc.configuration_value) * -1), 2) AS absences FROM leaves l INNER JOIN emp_designation ed ON l.requester_id = ed.emp_id INNER JOIN company_configuration cc ON ed.company_id = cc.company_id LEFT JOIN (SELECT emp_id, MAX(base_pay) AS base_pay, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = l.requester_id WHERE ed.company_id = ? AND l.leave_from >= ? AND l.leave_to <= ? AND l.use_pto_points = 0 AND cc.configuration_name = 'Monthly Working Days' GROUP BY l.requester_id, cc.configuration_value) absences ON absences.requester_id = e.emp_id LEFT JOIN (SELECT emp_num, MAX(CASE WHEN `rank` = 1 THEN net_salary END) AS net_salary_1, MAX(CASE WHEN `rank` = 1 THEN payment_date END) AS payment_date_1, MAX(CASE WHEN `rank` = 2 THEN net_salary END) AS net_salary_2, MAX(CASE WHEN `rank` = 2 THEN payment_date END) AS payment_date_2, MAX(CASE WHEN `rank` = 3 THEN net_salary END) AS net_salary_3, MAX(CASE WHEN `rank` = 3 THEN payment_date END) AS payment_date_3 FROM ranked_rows GROUP BY emp_num) rr ON e.emp_num = rr.emp_num WHERE e.date_offboarding IS NULL AND e.date_separated IS NULL AND ed.company_id = ? AND di.div_id = ? ORDER BY e.emp_num;";
   } else {
     q =
-      "WITH ranked_rows AS (SELECT emp_num, net_salary, JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) AS payment_date, ROW_NUMBER() OVER (PARTITION BY emp_num ORDER BY JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) DESC) AS `rank` FROM payslip WHERE JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) < ?) SELECT e.emp_num AS 'Employee ID', e.s_name AS 'Last Name', e.f_name AS 'First Name', e.m_name AS 'Middle Name', e.work_email AS 'Email', p.position_name AS 'Job Title', e.date_hired AS 'Hire Date', s.base_pay AS 'Basic Pay', IFNULL(absences.absences, 0) AS 'Absences', IFNULL(rr.net_salary_1, 'N/A') AS 'Previous Net Pay 1', IFNULL(rr.net_salary_2, 'N/A') AS 'Previous Net Pay 2', IFNULL(rr.net_salary_3, 'N/A') AS 'Previous Net Pay 3' FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p ON p.position_id = ed.position_id INNER JOIN dept de ON de.dept_id = p.dept_id INNER JOIN division di ON di.div_id = de.div_id LEFT JOIN emp_salary s ON s.emp_id = e.emp_id INNER JOIN (SELECT emp_id, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = s.emp_id AND es.latest_salary_date = s.created_at LEFT JOIN (SELECT l.requester_id, ROUND((COUNT(l.leave_id) * (IFNULL(es.base_pay, 0) / cc.configuration_value) * -1), 2) AS absences FROM leaves l INNER JOIN emp_designation ed ON l.requester_id = ed.emp_id INNER JOIN company_configuration cc ON ed.company_id = cc.company_id LEFT JOIN (SELECT emp_id, MAX(base_pay) AS base_pay, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = l.requester_id WHERE ed.company_id = ? AND l.leave_from >= ? AND l.leave_to <= ? AND l.use_pto_points = 0 AND cc.configuration_name = 'Monthly Working Days' GROUP BY l.requester_id, cc.configuration_value) absences ON absences.requester_id = e.emp_id LEFT JOIN (SELECT emp_num, MAX(CASE WHEN `rank` = 1 THEN net_salary END) AS net_salary_1, MAX(CASE WHEN `rank` = 1 THEN payment_date END) AS payment_date_1, MAX(CASE WHEN `rank` = 2 THEN net_salary END) AS net_salary_2, MAX(CASE WHEN `rank` = 2 THEN payment_date END) AS payment_date_2, MAX(CASE WHEN `rank` = 3 THEN net_salary END) AS net_salary_3, MAX(CASE WHEN `rank` = 3 THEN payment_date END) AS payment_date_3 FROM ranked_rows GROUP BY emp_num) rr ON e.emp_num = rr.emp_num WHERE e.date_offboarding IS NULL AND e.date_separated IS NULL AND ed.company_id = ? AND de.dept_id = ? ORDER BY e.emp_num;";
+      "WITH ranked_rows AS (SELECT emp_num, net_salary, JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) AS payment_date, ROW_NUMBER() OVER (PARTITION BY emp_num ORDER BY JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) DESC) AS `rank` FROM payslip WHERE JSON_UNQUOTE(JSON_EXTRACT(dates, '$.Payment')) < ?) SELECT e.emp_num AS 'Employee ID', e.s_name AS 'Last Name', e.f_name AS 'First Name', e.m_name AS 'Middle Name', e.work_email AS 'Email', p.position_name AS 'Job Title', e.date_hired AS 'Hire Date', s.base_pay AS 'Basic Pay', IFNULL(absences.absences, 0) AS 'Absences', IFNULL(rr.net_salary_1, '0.00') AS 'Previous Net Pay 1', IFNULL(rr.net_salary_2, '0.00') AS 'Previous Net Pay 2', IFNULL(rr.net_salary_3, '0.00') AS 'Previous Net Pay 3' FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p ON p.position_id = ed.position_id INNER JOIN dept de ON de.dept_id = p.dept_id INNER JOIN division di ON di.div_id = de.div_id LEFT JOIN emp_salary s ON s.emp_id = e.emp_id INNER JOIN (SELECT emp_id, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = s.emp_id AND es.latest_salary_date = s.created_at LEFT JOIN (SELECT l.requester_id, ROUND((COUNT(l.leave_id) * (IFNULL(es.base_pay, 0) / cc.configuration_value) * -1), 2) AS absences FROM leaves l INNER JOIN emp_designation ed ON l.requester_id = ed.emp_id INNER JOIN company_configuration cc ON ed.company_id = cc.company_id LEFT JOIN (SELECT emp_id, MAX(base_pay) AS base_pay, MAX(created_at) AS latest_salary_date FROM emp_salary GROUP BY emp_id) es ON es.emp_id = l.requester_id WHERE ed.company_id = ? AND l.leave_from >= ? AND l.leave_to <= ? AND l.use_pto_points = 0 AND cc.configuration_name = 'Monthly Working Days' GROUP BY l.requester_id, cc.configuration_value) absences ON absences.requester_id = e.emp_id LEFT JOIN (SELECT emp_num, MAX(CASE WHEN `rank` = 1 THEN net_salary END) AS net_salary_1, MAX(CASE WHEN `rank` = 1 THEN payment_date END) AS payment_date_1, MAX(CASE WHEN `rank` = 2 THEN net_salary END) AS net_salary_2, MAX(CASE WHEN `rank` = 2 THEN payment_date END) AS payment_date_2, MAX(CASE WHEN `rank` = 3 THEN net_salary END) AS net_salary_3, MAX(CASE WHEN `rank` = 3 THEN payment_date END) AS payment_date_3 FROM ranked_rows GROUP BY emp_num) rr ON e.emp_num = rr.emp_num WHERE e.date_offboarding IS NULL AND e.date_separated IS NULL AND ed.company_id = ? AND de.dept_id = ? ORDER BY e.emp_num;";
   }
 
   db.query(q, [payment, compID, from, to, compID, option], (err, rows) => {
@@ -267,6 +273,25 @@ function getActiveEmployeeAndSalary(req, res) {
   );
 }
 
+function checkForDraftedPayslip(req, res) {
+  const compID = req.session.user[0].company_id;
+  const q =
+    "SELECT ps.id, ps.`emp_num` AS 'Employee ID', e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', ps.`email` AS 'Email', p.position_name AS 'Job Title', DATE_FORMAT(e.`date_hired`, '%m/%d/%Y') AS 'Hire Date', DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.From')), '%m/%d/%Y') AS `Date From`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.To')), '%m/%d/%Y') AS `Date To`, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`dates`, '$.Payment')), '%m/%d/%Y') AS `Date Payment`, ps.payables, ps.totals, ps.net_salary AS 'Net Salary', ps.previous_net_pay_1 AS 'Previous Net Pay 1', ps.previous_net_pay_2 AS 'Previous Net Pay 2', ps.previous_net_pay_3 AS 'Previous Net Pay 3', de.dept_name AS 'Department', di.div_name AS 'Division', CONCAT(emp.f_name, ' ', emp.s_name) AS `generated_by`, ps.source, ps.draft, ps.filter, ps.filter_id, DATE_FORMAT(ps.`created_at`, '%m/%d/%Y %H:%i:%s') AS 'created_at' FROM `payslip` ps INNER JOIN `emp` e ON e.emp_num = ps.emp_num INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p ON p.position_id = ed.position_id INNER JOIN `emp` emp ON emp.emp_num = ps.generated_by INNER JOIN dept de ON de.dept_id = p.dept_id INNER JOIN division di on di.div_id = de.div_id WHERE ed.company_id = 1 AND ps.draft = 1 ORDER BY `created_at` ASC;";
+  db.query(q, [compID], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
+
+const deleteDraftedPayslips = (req, res) => {
+  const compID = req.session.user[0].company_id;
+  const q = "DELETE FROM `payslip` WHERE `company_id` = ? and `draft` = 1";
+  db.query(q, [compID], (err) => {
+    if (err) return res.json(err);
+    return res.sendStatus(200);
+  });
+};
+
 module.exports = {
   createPayslip,
   getUserPayslip,
@@ -278,4 +303,6 @@ module.exports = {
   getEmployeePayslipCurrentYear,
   getActiveEmployeeAndSalary,
   getOffBoardingEmployees,
+  checkForDraftedPayslip,
+  deleteDraftedPayslips,
 };
