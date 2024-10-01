@@ -303,7 +303,8 @@ function UpdateComplaintStatus(req, res) {
 // controller for suggestion box
 
 // post
-function InsertNewSuggestionBox(req, res) {
+function InsertNewSuggestionBox(req, res, next) {
+  const uid = req.session.user[0].emp_id;
   const sb_id = uuidv4();
   const creator_id = req.session.user[0].emp_id;
   const hr_id = req.body.hr_id;
@@ -321,34 +322,99 @@ function InsertNewSuggestionBox(req, res) {
       if (err) {
         res.json(err);
       } else {
-        res.json({
-          sb_id: sb_id,
-          creator_id: creator_id,
-          hr_id: hr_id,
-          sb_type: sb_type,
-          sb_subject: sb_subject,
-          sb_content, sb_content,
-          sb_date: moment().format(),
-          is_resolved: 0,
-        });
+        if (hr_id != null) {
+          const q =
+            "INSERT INTO conversation_seen_status (sb_id, receiver_id) VALUES (?, ?)";
+
+          db.query(q, [sb_id, hr_id], (err, data) => {
+            if (err) console.log(err);
+            else {
+              res.json({
+                sb_id: sb_id,
+                creator_id: creator_id,
+                hr_id: hr_id,
+                sb_type: sb_type,
+                sb_subject: sb_subject,
+                sb_content,
+                sb_content,
+                sb_date: moment().format(),
+                latest_chat: null,
+                latest_chat_time: null,
+                is_resolved: 0,
+                count_chat: 1,
+              });
+            }
+          });
+        } else {
+          const q =
+            "INSERT INTO conversation_seen_status (sb_id, receiver_id) SELECT ?, hr.emp_id FROM emp hr WHERE hr.emp_role = 1 AND hr.emp_id != ?";
+
+          db.query(q, [sb_id, uid], (err, data) => {
+            if (err) console.log(err);
+            else {
+              res.json({
+                sb_id: sb_id,
+                creator_id: creator_id,
+                hr_id: hr_id,
+                sb_type: sb_type,
+                sb_subject: sb_subject,
+                sb_content,
+                sb_content,
+                latest_chat: null,
+                latest_chat_time: null,
+                sb_date: moment().format(),
+                is_resolved: 0,
+                count_chat: 1,
+              });
+            }
+          });
+        }
       }
     }
   );
 }
 
-function InsertNewSuggestionBoxConversation(req, res) {
+function InsertNewSuggestionBoxSeenStatus(req, res) {
+  const uid = req.session.user[0].emp_id;
+  const sb_id = req.body.sb_id;
+  const receiver_id = req.body.receiver_id;
+
+  if (receiver_id != null) {
+    const q =
+      "INSERT INTO conversation_seen_status (sb_id, receiver_id) VALUES (?, ?)";
+
+    db.query(q, [sb_id, receiver_id], (err, data) => {
+      if (err) console.log(err);
+      else {
+        res.sendStatus(200);
+      }
+    });
+  } else {
+    const q =
+      "INSERT INTO conversation_seen_status (sb_id, receiver_id) SELECT ?, hr.emp_id FROM emp hr WHERE hr.emp_role = 1 AND hr.emp_id != ?";
+
+    db.query(q, [sb_id, uid], (err, data) => {
+      if (err) console.log(err);
+      else {
+        res.sendStatus(200);
+      }
+    });
+  }
+}
+
+function InsertNewSuggestionBoxConversation(req, res, next) {
   const sb_id = req.body.sb_id;
   const sender_id = req.session.user[0].emp_id;
   const sb_chat = req.body.sb_chat;
 
   const q =
-    "INSERT INTO suggestion_box_conversation (sb_id, sender_id, sb_chat) VALUES (?, ?, ?)";
+    "INSERT INTO suggestion_box_conversation (sb_id, sender_id, sb_chat) VALUES (?, ?, ?);";
 
-  db.query(q, [sb_id, sender_id, sb_chat], (err, data) => {
+  db.query(q, [sb_id, sender_id, sb_chat], (err) => {
     if (err) {
       console.log(err);
     } else {
-      res.sendStatus(200);
+      next();
     }
   });
 }
@@ -359,9 +425,9 @@ function GetSuggestionBox(req, res) {
   const uid = req.session.user[0].emp_id;
 
   const q =
-    "SELECT * FROM suggestion_box sb LEFT JOIN emp hr ON sb.hr_id = hr.emp_id WHERE sb.creator_id = ? ORDER BY sb_date DESC";
+    "SELECT sb.*, sbc.sender_id AS latest_sender_id, sbc.sb_chat AS latest_chat, sbc.sb_timestamp AS latest_chat_time, COALESCE((SELECT COUNT(*) FROM conversation_seen_status sbss WHERE sbss.sb_id = sb.sb_id AND sbss.is_seen = 0 AND sbss.receiver_id = ?), 0) AS count_chat FROM suggestion_box sb LEFT JOIN suggestion_box_conversation sbc ON sb.sb_id = sbc.sb_id AND sbc.sb_timestamp = (SELECT MAX(sbc2.sb_timestamp) FROM suggestion_box_conversation sbc2 WHERE sbc2.sb_id = sb.sb_id) WHERE (sb.creator_id = ?) ORDER BY count_chat DESC, sb.sb_date DESC, sbc.sb_timestamp DESC";
 
-  db.query(q, [uid], (err, data) => {
+  db.query(q, [uid, uid], (err, data) => {
     if (err) {
       console.log(err);
     } else {
@@ -375,7 +441,7 @@ function GetSuggestionBoxInfo(req, res) {
   const uid = req.session.user[0].emp_id;
 
   const q =
-    "SELECT sb.*, hr.f_name AS hr_fname, hr.s_name AS hr_sname FROM suggestion_box sb LEFT JOIN emp hr ON sb.hr_id = hr.emp_id WHERE sb_id = ? AND sb.creator_id = ?";
+    "SELECT sb.*, hr.emp_id AS hr_id, hr.f_name AS hr_fname, hr.s_name AS hr_sname FROM suggestion_box sb LEFT JOIN emp hr ON sb.hr_id = hr.emp_id WHERE sb_id = ? AND sb.creator_id = ?";
 
   db.query(q, [sb_id, uid], (err, data) => {
     if (err) {
@@ -404,6 +470,20 @@ function GetSuggestionBoxConversation(req, res) {
     }
   });
 }
+
+function GetSuggestionBoxCount(req, res) {
+  const uid = req.session.user[0].emp_id;
+
+  const q =
+    "SELECT COUNT(css.sb_id) AS sb_count FROM conversation_seen_status css INNER JOIN suggestion_box sb ON css.sb_id = sb.sb_id WHERE css.receiver_id = ? AND css.is_seen = 0 AND sb.creator_id = ?";
+
+  db.query(q, [uid, uid], (err, data) => {
+    if (err) console.log(err);
+    else {
+      res.json(data);
+    }
+  });
+}
 // end of get
 
 // controller for hr tickets
@@ -412,9 +492,9 @@ function GetSuggestionBoxConversation(req, res) {
 function GetEmployeeInitiated(req, res) {
   const uid = req.session.user[0].emp_id;
 
-  const q = "SELECT * FROM suggestion_box WHERE (hr_id = ? OR hr_id IS NULL) AND creator_id != ? ORDER BY sb_date DESC";
+  const q ="SELECT sb.*, sbc.sender_id AS latest_sender_id, sbc.sb_chat AS latest_chat, sbc.sb_timestamp AS latest_chat_time, COALESCE((SELECT COUNT(*) FROM conversation_seen_status sbss WHERE sbss.sb_id = sb.sb_id AND sbss.is_seen = 0 AND sbss.receiver_id = ?), 0) AS count_chat FROM suggestion_box sb LEFT JOIN suggestion_box_conversation sbc ON sb.sb_id = sbc.sb_id AND sbc.sb_timestamp = (SELECT MAX(sbc2.sb_timestamp) FROM suggestion_box_conversation sbc2 WHERE sbc2.sb_id = sb.sb_id) WHERE (sb.hr_id = ? OR sb.hr_id IS NULL AND sb.creator_id != ?) ORDER BY count_chat DESC, sb.sb_date DESC, sbc.sb_timestamp DESC";
 
-  db.query(q, [uid, uid], (err, data) => {
+  db.query(q, [uid, uid, uid], (err, data) => {
     if (err) {
       console.log(err);
     } else {
@@ -442,6 +522,24 @@ function GetEmployeeInitiatedInfo(req, res) {
     }
   });
 }
+
+function GetTicketsCount(req, res) {
+  const uid = req.session.user[0].emp_id;
+
+  const q =
+    "SELECT COUNT(css.sb_id) AS ticket_count FROM conversation_seen_status css INNER JOIN suggestion_box sb ON css.sb_id = sb.sb_id WHERE css.receiver_id = ? AND css.is_seen = 0 AND sb.creator_id != ?";
+
+  db.query(q, [uid, uid], (err, data) => {
+    if (err) console.log(err);
+    else {
+      res.json(data);
+    }
+  });
+}
+
+// function GetCountTicket(req, res) {
+//   SELECT request_id, COUNT(request_id) FROM conversation_seen_status
+// }
 // end of get
 
 // post
@@ -453,12 +551,27 @@ function UpdateSuggestionBoxStatus(req, res) {
   const q = "UPDATE suggestion_box SET is_resolved = ? WHERE sb_id = ?";
 
   db.query(q, [sb_status, sb_id], (err, data) => {
-    if(err) {
+    if (err) {
       console.log(err);
     } else {
       res.sendStatus(200);
     }
-  })
+  });
+}
+
+function UpdateSuggestionBoxSeenStatus(req, res) {
+  const sb_id = req.body.sb_id;
+  const uid = req.session.user[0].emp_id;
+  
+  const q = "UPDATE conversation_seen_status SET is_seen = ? WHERE sb_id = ? AND receiver_id = ? AND is_seen = 0";
+
+  db.query(q, [1, sb_id, uid], (err, data) => {
+    if(err) console.log(err);
+
+    else {
+      res.json(data.affectedRows);
+    }
+  });
 }
 
 // end of post
@@ -481,13 +594,16 @@ module.exports = {
   GetComplaintTicketContent,
   UpdateRequestStatus,
   UpdateComplaintStatus,
-
   InsertNewSuggestionBox,
   GetSuggestionBox,
   GetSuggestionBoxInfo,
   GetSuggestionBoxConversation,
   InsertNewSuggestionBoxConversation,
+  InsertNewSuggestionBoxSeenStatus,
   GetEmployeeInitiated,
   GetEmployeeInitiatedInfo,
+  GetTicketsCount,
   UpdateSuggestionBoxStatus,
+  UpdateSuggestionBoxSeenStatus,
+  GetSuggestionBoxCount,
 };

@@ -136,10 +136,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
-      secure: (process.env.JAWSDB_URL) ? true : false,
-      httpOnly: (process.env.JAWSDB_URL) ? false : true,
+      secure: process.env.JAWSDB_URL ? true : false,
+      httpOnly: process.env.JAWSDB_URL ? false : true,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: (process.env.JAWSDB_URL) ? "none" : null,
+      sameSite: process.env.JAWSDB_URL ? "none" : null,
     },
   })
 );
@@ -154,6 +154,7 @@ const io = new Server(server, {
   cors: {
     origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
+    transports: ["websocket", "polling"],
     credentials: true,
   },
 });
@@ -164,73 +165,138 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", (joinData) => {
     if (socket.rooms.has(joinData)) {
       console.log("Socket is already in the room");
-      console.log("Rooms:")
+      console.log("Rooms:");
       console.log(socket.rooms);
     } else {
-      console.log("Room: " + joinData)
+      console.log("Room: " + joinData);
       socket.join(joinData);
       console.log("Socket joined the room");
-      console.log("Rooms:")
+      console.log("Rooms:");
       console.log(socket.rooms);
     }
   });
 
   socket.on("leaveRoom", (leaveData) => {
     socket.leave(leaveData);
-  })
+  });
 
   socket.on("sendHrRequestMessage", (sendHrRequestData) => {
-    socket.to(sendHrRequestData.request_id).emit("receiveHrRequestMessage", sendHrRequestData);
+    socket
+      .to(sendHrRequestData.request_id)
+      .emit("receiveHrRequestMessage", sendHrRequestData);
   });
 
   socket.on("sendRequesterMessage", (sendRequesterData) => {
-    socket.to(sendRequesterData.request_id).emit("receiveRequesterMessage", sendRequesterData);
-  })
+    socket
+      .to(sendRequesterData.request_id)
+      .emit("receiveRequesterMessage", sendRequesterData);
+  });
 
   socket.on("sendHrComplaintMesssage", (sendHrComplaintData) => {
-    socket.to(sendHrComplaintData.complaint_id).emit("receiveHrComplaintMessage", sendHrComplaintData);
-  })
+    socket
+      .to(sendHrComplaintData.complaint_id)
+      .emit("receiveHrComplaintMessage", sendHrComplaintData);
+  });
 
   socket.on("sendComplainantMessage", (sendHrComplainantData) => {
-    socket.to(sendHrComplainantData.complaint_id).emit("receiveComplainantMessage", sendHrComplainantData);
-  })
+    socket
+      .to(sendHrComplainantData.complaint_id)
+      .emit("receiveComplainantMessage", sendHrComplainantData);
+  });
 
   socket.on("closeComplaint", (closeComplaintData) => {
-    socket.to(closeComplaintData.complaintID).emit("receiveCloseComplaint", closeComplaintData.is_resolved);
-  })
+    socket
+      .to(closeComplaintData.complaintID)
+      .emit("receiveCloseComplaint", closeComplaintData.is_resolved);
+  });
 
   socket.on("closeRequest", (closeRequestData) => {
-    socket.to(closeRequestData.requestID).emit("receiveCloseRequest", closeRequestData.is_resolved);
-  })
-
-  // socket.on("newRequest", (newRequestData) => {
-  //   socket.to(newRequestData.requestID.toString()).emit("receiveNewRequest", newRequestData); 
-  // })
+    socket
+      .to(closeRequestData.requestID)
+      .emit("receiveCloseRequest", closeRequestData.is_resolved);
+  });
 
   socket.on("sendHRMessage", (sendHrData) => {
     socket.to(sendHrData.sb_id).emit("receiveHrData", sendHrData);
-  })
+
+    if (sendHrData.receiver_id !== null) {
+      socket.to(`tickets-${sendHrData.receiver_id}`).emit("addTicketCount", {
+        count: 1,
+        sb_id: sendHrData.sb_id,
+        latest_chat: sendHrData.sb_chat,
+        latest_chat_time: sendHrData.sb_timestamp,
+      });
+    } else {
+      socket.to(`tickets-all`).emit("addTicketCount", {
+        count: 1,
+        sb_id: sendHrData.sb_id,
+        latest_chat: sendHrData.sb_chat,
+        latest_chat_time: sendHrData.sb_timestamp,
+      });
+    }
+  });
 
   socket.on("sendBoth", (sendBothData) => {
     socket.to(sendBothData.sb_id).emit("receiveBothData", sendBothData);
-  })
+    console.log(sendBothData.hr_id);
+    console.log(sendBothData.creator_id);
+
+    socket.to(`suggestionBox-${sendBothData.creator_id}`).emit("addSuggestionBoxCount", {
+      count: 1,
+      sb_id: sendBothData.sb_id,
+      latest_chat: sendBothData.sb_chat,
+      latest_chat_time: sendBothData.sb_timestamp,
+    })
+  });
 
   socket.on("sendClose", (sendCloseData) => {
     socket.to(sendCloseData.sb_id).emit("receiveClose", sendCloseData);
-  })
+  });
 
   socket.on("newSuggestionBox", (newSuggestionBoxData) => {
-    if(newSuggestionBoxData.hr_id === null) {
-      socket.to("newSuggestionBoxAll").emit("receiveNewAll", newSuggestionBoxData);
-      io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit("addNewSuggestion", newSuggestionBoxData);
+    if (newSuggestionBoxData.hr_id === null) {
+      socket
+        .to("newSuggestionBoxAll")
+        .emit("receiveNewAll", newSuggestionBoxData);
+      socket
+        .to(`tickets-all`)
+        .emit("addTicketCount", { count: 1, newMessage: true });
+      io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit(
+        "addNewSuggestion",
+        newSuggestionBoxData
+      );
     } else {
-      socket.to(`newSuggestionBox-${newSuggestionBoxData.hr_id}`).emit("receiveNewOnlyMe", newSuggestionBoxData);
-      io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit("addNewSuggestion", newSuggestionBoxData);
+      socket
+        .to(`newSuggestionBox-${newSuggestionBoxData.hr_id}`)
+        .emit("receiveNewOnlyMe", newSuggestionBoxData);
+      socket
+        .to(`tickets-${newSuggestionBoxData.hr_id}`)
+        .emit("addTicketCount", { count: 1, newMessage: true });
+      io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit(
+        "addNewSuggestion",
+        newSuggestionBoxData
+      );
     }
-  })
+  });
 
   socket.on("newEmployeeTickets", (newEmployeeTicketsData) => {
-    io.to(`employeeTicket-${newEmployeeTicketsData.requester_id}`).emit("newRequesterTicket", newEmployeeTicketsData);
+    io.to(`employeeTicket-${newEmployeeTicketsData.requester_id}`).emit(
+      "newRequesterTicket",
+      newEmployeeTicketsData
+    );
+  });
+
+  socket.on("minusTicketCount", (minusTicketCountData) => {
+    console.log("ticket count: " + minusTicketCountData.count);
+    io.to(`tickets-${minusTicketCountData.hr_id}`).emit(
+      "minusTicketCount",
+      minusTicketCountData.count
+    );
+  });
+
+  socket.on("minusSuggestionBoxCount", (minusSbCountData) => {
+    console.log("SB count: " + minusSbCountData.count);
+    io.to(`suggestionBox-${minusSbCountData.creator_id}`).emit("minusSuggestionBoxCount", minusSbCountData.count);
   });
 });
 // ------- end of socket.io ------- //
@@ -1276,7 +1342,8 @@ function cronLogs() {
       let reason;
 
       category = "AUTO";
-      reason = "You have gained 5 PTO days for being regularized. Congratulations!";
+      reason =
+        "You have gained 5 PTO days for being regularized. Congratulations!";
 
       const VALUES = [category, reason, id];
 
@@ -1294,8 +1361,8 @@ function cronLogs() {
   let reg_array;
 
   //const reg_q =
-    //"SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
-  const reg_q = `SELECT emp_id FROM emp WHERE CURDATE() < DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
+  //"SELECT emp_id FROM emp WHERE emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()";
+  const reg_q = `SELECT emp_id FROM emp WHERE CURDATE() < DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`;
   //const reg_q = `SELECT emp_id FROM emp WHERE date_hired < DATE_SUB(NOW(),INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
 
   db.query(reg_q, (err, data) => {
@@ -1316,8 +1383,7 @@ function cronLogs() {
       let reason;
 
       category = "AUTO";
-      reason =
-        "You have gained 0.83 PTO days.";
+      reason = "You have gained 0.83 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1334,8 +1400,7 @@ function cronLogs() {
 
   let tenure_array;
 
-  const tenure_q =
-  `SELECT emp_id FROM emp WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
+  const tenure_q = `SELECT emp_id FROM emp WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`;
 
   db.query(tenure_q, (err, data) => {
     if (err) {
@@ -1355,8 +1420,7 @@ function cronLogs() {
       let reason;
 
       category = "AUTO";
-      reason =
-        "You have gained 1.25 PTO days.";
+      reason = "You have gained 1.25 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1373,8 +1437,7 @@ function cronLogs() {
 
   let scholar_array;
 
-  const scholar_q =
-  `SELECT emp_id FROM emp WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()`
+  const scholar_q = `SELECT emp_id FROM emp WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()`;
 
   db.query(scholar_q, (err, data) => {
     if (err) {
@@ -1394,8 +1457,7 @@ function cronLogs() {
       let reason;
 
       category = "AUTO";
-      reason =
-        "You have gained 0.625 PTO days.";
+      reason = "You have gained 0.625 PTO days.";
 
       const VALUES = [category, reason, id];
 
@@ -1424,17 +1486,13 @@ function cronLogs() {
 // }
 
 function dailyPtoAccrual() {
-  const prob_q =
-    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET emp_status = 'Regular', leave_balance = leave_balance + 5 WHERE emp_status = 'Probationary' AND date_regularization = CURDATE()`
+  const prob_q = `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET emp_status = 'Regular', leave_balance = leave_balance + 5 WHERE emp_status = 'Probationary' AND date_regularization = CURDATE()`;
 
-  const reg_q =
-    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 0.83 WHERE CURDATE() < DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
+  const reg_q = `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 0.83 WHERE CURDATE() < DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`;
 
-  const tenure_q =
-    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 1.25 WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`
+  const tenure_q = `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 1.25 WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Regular' AND LAST_DAY(CURDATE()) = CURDATE()`;
 
-  const scholar_q =
-    `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 0.625 WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()`
+  const scholar_q = `UPDATE emp e JOIN leave_credits l ON e.emp_id = l.emp_id SET leave_balance = leave_balance + 0.625 WHERE CURDATE() > DATE_ADD(date_hired, INTERVAL 1 YEAR) AND emp_status = 'Part-time' AND LAST_DAY(CURDATE()) = CURDATE()`;
 
   db.query(prob_q, (err, data) => {
     if (err) {
