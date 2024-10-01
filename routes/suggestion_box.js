@@ -25,6 +25,10 @@ const {
   GetEmployeeInitiatedInfo,
   GetEmployeeInitiated,
   UpdateSuggestionBoxStatus,
+  InsertNewSuggestionBoxSeenStatus,
+  GetTicketsCount,
+  UpdateSuggestionBoxSeenStatus,
+  GetSuggestionBoxCount,
 } = require("../controller/suggestion_box_controller.js");
 
 const router = express.Router();
@@ -59,6 +63,8 @@ router.get("/sb-get-complaint-ticket-content/:complaint_id", GetComplaintTicketC
 router.post("/sb-update-complaint-status", UpdateComplaintStatus);
 router.post("/sb-update-request-status", UpdateRequestStatus);
 
+router.patch("/sb-update-conversation-seen-status", UpdateSuggestionBoxSeenStatus);
+
 
 
 
@@ -68,21 +74,26 @@ router.post("/sb-update-request-status", UpdateRequestStatus);
 
 // post methods for employee services center - suggestion box
 router.post("/sb-insert-new-suggestion-box", InsertNewSuggestionBox);
-router.post("/sb-insert-new-suggestion-box-conversation", InsertNewSuggestionBoxConversation);
+router.post("/sb-insert-new-suggestion-box-conversation", InsertNewSuggestionBoxConversation, InsertNewSuggestionBoxSeenStatus);
 
 
 // get methods for employee services center - suggestion box
 router.get("/sb-get-suggestion-box", GetSuggestionBox);
 router.get("/sb-get-suggestion-box-info/:sbID", GetSuggestionBoxInfo);
 router.get("/sb-get-suggestion-box-conversation/:sbID", GetSuggestionBoxConversation);
+router.get("/sb-get-suggestion-box-count", GetSuggestionBoxCount);
 
 // get methods for hr tickets
 router.get("/sb-get-employee-initiated", GetEmployeeInitiated);
 
 router.get("/sb-get-employee-initiated-info/:sbID", GetEmployeeInitiatedInfo);
 
+router.get("/sb-get-ticket-count", GetTicketsCount);
+
 // post methods for hr tickets
 router.post("/sb-update-suggestion-box-status", UpdateSuggestionBoxStatus);
+
+router.patch("/sb-update-conversation-seen-status", UpdateSuggestionBoxSeenStatus);
 
 
 module.exports = router;
