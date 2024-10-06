@@ -141,7 +141,10 @@ app.use(
     cookie: {
       secure: process.env.JAWSDB_URL ? true : false,
       httpOnly: process.env.JAWSDB_URL ? false : true,
+      secure: process.env.JAWSDB_URL ? true : false,
+      httpOnly: process.env.JAWSDB_URL ? false : true,
       expires: 60 * 60 * 24 * 1000,
+      sameSite: process.env.JAWSDB_URL ? "none" : null,
       sameSite: process.env.JAWSDB_URL ? "none" : null,
     },
   })
@@ -157,6 +160,7 @@ const io = new Server(server, {
   cors: {
     origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
+    transports: ["websocket", "polling"],
     credentials: true,
   },
 });
@@ -218,16 +222,37 @@ io.on("connection", (socket) => {
       .emit("receiveCloseRequest", closeRequestData.is_resolved);
   });
 
-  // socket.on("newRequest", (newRequestData) => {
-  //   socket.to(newRequestData.requestID.toString()).emit("receiveNewRequest", newRequestData);
-  // })
-
   socket.on("sendHRMessage", (sendHrData) => {
     socket.to(sendHrData.sb_id).emit("receiveHrData", sendHrData);
+
+    if (sendHrData.receiver_id !== null) {
+      socket.to(`tickets-${sendHrData.receiver_id}`).emit("addTicketCount", {
+        count: 1,
+        sb_id: sendHrData.sb_id,
+        latest_chat: sendHrData.sb_chat,
+        latest_chat_time: sendHrData.sb_timestamp,
+      });
+    } else {
+      socket.to(`tickets-all`).emit("addTicketCount", {
+        count: 1,
+        sb_id: sendHrData.sb_id,
+        latest_chat: sendHrData.sb_chat,
+        latest_chat_time: sendHrData.sb_timestamp,
+      });
+    }
   });
 
   socket.on("sendBoth", (sendBothData) => {
     socket.to(sendBothData.sb_id).emit("receiveBothData", sendBothData);
+    console.log(sendBothData.hr_id);
+    console.log(sendBothData.creator_id);
+
+    socket.to(`suggestionBox-${sendBothData.creator_id}`).emit("addSuggestionBoxCount", {
+      count: 1,
+      sb_id: sendBothData.sb_id,
+      latest_chat: sendBothData.sb_chat,
+      latest_chat_time: sendBothData.sb_timestamp,
+    })
   });
 
   socket.on("sendClose", (sendCloseData) => {
@@ -239,6 +264,9 @@ io.on("connection", (socket) => {
       socket
         .to("newSuggestionBoxAll")
         .emit("receiveNewAll", newSuggestionBoxData);
+      socket
+        .to(`tickets-all`)
+        .emit("addTicketCount", { count: 1, newMessage: true });
       io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit(
         "addNewSuggestion",
         newSuggestionBoxData
@@ -247,6 +275,9 @@ io.on("connection", (socket) => {
       socket
         .to(`newSuggestionBox-${newSuggestionBoxData.hr_id}`)
         .emit("receiveNewOnlyMe", newSuggestionBoxData);
+      socket
+        .to(`tickets-${newSuggestionBoxData.hr_id}`)
+        .emit("addTicketCount", { count: 1, newMessage: true });
       io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit(
         "addNewSuggestion",
         newSuggestionBoxData
@@ -259,6 +290,19 @@ io.on("connection", (socket) => {
       "newRequesterTicket",
       newEmployeeTicketsData
     );
+  });
+
+  socket.on("minusTicketCount", (minusTicketCountData) => {
+    console.log("ticket count: " + minusTicketCountData.count);
+    io.to(`tickets-${minusTicketCountData.hr_id}`).emit(
+      "minusTicketCount",
+      minusTicketCountData.count
+    );
+  });
+
+  socket.on("minusSuggestionBoxCount", (minusSbCountData) => {
+    console.log("SB count: " + minusSbCountData.count);
+    io.to(`suggestionBox-${minusSbCountData.creator_id}`).emit("minusSuggestionBoxCount", minusSbCountData.count);
   });
 });
 // ------- end of socket.io ------- //

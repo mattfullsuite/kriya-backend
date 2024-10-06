@@ -103,8 +103,6 @@ async function processLogin(req, res) {
               console.log(req.session.user);
               res.send(result[0]);
 
-              
-
               // const a = "UPDATE emp SET emp_pic = ? WHERE work_email = ?";
               
               // const a =
