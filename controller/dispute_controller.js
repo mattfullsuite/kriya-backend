@@ -224,6 +224,7 @@ function GetHRAttendanceDisputes(req, res) {
     return res.json(data);
   });
 }
+
 function ApproveDispute(req, res) {
   const did = req.params.dispute_id;
   const uid = req.session.user[0].emp_id;
@@ -261,21 +262,22 @@ function RejectDispute(req, res) {
 function GetRequesters(req, res) {
   const uid = req.session.user[0].emp_id;
   const type = req.params.dispute_type;
+  const company_id = req.session.user[0].company_id;
 
   var q = "";
 
   if(type == "all") {
     q =
-    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? GROUP BY e.emp_id, p.position_name;";
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? GROUP BY e.emp_id, p.position_name";
   } else if(type == "attendance") {
     q =
-    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND dispute_type = 'Attendance Dispute' GROUP BY e.emp_id, p.position_name;";
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? AND dispute_type = 'Attendance Dispute' GROUP BY e.emp_id, p.position_name;";
   } else if(type == "payroll") {
     q =
-    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND dispute_type = 'Pay Dispute' GROUP BY e.emp_id, p.position_name;";
+    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? AND dispute_type = 'Pay Dispute' GROUP BY e.emp_id, p.position_name;";
   }
 
-  db.query(q, [uid], (err, data) => {
+  db.query(q, [uid, company_id], (err, data) => {
     if (err) {
       console.log(err);
     } else {
@@ -283,7 +285,6 @@ function GetRequesters(req, res) {
     }
   });
 }
-
 
 function GetRequesterDisputes(req, res) {
   const requester_id = req.params.requesterID;

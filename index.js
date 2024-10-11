@@ -2287,14 +2287,14 @@ app.post("/forgot-password", (req, res) => {
           port: 465,
           secure: true,
           auth: {
-            user: "marvin@fullsuite.ph",
-            pass: "uggm nyyd ymnb szrx",
+            user: "tech@kriyahr.com",
+            pass: "faew yxtz hkhb njnm",
           },
         });
         transporter.sendMail({
-          from: "marvin@fullsuite.ph", // sender address
+          from: "tech@kriyahr.com", // sender address
           to: email, // list of receivers
-          subject: "Action required: Reset password | FS-HRIS", // Subject line
+          subject: "Action required: Reset password | kriyaHR", // Subject line
           text: "Reset password", // plain text body
           html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" lang="en">
 

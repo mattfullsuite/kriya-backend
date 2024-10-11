@@ -3,15 +3,15 @@ var nodemailer = require("nodemailer");
 const moment = require("moment");
 const fs = require("fs");
 
-var Slack = require("@slack/bolt")
-var dotenv = require("dotenv")
+var Slack = require("@slack/bolt");
+var dotenv = require("dotenv");
 
 // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const ats_app = new Slack.App({
-    signingSecret: process.env.SLACK_SIGNING_SECRET_ATS,
-    token: process.env.SLACK_BOT_TOKEN_ATS,
-})
+  signingSecret: process.env.SLACK_SIGNING_SECRET_ATS,
+  token: process.env.SLACK_BOT_TOKEN_ATS,
+});
 
 async function SendEmailToApplicant(req, res) {
   const work_email = req.session.user[0].work_email;
@@ -25,7 +25,7 @@ async function SendEmailToApplicant(req, res) {
   db.query(q3, [app_id], (err, data) => {
     if (err) {
       console.log(err);
-      res.send("error")
+      res.send("error");
     } else {
       emp_email = data[0].email;
 
@@ -41,7 +41,7 @@ async function SendEmailToApplicant(req, res) {
           },
         });
 
-        (req.body.email_attachment)
+        req.body.email_attachment
           ? transporter.sendMail({
               from: work_email, // sender address
               to: emp_email, // list of receivers
@@ -53,7 +53,7 @@ async function SendEmailToApplicant(req, res) {
                   filename: req.body.email_attachment_name,
                   //path: req.body.email_attachment,
                   content: req.body.email_attachment.split("base64,")[1],
-                  encoding: 'base64',
+                  encoding: "base64",
                   //contentType: "application/pdf",
                 },
               ],
@@ -70,7 +70,7 @@ async function SendEmailToApplicant(req, res) {
       } catch (e) {
         console.log(e);
       }
-      res.send("success")
+      res.send("success");
     }
   });
 }
@@ -114,31 +114,32 @@ function GetApplicantsFromDatabase(req, res) {
 function GetPaginatedApplicantsFromDatabase(req, res) {
   const unum = req.session.user[0].emp_num;
 
-  const { limit = 10, page = 1, active = 0, filter = ""} = req.query;
+  const { limit = 10, page = 1, active = 0, filter = "" } = req.query;
 
-  console.log("Active: ", active)
-  console.log("Filter: ", filter)
+  console.log("Active: ", active);
+  console.log("Filter: ", filter);
 
-  let query1
-  let query2
-  let values2
+  let query1;
+  let query2;
+  let values2;
 
   // (active == 0) ?
   // query1 = "SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ?"
   // :
-  // query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ? 
-  // AND status != 'Withdrawn Application' 
-  // AND status != 'Job Offer Rejected' 
-  // AND status != 'Not Fit' 
-  // AND status != 'Abandoned' 
-  // AND status != 'No Show' 
-  // AND status != 'Blacklisted' 
+  // query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ?
+  // AND status != 'Withdrawn Application'
+  // AND status != 'Job Offer Rejected'
+  // AND status != 'Not Fit'
+  // AND status != 'Abandoned'
+  // AND status != 'No Show'
+  // AND status != 'Blacklisted'
   // AND status != 'Started Work'`
 
-  if (filter == "" && active == 0){
-    query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
-  } else if (filter !== "" && active == 0){
-    query1 = "SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ?"
+  if (filter == "" && active == 0) {
+    query1 = "SELECT COUNT(*) AS count FROM applicant_tracking";
+  } else if (filter !== "" && active == 0) {
+    query1 =
+      "SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ?";
   } else if (filter == "" && active == 1) {
     query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE
       status != 'Withdrawn Application' 
@@ -147,8 +148,8 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
       AND status != 'Abandoned' 
       AND status != 'No Show' 
       AND status != 'Blacklisted' 
-      AND status != 'Started Work'`
-  } else if (filter !== "" && active == 1){
+      AND status != 'Started Work'`;
+  } else if (filter !== "" && active == 1) {
     query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE status = ? 
       AND status != 'Withdrawn Application' 
       AND status != 'Job Offer Rejected' 
@@ -156,13 +157,13 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
       AND status != 'Abandoned' 
       AND status != 'No Show' 
       AND status != 'Blacklisted' 
-      AND status != 'Started Work'`
+      AND status != 'Started Work'`;
   }
 
   // (active == 0) ?
   // query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
   // query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-  // : 
+  // :
   // query1 = "SELECT COUNT(*) AS count FROM applicant_tracking"
   // query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
 
@@ -172,38 +173,36 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
 
   //const q1 = "SELECT COUNT(*) AS count FROM applicant_tracking";
 
-  db.query(query1, (filter !== "") && filter, (err, data1) => {
+  db.query(query1, filter !== "" && filter, (err, data1) => {
     if (err) {
       return res.json(err);
     } else {
-
       //const q2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
       // (filter != "") ?
-      //   query2 = `SELECT * FROM applicant_tracking WHERE status != 'Withdrawn Application' 
-      //   AND status != 'Job Offer Rejected' 
-      //   AND status != 'Not Fit' 
-      //   AND status != 'Abandoned' 
-      //   AND status != 'No Show' 
-      //   AND status != 'Blacklisted' 
-      //   AND status != 'Started Work' 
+      //   query2 = `SELECT * FROM applicant_tracking WHERE status != 'Withdrawn Application'
+      //   AND status != 'Job Offer Rejected'
+      //   AND status != 'Not Fit'
+      //   AND status != 'Abandoned'
+      //   AND status != 'No Show'
+      //   AND status != 'Blacklisted'
+      //   AND status != 'Started Work'
       //   ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
       //   :
       //   query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-        
+
       //   (active == 0) ?
       //   //query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
       //   query2 = `SELECT * FROM applicant_tracking WHERE status = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-      //   : 
-      //   query2 = `SELECT * FROM applicant_tracking WHERE status = ? 
-      //   AND status != 'Withdrawn Application' 
-      //   AND status != 'Job Offer Rejected' 
-      //   AND status != 'Not Fit' 
-      //   AND status != 'Abandoned' 
-      //   AND status != 'No Show' 
-      //   AND status != 'Blacklisted' 
-      //   AND status != 'Started Work' 
+      //   :
+      //   query2 = `SELECT * FROM applicant_tracking WHERE status = ?
+      //   AND status != 'Withdrawn Application'
+      //   AND status != 'Job Offer Rejected'
+      //   AND status != 'Not Fit'
+      //   AND status != 'Abandoned'
+      //   AND status != 'No Show'
+      //   AND status != 'Blacklisted'
+      //   AND status != 'Started Work'
       //   ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-      
 
       let parsedLimit = parseInt(limit);
       let parsedPage = parseInt(page);
@@ -221,7 +220,7 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         offset,
       };
 
-      if (filter == "" && active == 0){
+      if (filter == "" && active == 0) {
         query2 = `SELECT * FROM applicant_tracking WHERE status != 'Withdrawn Application' 
         AND status != 'Job Offer Rejected' 
         AND status != 'Not Fit' 
@@ -229,15 +228,15 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         AND status != 'No Show' 
         AND status != 'Blacklisted' 
         AND status != 'Started Work' 
-        ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-        values2 = [parsedLimit, offset]
-      } else if (filter !== "" && active == 0){
-        query2 = `SELECT * FROM applicant_tracking WHERE status = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-        values2 = [filter, parsedLimit, offset]
+        ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+        values2 = [parsedLimit, offset];
+      } else if (filter !== "" && active == 0) {
+        query2 = `SELECT * FROM applicant_tracking WHERE status = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+        values2 = [filter, parsedLimit, offset];
       } else if (filter == "" && active == 1) {
-        query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-        values2 = [parsedLimit, offset]
-      } else if (filter !== "" && active == 1){
+        query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+        values2 = [parsedLimit, offset];
+      } else if (filter !== "" && active == 1) {
         query2 = `SELECT * FROM applicant_tracking WHERE status = ? 
         AND status != 'Withdrawn Application' 
         AND status != 'Job Offer Rejected' 
@@ -246,15 +245,15 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         AND status != 'No Show' 
         AND status != 'Blacklisted' 
         AND status != 'Started Work' 
-        ORDER BY app_start_date DESC LIMIT ? OFFSET ?`
-        values2 = [filter, parsedLimit, offset]
+        ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+        values2 = [filter, parsedLimit, offset];
       }
 
       db.query(query2, values2, (err, data2) => {
         if (err) {
           return res.json(err);
         } else {
-          console.log(data2)
+          console.log(data2);
           return res.json({ data2, pagination });
         }
       });
@@ -360,7 +359,7 @@ function EditApplicantData(req, res) {
 
   db.query(q, values, (err, data) => {
     if (err) {
-      res.send("error")
+      res.send("error");
       console.log(err);
     } else {
       res.send("success");
@@ -383,7 +382,7 @@ function GetNoteDetails(req, res) {
 }
 
 function GetListOfPositions(req, res) {
-  const q = `SELECT DISTINCT position_applied FROM applicant_tracking`
+  const q = `SELECT DISTINCT position_applied FROM applicant_tracking`;
 
   db.query(q, (err, data) => {
     if (err) return res.json(err);
@@ -395,12 +394,12 @@ function GetApplicantStatusStatistics(req, res) {
   const { position = "" } = req.query;
 
   let jobApplied = position;
-  console.log("JA: ", jobApplied)
+  console.log("JA: ", jobApplied);
 
-  let query
+  let query;
 
-  (jobApplied !== "") ?
-    query = `SELECT 
+  jobApplied !== ""
+    ? (query = `SELECT 
       COUNT(case when status = 'Sent Test' then 1 else null end) as sent_test,
       COUNT(case when status = 'First Interview Stage' then 1 else null end) as first_interview_stage,
       COUNT(case when status = 'Second Interview Stage' then 1 else null end) as second_interview_stage,
@@ -417,8 +416,8 @@ function GetApplicantStatusStatistics(req, res) {
       COUNT(case when status = 'Abandoned' then 1 else null end) as abandoned,
       COUNT(case when status = 'No Show' then 1 else null end) as no_show,
       COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted
-      FROM applicant_tracking WHERE position_applied = ?`
-  : query = `SELECT 
+      FROM applicant_tracking WHERE position_applied = ?`)
+    : (query = `SELECT 
       COUNT(case when status = 'Sent Test' then 1 else null end) as sent_test,
       COUNT(case when status = 'First Interview Stage' then 1 else null end) as first_interview_stage,
       COUNT(case when status = 'Second Interview Stage' then 1 else null end) as second_interview_stage,
@@ -435,8 +434,7 @@ function GetApplicantStatusStatistics(req, res) {
       COUNT(case when status = 'Abandoned' then 1 else null end) as abandoned,
       COUNT(case when status = 'No Show' then 1 else null end) as no_show,
       COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted
-      FROM applicant_tracking`
-
+      FROM applicant_tracking`);
 
   db.query(query, jobApplied, (err, data) => {
     if (err) return res.json(err);
@@ -513,47 +511,51 @@ function GetApplicantNotesFromInterview(req, res) {
 }
 
 function GetMentionInterviewers(req, res) {
-    const cid = req.session.user[0].company_id;
-    const uid = req.session.user[0].emp_id;
-    // const q = "SELECT e.emp_id AS id, CONCAT(e.f_name, ' ', e.s_name) AS display FROM emp AS e INNER JOIN hr_access ha ON e.emp_id = ha.hr_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND e.emp_id != ? AND e.date_separated IS NULL AND ha.access_applicant_tracking = 1 ORDER BY e.f_name"
-    const q = "SELECT e.emp_id AS id, substring_index(work_email, '@', 1) AS display FROM emp AS e INNER JOIN hr_access ha ON e.emp_id = ha.hr_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND e.emp_id != ? AND e.date_separated IS NULL AND ha.access_applicant_tracking = 1 ORDER BY e.f_name"
+  const cid = req.session.user[0].company_id;
+  const uid = req.session.user[0].emp_id;
+  // const q = "SELECT e.emp_id AS id, CONCAT(e.f_name, ' ', e.s_name) AS display FROM emp AS e INNER JOIN hr_access ha ON e.emp_id = ha.hr_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND e.emp_id != ? AND e.date_separated IS NULL AND ha.access_applicant_tracking = 1 ORDER BY e.f_name"
+  const q =
+    "SELECT e.emp_id AS id, substring_index(work_email, '@', 1) AS display FROM emp AS e INNER JOIN hr_access ha ON e.emp_id = ha.hr_id INNER JOIN emp_designation AS em ON em.emp_id = e.emp_id WHERE em.company_id = ? AND e.emp_id != ? AND e.date_separated IS NULL AND ha.access_applicant_tracking = 1 ORDER BY e.f_name";
 
-    db.query(q, [cid, uid], (err, data) => {
-        if (err) {
-            res.send("error");
-        } else {
-            res.json(data);
-        }
-    });
+  db.query(q, [cid, uid], (err, data) => {
+    if (err) {
+      res.send("error");
+    } else {
+      res.json(data);
+    }
+  });
 }
 
 //Notes
 
 async function InsertApplicantNotes(req, res) {
   const uid = req.session.user[0].emp_id;
-  const emp_email = req.session.user[0].work_email.substring(0, req.session.user[0].work_email.indexOf("@"))
+  const emp_email = req.session.user[0].work_email.substring(
+    0,
+    req.session.user[0].work_email.indexOf("@")
+  );
   const q =
     "INSERT INTO applicant_notes (`interview_id`, `note_type`, `noter_id`, `note_body`) VALUES (?)";
 
-    const blocks = [
-        {
-          "type": "section",
-          "text": {
-              "type": "mrkdwn",
-              "text": `<@${emp_email}> shared a note for ${req.body.applicant}`
-          }
-        },
-        {
-          "type": "divider"
-         },
-        {
-          "type": "section",
-          "text": {
-              "type": "mrkdwn",
-              "text": `${req.body.note_body}`
-          }
-        }
-    ]
+  const blocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `<@${emp_email}> shared a note for ${req.body.applicant}`,
+      },
+    },
+    {
+      type: "divider",
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `${req.body.note_body}`,
+      },
+    },
+  ];
 
   console.log(req.body);
 
@@ -574,7 +576,7 @@ async function InsertApplicantNotes(req, res) {
     channel: process.env.SLACK_CHANNEL_ATS,
     text: "New ATS Message",
     blocks,
-    })
+  });
 }
 
 //
@@ -612,14 +614,14 @@ function SearchApplicantList(req, res) {
 
   const { searchTerm = "" } = req.query;
 
-  let query
+  let query;
 
   // (active == 0) ?
-  query = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, position_applied, email, source, status) LIKE ?`
+  query = `SELECT * FROM applicant_tracking WHERE CONCAT(f_name, s_name, position_applied, email, source, status) LIKE ?`;
   // :
   // query = `SELECT * FROM applicant_tracking
-  // WHERE status != 'Withdrawn Application' 
-  // AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show' 
+  // WHERE status != 'Withdrawn Application'
+  // AND status != 'Job Offer Rejected' AND status != 'Not Fit' AND status != 'Abandoned' AND status != 'No Show'
   // AND status != 'Blacklisted' AND status != 'Started Work'
   // CONCAT(f_name, s_name, m_name, position_applied, email, source, status, reason_for_rejection, reason_for_blacklist) LIKE ?`
 
@@ -646,7 +648,7 @@ function ChangeStatus(req, res) {
   db.query(q, [req.body.status, req.body.app_id], (err, data) => {
     if (err) {
       console.log(err);
-      res.send("error")
+      res.send("error");
     } else {
       res.send("success");
       console.log(data);
@@ -682,8 +684,7 @@ function CreateDiscussionBoxAndLockedNotes(req, res) {
 function RetrieveOfferTemplates(req, res) {
   const cid = req.session.user[0].company_id;
 
-  const aq =
-    "SELECT * FROM email_templates WHERE company_id = ?";
+  const aq = "SELECT * FROM email_templates WHERE company_id = ?";
   db.query(aq, cid, (err, data) => {
     if (err) {
       res.send(err);
@@ -695,56 +696,184 @@ function RetrieveOfferTemplates(req, res) {
 
 //Locked Notes
 function GetLockedNoteDetails(req, res) {
-    const note_id = req.body.note_id;
-    const q =
-      "SELECT * FROM applicant_locked_notes INNER JOIN emp ON emp_id = noter_id WHERE note_id = ? ORDER BY noted_at;";
-  
-    db.query(q, [note_id], (err, data) => {
-      if (err) return res.json(err);
-      return res.json(data);
-    });
-  }
+  const note_id = req.body.note_id;
+  const q =
+    "SELECT * FROM applicant_locked_notes INNER JOIN emp ON emp_id = noter_id WHERE note_id = ? ORDER BY noted_at;";
 
-  function InsertApplicantLockedNotes(req, res) {
-    const app_id = req.params.app_id;
-    const uid = req.session.user[0].emp_id;
+  db.query(q, [note_id], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+}
 
-    const q =
-      "INSERT INTO applicant_locked_notes (`applicant_id`, `noter_id`, `note_body`) VALUES (?)";
-  
-    console.log(req.body);
-  
-    const values = [app_id, uid, req.body.note_body];
-  
-    db.query(q, [values], (err, data) => {
-      if (err) {
-        res.send("error");
-        console.log(data);
-      } else {
-        res.sendStatus(200);
-        console.log(data);
-      }
-    });
-  }
+function InsertApplicantLockedNotes(req, res) {
+  const app_id = req.params.app_id;
+  const uid = req.session.user[0].emp_id;
 
-  function GetApplicantLockedNotes(req, res) {
-    const app_id = req.params.app_id;
-    const { interviewNo = 1 } = req.query;
-    let parsedNumber = parseInt(interviewNo);
-    // console.log("APP: ", app_id)
-    // console.log("No: ", parsedNumber)
-  
-    const q = `SELECT aln.*, e.emp_pic, e.f_name, e.s_name FROM applicant_locked_notes aln LEFT JOIN emp e ON aln.noter_id = e.emp_id WHERE aln.applicant_id = ?`;
-  
-    db.query(q, [app_id], (err, data) => {
-      if (err) return res.json(err);
-      else {
-        res.send(data);
-        //   console.log(data)
-      }
-    });
-  }
-  
+  const q =
+    "INSERT INTO applicant_locked_notes (`applicant_id`, `noter_id`, `note_body`) VALUES (?)";
+
+  console.log(req.body);
+
+  const values = [app_id, uid, req.body.note_body];
+
+  db.query(q, [values], (err, data) => {
+    if (err) {
+      res.send("error");
+      console.log(data);
+    } else {
+      res.sendStatus(200);
+      console.log(data);
+    }
+  });
+}
+
+function GetApplicantLockedNotes(req, res) {
+  const app_id = req.params.app_id;
+  const { interviewNo = 1 } = req.query;
+  let parsedNumber = parseInt(interviewNo);
+  // console.log("APP: ", app_id)
+  // console.log("No: ", parsedNumber)
+
+  const q = `SELECT aln.*, e.emp_pic, e.f_name, e.s_name FROM applicant_locked_notes aln LEFT JOIN emp e ON aln.noter_id = e.emp_id WHERE aln.applicant_id = ?`;
+
+  db.query(q, [app_id], (err, data) => {
+    if (err) return res.json(err);
+    else {
+      res.send(data);
+      //   console.log(data)
+    }
+  });
+}
+
+// requisition stats
+
+function GetApplicants(req, res) {
+  db.query("SELECT * FROM applicant_tracking", (error, result, fields) => {
+    res.status(200).json(result);
+  });
+}
+
+function GetPositions(req, res) {
+  db.query(
+    "SELECT DISTINCT position_applied FROM applicant_tracking",
+    (error, result, fields) => {
+      res.status(200).json(result);
+    }
+  );
+}
+
+function GetFilterByMonth(req, res) {
+  const position = req.query.position;
+  const query = `
+      SELECT 
+          position_applied,
+          COUNT(CASE 
+              WHEN status IN ('Not fit', 'Withdrawn Application', 'Blacklisted', 'No Show', 'Abandoned') THEN 1 
+              ELSE NULL 
+          END) AS 'Closed Applications',
+          COUNT(CASE 
+              WHEN status IN ('Job Offer Accepted', 'Started Work', 'Job Offer Rejected', 'Job Offer Sent') THEN 1 
+              ELSE NULL 
+          END) AS 'Passed Applications',
+          COUNT(CASE 
+              WHEN status NOT IN ('Not fit', 'Withdrawn Application', 'Blacklisted', 'No Show', 'Abandoned', 'Job Offer Accepted', 'Started Work', 'Job Offer Rejected', 'Job Offer Sent') THEN 1 
+              ELSE NULL 
+          END) AS 'On Progress Applications',
+          YEAR(app_start_date) AS Year,
+          MONTH(app_start_date) AS Month
+      FROM 
+          applicant_tracking
+      WHERE 
+          position_applied = ?
+      GROUP BY 
+          position_applied, 
+          YEAR(app_start_date), 
+          MONTH(app_start_date);
+  `;
+
+  db.query(query, [position], (error, result, fields) => {
+    if (error) {
+      res.status(500).json({ error: "Database query error" });
+    } else {
+      res.status(200).json(result);
+    }
+  });
+}
+
+function GetFilterByQuarter(req, res) {
+  const position = req.query.position;
+  const query = `
+      SELECT 
+          position_applied,
+          COUNT(CASE 
+              WHEN status IN ('Not fit', 'Withdrawn Application', 'Blacklisted', 'No Show', 'Abandoned') THEN 1 
+              ELSE NULL 
+          END) AS 'Closed Applications',
+          COUNT(CASE 
+              WHEN status IN ('Job Offer Accepted', 'Started Work', 'Job Offer Rejected', 'Job Offer Sent') THEN 1 
+              ELSE NULL 
+          END) AS 'Passed Applications',
+          COUNT(CASE 
+              WHEN status NOT IN ('Not fit', 'Withdrawn Application', 'Blacklisted', 'No Show', 'Abandoned', 'Job Offer Accepted', 'Started Work', 'Job Offer Rejected', 'Job Offer Sent') THEN 1 
+              ELSE NULL 
+          END) AS 'On Progress Applications',
+          YEAR(app_start_date) AS Year,
+          QUARTER(app_start_date) AS Quarter
+      FROM 
+          applicant_tracking
+      WHERE 
+          position_applied = ?
+      GROUP BY 
+          position_applied, 
+          YEAR(app_start_date), 
+          QUARTER(app_start_date);
+  `;
+
+  db.query(query, [position], (error, result, fields) => {
+    if (error) {
+      res.status(500).json({ error: "Database query error" });
+    } else {
+      res.status(200).json(result);
+    }
+  });
+}
+
+function GetFilterByYear(req, res) {
+  const position = req.query.position;
+  const query = `
+      SELECT 
+          position_applied,
+          COUNT(CASE 
+              WHEN status IN ('Not fit', 'Withdrawn Application', 'Blacklisted', 'No Show', 'Abandoned') THEN 1 
+              ELSE NULL 
+          END) AS 'Closed Applications',
+          COUNT(CASE 
+              WHEN status IN ('Job Offer Accepted', 'Started Work', 'Job Offer Rejected', 'Job Offer Sent') THEN 1 
+              ELSE NULL 
+          END) AS 'Passed Applications',
+          COUNT(CASE 
+              WHEN status NOT IN ('Not fit', 'Withdrawn Application', 'Blacklisted', 'No Show', 'Abandoned', 'Job Offer Accepted', 'Started Work', 'Job Offer Rejected', 'Job Offer Sent') THEN 1 
+              ELSE NULL 
+          END) AS 'On Progress Applications',
+          YEAR(app_start_date) AS Year
+      FROM 
+          applicant_tracking
+      WHERE 
+          position_applied = ?
+      GROUP BY 
+          position_applied, 
+          YEAR(app_start_date);
+  `;
+
+  db.query(query, [position], (error, result, fields) => {
+    if (error) {
+      res.status(500).json({ error: "Database query error" });
+    } else {
+      res.status(200).json(result);
+    }
+  });
+}
 
 module.exports = {
   InsertApplicantsData,
@@ -782,5 +911,12 @@ module.exports = {
   GetLockedNoteDetails,
   GetApplicantLockedNotes,
   GetMentionInterviewers,
-  GetListOfPositions
+  GetListOfPositions,
+
+  // Requisition Stats,
+  GetApplicants,
+  GetPositions,
+  GetFilterByMonth,
+  GetFilterByQuarter,
+  GetFilterByYear,
 };
