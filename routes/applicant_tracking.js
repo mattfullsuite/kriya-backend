@@ -1,5 +1,6 @@
 var express = require("express");
 const upload = require('../upload.js');
+const { GetApplicants, GetPositions, GetFilterByMonth, GetFilterByQuarter, GetFilterByYear } = require("../controller/applicant_tracking_controller.js");
 var imports =  {
     InsertApplicantsData,
     GetApplicantsFromDatabase,
@@ -83,6 +84,13 @@ router.post("/ats-sendEmailLetter/:app_id", upload.single('file'), SendEmailToAp
 //Locked Notes
 router.post("/ats-getLockedNoteDetails", GetLockedNoteDetails);
 router.post("/ats-insertApplicantLockedNotes/:app_id", InsertApplicantLockedNotes);
-router.get("/ats-getApplicantLockedNotes/:app_id", GetApplicantLockedNotes)
+router.get("/ats-getApplicantLockedNotes/:app_id", GetApplicantLockedNotes);
+
+// Requisition Stats
+router.get("/get-all-applicants", GetApplicants);
+router.get("/get-all-positions", GetPositions);
+router.get("/get-filteredData-byMonth", GetFilterByMonth);
+router.get("/get-filteredData-byQuarter", GetFilterByQuarter);
+router.get("/get-filteredData-byYear", GetFilterByYear);
 
 module.exports = router;

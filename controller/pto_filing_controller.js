@@ -236,13 +236,13 @@ async function FileLeave(req, res){
                       port: 465,
                       secure: true,
                       auth: {
-                        user: "marvin@fullsuite.ph",
-                        pass: "uggm nyyd ymnb szrx",
+                        user: "tech@kriyahr.com",
+                        pass: "faew yxtz hkhb njnm",
                       },
                     });
         
                     transporter.sendMail({
-                      from: "marvin@fullsuite.ph", // sender address
+                      from: "tech@kriyahr.com", // sender address
                       to: data[0].work_email, // list of receivers
                       subject: `Leave Request | ${req.session.user[0].f_name + " " + req.session.user[0].s_name}`, // Subject line
                       text: "Leave Request", // plain text body
@@ -373,13 +373,13 @@ async function ApproveLeave(req, res) {
                   port: 465,
                   secure: true,
                   auth: {
-                    user: "marvin@fullsuite.ph",
-                    pass: "uggm nyyd ymnb szrx",
+                    user: "tech@kriyahr.com",
+                    pass: "hbip byni lolx dyfs",
                   },
                 });
 
                 transporter.sendMail({
-                  from: "marvin@fullsuite.ph", // sender address
+                  from: "tech@kriyahr.com", // sender address
                   to: data3[0].work_email, // list of receivers
                   subject: `Leave approved | ${data2[0].leave_type}`, // Subject line
                   text: "Leave Request", // plain text body
@@ -543,13 +543,13 @@ async function RejectLeave(req, res) {
                   port: 465,
                   secure: true,
                   auth: {
-                    user: "marvin@fullsuite.ph",
-                    pass: "uggm nyyd ymnb szrx",
+                    user: "tech@kriyahr.com",
+                    pass: "hbip byni lolx dyfs",
                   },
                 });
 
                 transporter.sendMail({
-                  from: "marvin@fullsuite.ph", // sender address
+                  from: "tech@kriyahr.com", // sender address
                   to: data3[0].work_email, // list of receivers
                   subject: `Leave declined | ${data2[0].leave_type}`, // Subject line
                   text: "Leave Declined", // plain text body
@@ -707,13 +707,13 @@ async function EscalateLeaves(req, res) {
                                 port: 465,
                                 secure: true,
                                 auth: {
-                                  user: "marvin@fullsuite.ph",
-                                  pass: "uggm nyyd ymnb szrx",
+                                  user: "tech@kriyahr.com",
+                                  pass: "hbip byni lolx dyfs",
                                 },
                               });
                   
                               transporter.sendMail({
-                                from: "marvin@fullsuite.ph", // sender address
+                                from: "tech@kriyahr.com", // sender address
                                 to: data3[0].work_email, // list of receivers
                                 subject: `Leave Request | Escalated by ${req.session.user[0].f_name} `, // Subject line
                                 text: "Leave Request", // plain text body
