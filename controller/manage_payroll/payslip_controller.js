@@ -22,8 +22,10 @@ const createPayslip = async (req, res) => {
       "Previous Net Pay 3": previous_net_pay_3,
       Filter: filter,
       "Filter ID": filter_id,
+      Notes: notes,
       Draft: draft,
     } = items;
+    const notesValue = notes ? notes : "";
 
     return [
       compID,
@@ -36,6 +38,7 @@ const createPayslip = async (req, res) => {
       previous_net_pay_1,
       previous_net_pay_2,
       previous_net_pay_3,
+      notesValue,
       uid,
       source,
       filter,
@@ -46,9 +49,9 @@ const createPayslip = async (req, res) => {
 
   try {
     await db.query(
-      `INSERT INTO payslip (company_id, emp_num, email, dates, payables, totals, net_salary, previous_net_pay_1, previous_net_pay_2, previous_net_pay_3, generated_by, source, filter, filter_id, draft) VALUES ?;`,
+      `INSERT INTO payslip (company_id, emp_num, email, dates, payables, totals, net_salary, previous_net_pay_1, previous_net_pay_2, previous_net_pay_3, notes, generated_by, source, filter, filter_id, draft) VALUES ?;`,
       [dataProcessed],
-      async (error, data) => {
+      async (error) => {
         if (error) {
           console.error(error);
           return res.sendStatus(500);
