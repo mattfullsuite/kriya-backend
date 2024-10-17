@@ -493,7 +493,7 @@ function GetEmployeeInitiated(req, res) {
   const uid = req.session.user[0].emp_id;
   const company_id = req.session.user[0].company_id;
 
-  const q ="SELECT sb.*, sbc.sender_id AS latest_sender_id, sbc.sb_chat AS latest_chat, sbc.sb_timestamp AS latest_chat_time, COALESCE((SELECT COUNT(*) FROM conversation_seen_status sbss WHERE sbss.sb_id = sb.sb_id AND sbss.is_seen = 0 AND sbss.receiver_id = ?), 0) AS count_chat, ed.company_id FROM suggestion_box sb LEFT JOIN suggestion_box_conversation sbc ON sb.sb_id = sbc.sb_id AND sbc.sb_timestamp = (SELECT MAX(sbc2.sb_timestamp) FROM suggestion_box_conversation sbc2 WHERE sbc2.sb_id = sb.sb_id) LEFT JOIN emp_designation ed ON sb.creator_id = ed.emp_id WHERE ((sb.hr_id = ? OR sb.hr_id IS NULL) AND sb.creator_id = ? AND ed.company_id = ?) ORDER BY count_chat DESC, sb.sb_date DESC, sbc.sb_timestamp DESC";
+  const q ="SELECT sb.*, sbc.sender_id AS latest_sender_id, sbc.sb_chat AS latest_chat, sbc.sb_timestamp AS latest_chat_time, COALESCE((SELECT COUNT(*) FROM conversation_seen_status sbss WHERE sbss.sb_id = sb.sb_id AND sbss.is_seen = 0 AND sbss.receiver_id = ?), 0) AS count_chat, ed.company_id FROM suggestion_box sb LEFT JOIN suggestion_box_conversation sbc ON sb.sb_id = sbc.sb_id AND sbc.sb_timestamp = (SELECT MAX(sbc2.sb_timestamp) FROM suggestion_box_conversation sbc2 WHERE sbc2.sb_id = sb.sb_id) LEFT JOIN emp_designation ed ON sb.creator_id = ed.emp_id WHERE ((sb.hr_id = ? OR sb.hr_id IS NULL) AND sb.creator_id != ? AND ed.company_id = ?) ORDER BY count_chat DESC, sb.sb_date DESC, sbc.sb_timestamp DESC";
 
   db.query(q, [uid, uid, uid, company_id], (err, data) => {
     if (err) {
@@ -526,11 +526,12 @@ function GetEmployeeInitiatedInfo(req, res) {
 
 function GetTicketsCount(req, res) {
   const uid = req.session.user[0].emp_id;
+  const company_id = req.session.user[0].company_id;
 
   const q =
-    "SELECT COUNT(css.sb_id) AS ticket_count FROM conversation_seen_status css INNER JOIN suggestion_box sb ON css.sb_id = sb.sb_id WHERE css.receiver_id = ? AND css.is_seen = 0 AND sb.creator_id != ?";
+    "SELECT COUNT(css.sb_id) AS ticket_count FROM conversation_seen_status css INNER JOIN suggestion_box sb ON css.sb_id = sb.sb_id INNER JOIN emp_designation ed ON sb.creator_id = ed.emp_id WHERE css.receiver_id = ? AND css.is_seen = 0 AND sb.creator_id != ? AND ed.company_id = ?";
 
-  db.query(q, [uid, uid], (err, data) => {
+  db.query(q, [uid, uid, company_id], (err, data) => {
     if (err) console.log(err);
     else {
       res.json(data);
