@@ -78,6 +78,8 @@ var company_department = require("./routes/company/company_departments.js");
 var employee_contributions = require("./routes/employee/employee_contribution.js");
 var employee_salaries = require("./routes/employee/employee_salary.js");
 
+var recurring_pay = require("./routes/manage_payroll/recurring_pay.js");
+
 ///ep-getDataOfLoggedInUser
 
 //var ai = require("./routes/ai_generation.js")
@@ -247,12 +249,14 @@ io.on("connection", (socket) => {
     console.log(sendBothData.hr_id);
     console.log(sendBothData.creator_id);
 
-    socket.to(`suggestionBox-${sendBothData.creator_id}`).emit("addSuggestionBoxCount", {
-      count: 1,
-      sb_id: sendBothData.sb_id,
-      latest_chat: sendBothData.sb_chat,
-      latest_chat_time: sendBothData.sb_timestamp,
-    })
+    socket
+      .to(`suggestionBox-${sendBothData.creator_id}`)
+      .emit("addSuggestionBoxCount", {
+        count: 1,
+        sb_id: sendBothData.sb_id,
+        latest_chat: sendBothData.sb_chat,
+        latest_chat_time: sendBothData.sb_timestamp,
+      });
   });
 
   socket.on("sendClose", (sendCloseData) => {
@@ -302,7 +306,10 @@ io.on("connection", (socket) => {
 
   socket.on("minusSuggestionBoxCount", (minusSbCountData) => {
     console.log("SB count: " + minusSbCountData.count);
-    io.to(`suggestionBox-${minusSbCountData.creator_id}`).emit("minusSuggestionBoxCount", minusSbCountData.count);
+    io.to(`suggestionBox-${minusSbCountData.creator_id}`).emit(
+      "minusSuggestionBoxCount",
+      minusSbCountData.count
+    );
   });
 });
 // ------- end of socket.io ------- //
@@ -365,6 +372,8 @@ app.use(company_management);
 app.use(company_configuration);
 app.use(company_division);
 app.use(company_department);
+
+app.use(recurring_pay);
 
 //app.use(ai)
 
