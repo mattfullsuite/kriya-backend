@@ -132,7 +132,7 @@ const updateUserDispute = (req, res) => {
   db.query(
     q,
     [
-      req.bodu.dispute_status,
+      req.body.dispute_status,
       uid,
       moment().format("YYYY-MM-DD HH:mm:ss"),
       dispute_id,
