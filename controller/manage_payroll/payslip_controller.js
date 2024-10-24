@@ -67,10 +67,10 @@ const createPayslip = async (req, res) => {
 };
 
 const getUserPayslip = (req, res) => {
-  const uid = req.session.user[0].emp_num;
+  const uID = req.session.user[0].emp_id;
   const q =
-    "SELECT * FROM payslip WHERE emp_num = ? ORDER BY JSON_EXTRACT(`dates`, '$.Payment') DESC";
-  db.query(q, [uid], (err, rows) => {
+    "SELECT CONCAT(e.f_name,' ', IF(e.m_name IS NULL OR e.m_name = '', '', CONCAT(LEFT(e.m_name, 1), '.')), ' ', e.s_name) AS 'Name', e.emp_num AS 'Employee Number', p.* FROM payslip p INNER JOIN emp e ON e.emp_num = p.emp_num WHERE e.emp_id = ? AND draft = 0 ORDER BY JSON_EXTRACT(`dates`, '$.Payment') DESC";
+  db.query(q, [uID], (err, rows) => {
     if (err) return res.json(err);
     return res.status(200).json(rows);
   });
