@@ -35,11 +35,11 @@ async function createDispute(req, res) {
       },
     },
     {
-      "type": "section",
-      "text": {
-          "type": "mrkdwn",
-          "text": `*Appellant's Name:* ${fn} ${sn}`
-      }
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Appellant's Name:* ${fn} ${sn}`,
+      },
     },
     {
       type: "section",
@@ -77,7 +77,7 @@ async function createDispute(req, res) {
     text: "Attendance Dispute Ticket",
     blocks,
   });
-};
+}
 
 const viewDisputes = (req, res) => {
   const cid = req.session.user[0].company_id;
@@ -90,6 +90,17 @@ const viewDisputes = (req, res) => {
     return res.json(rows);
   });
 };
+
+const viewPayrollDisputes = (req, res) => {
+  const cID = req.session.user[0].company_id;
+  const q =
+    "SELECT e.emp_num, CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL and e.m_name != '', LEFT(e.m_name, 1), 'N/A'), '.', ' ',e.s_name) AS 'name', p.position_name, d.dispute_id, d.dispute_type, d.requester_id, d.dispute_title, d.dispute_body, d.dispute_status, CONCAT(e2.f_name, ' ', IF(e2.m_name IS NULL OR e2.m_name = '', ' ', CONCAT(SUBSTRING(e2.m_name, 1, 1), '. ')), e2.s_name) AS 'handled_by' ,d.raised_at, d.closed_at FROM `dispute` d INNER JOIN emp e ON e.emp_id = d.requester_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN position p on p.position_id = ed.position_id LEFT JOIN emp e2 on e2.emp_id = d.handled_by  WHERE d.dispute_type LIKE 'Pay Dispute' AND ed.company_id = ?";
+  db.query(q, [cID], (err, rows) => {
+    if (err) return res.json(err);
+    return res.json(rows);
+  });
+};
+
 const viewUserDisputes = (req, res) => {
   const uid = req.session.user[0].emp_id;
   const cid = req.session.user[0].company_id;
@@ -100,6 +111,18 @@ const viewUserDisputes = (req, res) => {
     return res.json(rows);
   });
 };
+
+const viewUserPayrollDisputes = (req, res) => {
+  const uID = req.session.user[0].emp_id;
+  const cID = req.session.user[0].company_id;
+  const q =
+    "SELECT d.*, CONCAT(e2.f_name, ' ', IFNULL(CONCAT(SUBSTRING(e2.m_name, 1, 1), '. '), ''), ' ', e2.s_name) as 'handler_name' FROM `dispute` d INNER JOIN emp e ON e.emp_id = d.requester_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id LEFT JOIN emp e2 ON e2.emp_id = d.handled_by WHERE d.dispute_type LIKE 'Pay Dispute' AND ed.company_id = ? AND d.requester_id = ?";
+  db.query(q, [cID, uID], (err, rows) => {
+    if (err) return res.json(err);
+    return res.json(rows);
+  });
+};
+
 const updateUserDispute = (req, res) => {
   const uid = req.session.user[0].emp_id;
   const cid = req.session.user[0].company_id;
@@ -266,15 +289,15 @@ function GetRequesters(req, res) {
 
   var q = "";
 
-  if(type == "all") {
+  if (type == "all") {
     q =
-    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? GROUP BY e.emp_id, p.position_name";
-  } else if(type == "attendance") {
+      "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? GROUP BY e.emp_id, p.position_name";
+  } else if (type == "attendance") {
     q =
-    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? AND dispute_type = 'Attendance Dispute' GROUP BY e.emp_id, p.position_name;";
-  } else if(type == "payroll") {
+      "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? AND dispute_type = 'Attendance Dispute' GROUP BY e.emp_id, p.position_name;";
+  } else if (type == "payroll") {
     q =
-    "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? AND dispute_type = 'Pay Dispute' GROUP BY e.emp_id, p.position_name;";
+      "SELECT e.emp_id, CONCAT(e.f_name, ' ', e.s_name) AS requester_name, p.position_name FROM dispute d INNER JOIN emp e ON d.requester_id = e.emp_id INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN position p ON ed.position_id = p.position_id WHERE d.dispute_status = 0 AND d.requester_id != ? AND ed.company_id = ? AND dispute_type = 'Pay Dispute' GROUP BY e.emp_id, p.position_name;";
   }
 
   db.query(q, [uid, company_id], (err, data) => {
@@ -288,7 +311,7 @@ function GetRequesters(req, res) {
 
 function GetRequesterDisputes(req, res) {
   const requester_id = req.params.requesterID;
-  const type = req.params.type
+  const type = req.params.type;
   const uid = req.session.user[0].emp_id;
   console.log(type);
 
@@ -297,15 +320,15 @@ function GetRequesterDisputes(req, res) {
   } else {
     var q = "";
 
-    if(type == "all") {
+    if (type == "all") {
       var q =
-      "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 ORDER BY raised_at DESC";
-    }else if(type == "attendance") {
+        "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 ORDER BY raised_at DESC";
+    } else if (type == "attendance") {
       var q =
-      "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 AND dispute_type = 'Attendance Dispute' ORDER BY raised_at DESC";
-    } else if(type == "payroll") {
+        "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 AND dispute_type = 'Attendance Dispute' ORDER BY raised_at DESC";
+    } else if (type == "payroll") {
       var q =
-      "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 AND dispute_type = 'Pay Dispute' ORDER BY raised_at DESC";
+        "SELECT * FROM dispute WHERE requester_id = ? AND dispute_status = 0 AND dispute_type = 'Pay Dispute' ORDER BY raised_at DESC";
     }
 
     db.query(q, [requester_id], (err, data) => {
@@ -317,7 +340,6 @@ function GetRequesterDisputes(req, res) {
     });
   }
 }
-
 
 function RequesterPastDisputes(req, res) {
   const requester_id = req.params.requesterID;
@@ -369,7 +391,9 @@ function GetRecentDisputes(req, res) {
 module.exports = {
   createDispute,
   viewDisputes,
+  viewPayrollDisputes,
   viewUserDisputes,
+  viewUserPayrollDisputes,
   updateUserDispute,
   //Attendance Dispute
   CreateAttendanceDispute,
