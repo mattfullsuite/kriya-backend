@@ -105,7 +105,7 @@ function GetApplicantsFromDatabase(req, res) {
   db.query(q, (err, data) => {
     if (err) {
       console.log(err);
-    } else {
+    } else {         
       res.json(data);
     }
   });

@@ -20,6 +20,7 @@ var imports =  {
     SearchProbationaryEmployees,
     PaginatedRegularEmployees,
     SearchRegularEmployees,
+    InsertBulkEmployeeData
 } = require( "../controller/employees_list_controller.js");
 
 const router = express.Router()
@@ -46,5 +47,9 @@ router.get("/em-searchProbationaryEmployeeList", SearchProbationaryEmployees);
 
 router.get("/em-paginatedRegularEmployees", PaginatedRegularEmployees);
 router.get("/em-searchRegularEmployeeList", SearchRegularEmployees);
+
+//Add Bulk
+
+router.post("/em-addBulkEmployeeCSV", InsertBulkEmployeeData);
 
 module.exports = router;
