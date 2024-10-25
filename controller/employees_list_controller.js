@@ -92,6 +92,8 @@ function PaginatedAllEmployees(req, res) {
 
     const { limit = 10, page = 1 } = req.query;
 
+    console.log("Query: ", req.query)
+
     const q1 = `SELECT COUNT(*) AS count FROM emp AS e LEFT JOIN emp_designation AS em ON e.emp_id=em.emp_id LEFT JOIN position AS p ON em.position_id = p.position_id LEFT JOIN leave_credits AS lc ON e.emp_id = lc.emp_id LEFT JOIN emp AS s ON e.superior_id = s.emp_id WHERE em.company_id = ?`
 
     db.query(q1, [cid], (err, data1) => {

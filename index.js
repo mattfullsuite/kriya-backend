@@ -67,6 +67,10 @@ var module_north_star = require("./routes/north_star.js");
 var module_task_notes = require("./routes/task_notes.js");
 var dispute = require("./routes/dispute.js");
 var suggestion_box = require("./routes/suggestion_box.js");
+var device_management = require("./routes/device_management.js");
+
+//memo generation
+var memo_generation = require("./routes/memo_generation.js");
 
 // company
 var company_configuration = require("./routes/company/company_configuration.js");
@@ -77,6 +81,14 @@ var company_department = require("./routes/company/company_departments.js");
 // employee
 var employee_contributions = require("./routes/employee/employee_contribution.js");
 var employee_salaries = require("./routes/employee/employee_salary.js");
+
+var Slack = require("@slack/bolt")
+var dotenv = require("dotenv")
+
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+//
+
 
 ///ep-getDataOfLoggedInUser
 
@@ -365,6 +377,10 @@ app.use(company_management);
 app.use(company_configuration);
 app.use(company_division);
 app.use(company_department);
+
+//device management
+app.use(device_management);
+app.use(memo_generation);
 
 //app.use(ai)
 
@@ -1531,17 +1547,6 @@ function dailyPtoAccrual() {
   });
 }
 
-// app.get("/getAllApprovers", (req, res) => {
-//     const uid = req.session.user[0].emp_id
-//     const q = "SELECT * FROM emp JOIN dept ON emp_id = manager_id WHERE emp_role = 3 AND emp_id != ?"
-
-//     db.query(q,[uid],
-//         (err,data)=> {
-//         if(err) { return res.json(err) }
-//         return res.json(data)
-//     })
-// })
-
 app.get("/getApprover", (req, res) => {
   const uid = req.session.user[0].emp_id;
   const q =
@@ -2437,65 +2442,53 @@ app.post("/reset-password/:user_key", (req, res) => {
   });
 });
 
-// --- suggestion box --- //
+const birthdays_app = new Slack.App({
+  signingSecret: process.env.SLACK_SIGNING_SECRET_BDAYS,
+  token: process.env.SLACK_BOT_TOKEN_BDAYS,
+})
 
-// GET methods
+function mentionBirthdays() {
 
-// // suggestion box
-// app.get("/sb-get-request-content/:request_id", (req, res) => {
-//   const uid = req.session.user[0].emp_id;
-//   const requestID = req.params.request_id;
+  const q = `SELECT work_email FROM emp e INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id 
+  WHERE MONTH(e.dob) = MONTH(NOW()) AND DAY(e.dob) = DAY(NOW())
+  AND ed.company_id = 1`;
 
-//   const q =
-//     "SELECT * FROM suggestion_box_request WHERE request_id = ? AND requester_id = ?";
+  db.query(q, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("Birthdays Today: ", data);
 
-//   db.query(q, [requestID, uid], (err, data) => {
-//     if (err) {
-//       return res.json(err);
-//     } else {
-//       if (data.length != 0) {
-//         return res.json(data);
-//       } else {
-//         return res.sendStatus(404);
-//       }
-//     }
-//   });
-// });
+      data.map((d) => {
+        console.log("D: ", d)
+        wishBirthday(d.work_email)
+      })
+    }
+  });
+}
 
-// app.get("/sb-get-request-conversation/:request_id", (req, res) => {
-//   const requestID = req.params.request_id;
+async function wishBirthday(email){
 
-//   const q =
-//     "SELECT request_id, sender_id, request_chat, request_timestamp, f_name, s_name, emp_pic, emp_role FROM suggestion_box_request_conversation AS sbc INNER JOIN emp ON sbc.sender_id = emp.emp_id  WHERE request_id = ?";
+  const e = email.substring(0, email.indexOf("@"))
 
-//   db.query(q, [requestID], (err, data) => {
-//     if (err) return res.json(err);
+  const blocks = [
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": `It's <@${e}>'s birthday today! Wish them a happy birthday!`
+        }
+        },
+    ]
 
-//     return res.json(data);
-//   });
-// });
+  await birthdays_app.client.chat.postMessage({
+  token: process.env.SLACK_BOT_TOKEN_BDAYS,
+  channel: process.env.SLACK_CHANNEL_BDAYS,
+  text: `Someone has a birthday today! Wish them a happy birthday.`,
+  blocks,
+  })
+}
 
-// // POST methods
-
-// app.post("/sb-insert-request-chat", (req, res) => {
-//   const request_id = req.body.requestID;
-//   const sender_id = req.session.user[0].emp_id;
-//   const request_chat = req.body.request_chat;
-//   const f_name = req.session.user[0].f_name;
-//   const s_name = req.session.user[0].s_name;
-//   const emp_pic = req.session.user[0].emp_pic;
-//   const request_timestamp = "2024-07-15T06:41:46.000Z";
-
-//   const q =
-//     "INSERT INTO suggestion_box_request_conversation (request_id, sender_id, request_chat) VALUES (?, ?, ?)";
-
-//   db.query(q, [request_id, sender_id, request_chat], (err) => {
-//     if (err) {
-//       console.log(err);
-//     } else {
-//       return res.sendStatus(200);
-//     }
-//   });
-// });
-
-// // --- end of suggestion box --- //
+cron.schedule("0 0 * * *", async function () {
+  mentionBirthdays()
+});
