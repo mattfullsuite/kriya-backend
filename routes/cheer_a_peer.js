@@ -53,6 +53,8 @@ var imports =  {
     //Get Hashtags
     GetHashtags,
     GetTopTenHashtags,
+    GetTopTenHashtagsForTheWeek,
+    GetTopTenHashtagsForTheMonth,
 
     //Paginated Optimized
     GetModifiedPaginatedCheersPost,
@@ -112,6 +114,8 @@ router.get("/cap-getMyRecentPosts", GetMyCheersPost)
 
 //Hashtags
 router.get("/cap-getHashtags", GetHashtags);
+router.get("/cap-getWeeklyTopTenHashtags", GetTopTenHashtagsForTheWeek);
+router.get("/cap-getMonthlyTopTenHashtags", GetTopTenHashtagsForTheMonth);
 router.get("/cap-getTopTenHashtags", GetTopTenHashtags);
 
 //Paginated

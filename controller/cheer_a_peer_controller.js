@@ -827,6 +827,42 @@ function GetTopTenHashtags(req, res) {
     })
 }
 
+function GetTopTenHashtagsForTheWeek(req, res) {
+    const uid = req.session.user[0].emp_id;
+
+    const startOfWeek = moment().startOf('week').format('YYYY-MM-DD hh:mm');
+    const endOfWeek   = moment().endOf('week').format('YYYY-MM-DD hh:mm');
+    
+    const q = `SELECT hashtags, SUM(cd.heartbits_given) AS sum_hb FROM cheer_post cp INNER JOIN cheer_designation cd ON cp.cheer_post_id = cd.cheer_post_id 
+    WHERE hashtags IS NOT NULL AND (cp.posted_at > ?) AND (cp.posted_at < ?)   GROUP BY hashtags ORDER BY sum_hb DESC LIMIT 5`
+    
+    db.query(q, [startOfWeek, endOfWeek], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data)
+        }
+    })
+}
+
+function GetTopTenHashtagsForTheMonth(req, res) {
+    const uid = req.session.user[0].emp_id;
+
+    const startOfMonth = moment().startOf('month').format('YYYY-MM-DD hh:mm');
+    const endOfMonth   = moment().endOf('month').format('YYYY-MM-DD hh:mm');
+    
+    const q = `SELECT hashtags, SUM(cd.heartbits_given) AS sum_hb FROM cheer_post cp INNER JOIN cheer_designation cd ON cp.cheer_post_id = cd.cheer_post_id 
+    WHERE hashtags IS NOT NULL AND (cp.posted_at > ?) AND (cp.posted_at < ?) GROUP BY hashtags ORDER BY sum_hb DESC LIMIT 5`
+    
+    db.query(q, [startOfMonth, endOfMonth], (err, data) => {
+        if (err) {
+            res.send("error");
+        } else {
+            res.json(data)
+        }
+    })
+}
+
 // PAGINATION OPTIMIZED
 
 function GetModifiedPaginatedCheersPost(req, res) {
@@ -1033,9 +1069,11 @@ module.exports = {
     GetHashtags,
 
     GetTopTenHashtags,
+    GetTopTenHashtagsForTheWeek,
+    GetTopTenHashtagsForTheMonth,
 
     //Paginated Optimized
     GetModifiedPaginatedCheersPost,
     GetPaginatedMyCheersPost,
-    GetPaginatedMostEngagedPosts
+    GetPaginatedMostEngagedPosts,
 }
