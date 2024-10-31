@@ -415,7 +415,10 @@ function GetApplicantStatusStatistics(req, res) {
       COUNT(case when status = 'Not Fit' then 1 else null end) as not_fit,
       COUNT(case when status = 'Abandoned' then 1 else null end) as abandoned,
       COUNT(case when status = 'No Show' then 1 else null end) as no_show,
-      COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted
+      COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted,
+      COUNT(case when status = 'Sent Interview Invitation' then 1 else null end) as sent_interview,
+      COUNT(case when status = 'AWOL' then 1 else null end) as awol,
+      COUNT(case when status = 'For Hiring Decision' then 1 else null end) as for_hiring_decision
       FROM applicant_tracking WHERE position_applied = ?`)
     : (query = `SELECT 
       COUNT(case when status = 'Sent Test' then 1 else null end) as sent_test,
@@ -433,7 +436,10 @@ function GetApplicantStatusStatistics(req, res) {
       COUNT(case when status = 'Not Fit' then 1 else null end) as not_fit,
       COUNT(case when status = 'Abandoned' then 1 else null end) as abandoned,
       COUNT(case when status = 'No Show' then 1 else null end) as no_show,
-      COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted
+      COUNT(case when status = 'Blacklisted' then 1 else null end) as blacklisted,
+      COUNT(case when status = 'Sent Interview Invitation' then 1 else null end) as sent_interview,
+      COUNT(case when status = 'AWOL' then 1 else null end) as awol,
+      COUNT(case when status = 'For Hiring Decision' then 1 else null end) as for_hiring_decision
       FROM applicant_tracking`);
 
   db.query(query, jobApplied, (err, data) => {
@@ -875,6 +881,56 @@ function GetFilterByYear(req, res) {
   });
 }
 
+//for clicking the 'Add New' in the ATS, this will check if there's a duplicate applicant
+function CheckDuplicate(req, res) {
+  const { f_name = "", m_name = "", s_name = "", email = "", contact_no = "" } = req.query;  
+  let conditions = [];
+  let values = [];
+
+  if (f_name) {
+    conditions.push("a.f_name LIKE ? OR a.f_name LIKE ?");
+    values.push("%" + f_name + "%");
+    values.push(f_name)
+  }
+  if (m_name) {
+    conditions.push("a.m_name LIKE ? OR a.m_name LIKE ?");
+    values.push("%" + m_name + "%");
+    values.push(m_name)
+  }
+  if (s_name) {
+    conditions.push("a.s_name LIKE ? OR a.s_name LIKE ?");
+    values.push("%" + s_name + "%");
+    values.push(s_name)
+  }
+  if (email) {
+    conditions.push("a.email LIKE ?");
+    values.push("%" + email + "%");
+  }
+  if (contact_no) {
+    conditions.push("a.contact_no LIKE ?");
+    values.push("%" + contact_no + "%");
+  }
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(" OR ")}` : "";
+
+  const query = 
+  `SELECT app_id, s_name, f_name, m_name, email, contact_no, app_start_date, position_applied, status
+  FROM applicant_tracking a 
+  ${whereClause} 
+  GROUP BY app_id, s_name, f_name, m_name, email, contact_no;`
+
+  db.query(query, values, (err, data) => {
+    if (err) {
+      res.send("err");
+    } else if (data.length == 0){
+      res.send("none");
+    } else {
+      res.send(data);
+    }
+  });
+}
+
+
 module.exports = {
   InsertApplicantsData,
   GetApplicantsFromDatabase,
@@ -919,4 +975,7 @@ module.exports = {
   GetFilterByMonth,
   GetFilterByQuarter,
   GetFilterByYear,
+
+  //ATS Duplicate Checker
+  CheckDuplicate, 
 };
