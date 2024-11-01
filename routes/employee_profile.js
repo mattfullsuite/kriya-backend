@@ -11,7 +11,7 @@ const {
   //Payrun Start
   GetEmployeeInfoForUploadPayrun,
   GetActiveEmployees,
-  GetEmploymentRecords
+  GetEmploymentRecords,
   //Payrun End
 } = require("../controller/employee_profile_controller");
 const {
@@ -49,12 +49,12 @@ router.patch(
 );
 /// Payrun Start
 router.get(
-  "/ep-getEmployeeInfoForUploadPayrun/:email",
+  "/ep-getEmployeeInfoForUploadPayrun/:empID",
   GetEmployeeInfoForUploadPayrun
 );
 router.get("/ep-getActiveEmployees", GetActiveEmployees);
 //Payrun End
 
-router.get("/ep-getEmployeeRecords/:emp_id", GetEmploymentRecords)
+router.get("/ep-getEmployeeRecords/:emp_id", GetEmploymentRecords);
 
 module.exports = router;
