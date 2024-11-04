@@ -433,7 +433,7 @@ function EditEmployeePTO(req, res) {
 function GetEmployeeInfoForUploadPayrun(req, res) {
   const empID = req.params.empID;
   const q =
-    "SELECT e.`emp_num` AS 'Employee ID', e.work_email as `Email`, e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name' , p.`position_name` AS 'Job Title',  e.`date_hired` AS 'Hire Date' FROM `emp` e INNER JOIN `emp_designation` ed ON e.emp_id = ed.emp_id INNER JOIN `position` p ON p.position_id = ed.position_id WHERE e.emp_num = ?";
+    "SELECT e.`emp_num` AS 'Employee ID', e.work_email as `Email`, e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name' , p.`position_name` AS 'Job Title',  e.`date_hired` AS 'Hire Date' FROM `emp` e INNER JOIN `emp_designation` ed ON e.emp_id = ed.emp_id INNER JOIN `position` p ON p.position_id = ed.position_id WHERE e.work_email = ?";
 
   db.query(q, [empID], (err, data) => {
     if (err) return res.json(err);
