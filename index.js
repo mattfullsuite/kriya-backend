@@ -156,155 +156,167 @@ app.use(function (req, res, next) {
 });
 
 // ------- socket.io ------- //
-// const io = new Server(server, {
-//   cors: {
-//     origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
-//     methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
-//     transports: ["websocket", "polling"],
-//     credentials: true,
-//   },
-// });
+const io = new Server(server, {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
+  pingTimeout: 60000,  // 60 seconds
+  pingInterval: 25000, // 25 seconds - time between pings
+  cors: {
+    origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
+    methods: ["GET", "PATCH", "POST", "DELETE", "OPTIONS"],
+    transports: ["websocket", "polling"],
+    credentials: true,
+  },
+});
 
-// io.on("connection", (socket) => {
-//   console.log("A user is connected: " + socket.id);
+io.on("connection", (socket) => {
+  console.log("A user is connected: " + socket.id);
 
-//   socket.on("joinRoom", (joinData) => {
-//     if (socket.rooms.has(joinData)) {
-//       console.log("Socket is already in the room");
-//       console.log("Rooms:");
-//       console.log(socket.rooms);
-//     } else {
-//       console.log("Room: " + joinData);
-//       socket.join(joinData);
-//       console.log("Socket joined the room");
-//       console.log("Rooms:");
-//       console.log(socket.rooms);
-//     }
-//   });
+  socket.on("joinRoom", (joinData) => {
+    if (socket.rooms.has(joinData)) {
+      console.log("Socket is already in the room");
+      console.log("Rooms:");
+      console.log(socket.rooms);
+    } else {
+      console.log("Room: " + joinData);
+      socket.join(joinData);
+      console.log("Socket joined the room");
+      console.log("Rooms:");
+      console.log(socket.rooms);
+    }
+  });
 
-//   socket.on("leaveRoom", (leaveData) => {
-//     socket.leave(leaveData);
-//   });
+  socket.on("leaveRoom", (leaveData) => {
+    socket.leave(leaveData);
+  });
 
-//   socket.on("sendHrRequestMessage", (sendHrRequestData) => {
-//     socket
-//       .to(sendHrRequestData.request_id)
-//       .emit("receiveHrRequestMessage", sendHrRequestData);
-//   });
+  socket.on("sendHrRequestMessage", (sendHrRequestData) => {
+    socket
+      .to(sendHrRequestData.request_id)
+      .emit("receiveHrRequestMessage", sendHrRequestData);
+  });
 
-//   socket.on("sendRequesterMessage", (sendRequesterData) => {
-//     socket
-//       .to(sendRequesterData.request_id)
-//       .emit("receiveRequesterMessage", sendRequesterData);
-//   });
+  socket.on("sendRequesterMessage", (sendRequesterData) => {
+    socket
+      .to(sendRequesterData.request_id)
+      .emit("receiveRequesterMessage", sendRequesterData);
+  });
 
-//   socket.on("sendHrComplaintMesssage", (sendHrComplaintData) => {
-//     socket
-//       .to(sendHrComplaintData.complaint_id)
-//       .emit("receiveHrComplaintMessage", sendHrComplaintData);
-//   });
+  socket.on("sendHrComplaintMesssage", (sendHrComplaintData) => {
+    socket
+      .to(sendHrComplaintData.complaint_id)
+      .emit("receiveHrComplaintMessage", sendHrComplaintData);
+  });
 
-//   socket.on("sendComplainantMessage", (sendHrComplainantData) => {
-//     socket
-//       .to(sendHrComplainantData.complaint_id)
-//       .emit("receiveComplainantMessage", sendHrComplainantData);
-//   });
+  socket.on("sendComplainantMessage", (sendHrComplainantData) => {
+    socket
+      .to(sendHrComplainantData.complaint_id)
+      .emit("receiveComplainantMessage", sendHrComplainantData);
+  });
 
-//   socket.on("closeComplaint", (closeComplaintData) => {
-//     socket
-//       .to(closeComplaintData.complaintID)
-//       .emit("receiveCloseComplaint", closeComplaintData.is_resolved);
-//   });
+  socket.on("closeComplaint", (closeComplaintData) => {
+    socket
+      .to(closeComplaintData.complaintID)
+      .emit("receiveCloseComplaint", closeComplaintData.is_resolved);
+  });
 
-//   socket.on("closeRequest", (closeRequestData) => {
-//     socket
-//       .to(closeRequestData.requestID)
-//       .emit("receiveCloseRequest", closeRequestData.is_resolved);
-//   });
+  socket.on("closeRequest", (closeRequestData) => {
+    socket
+      .to(closeRequestData.requestID)
+      .emit("receiveCloseRequest", closeRequestData.is_resolved);
+  });
 
-//   socket.on("sendHRMessage", (sendHrData) => {
-//     socket.to(sendHrData.sb_id).emit("receiveHrData", sendHrData);
+  socket.on("sendHRMessage", (sendHrData) => {
+    socket.to(sendHrData.sb_id).emit("receiveHrData", sendHrData);
 
-//     if (sendHrData.receiver_id !== null) {
-//       socket.to(`tickets-${sendHrData.receiver_id}`).emit("addTicketCount", {
-//         count: 1,
-//         sb_id: sendHrData.sb_id,
-//         latest_chat: sendHrData.sb_chat,
-//         latest_chat_time: sendHrData.sb_timestamp,
-//       });
-//     } else {
-//       socket.to(`tickets-all`).emit("addTicketCount", {
-//         count: 1,
-//         sb_id: sendHrData.sb_id,
-//         latest_chat: sendHrData.sb_chat,
-//         latest_chat_time: sendHrData.sb_timestamp,
-//       });
-//     }
-//   });
+    if (sendHrData.receiver_id !== null) {
+      socket.to(`tickets-${sendHrData.receiver_id}`).emit("addTicketCount", {
+        count: 1,
+        sb_id: sendHrData.sb_id,
+        latest_chat: sendHrData.sb_chat,
+        latest_chat_time: sendHrData.sb_timestamp,
+      });
+    } else {
+      socket.to(`tickets-all`).emit("addTicketCount", {
+        count: 1,
+        sb_id: sendHrData.sb_id,
+        latest_chat: sendHrData.sb_chat,
+        latest_chat_time: sendHrData.sb_timestamp,
+      });
+    }
+  });
 
-//   socket.on("sendBoth", (sendBothData) => {
-//     socket.to(sendBothData.sb_id).emit("receiveBothData", sendBothData);
-//     console.log(sendBothData.hr_id);
-//     console.log(sendBothData.creator_id);
+  socket.on("sendBoth", (sendBothData) => {
+    socket.to(sendBothData.sb_id).emit("receiveBothData", sendBothData);
+    console.log(sendBothData.hr_id);
+    console.log(sendBothData.creator_id);
 
-//     socket.to(`suggestionBox-${sendBothData.creator_id}`).emit("addSuggestionBoxCount", {
-//       count: 1,
-//       sb_id: sendBothData.sb_id,
-//       latest_chat: sendBothData.sb_chat,
-//       latest_chat_time: sendBothData.sb_timestamp,
-//     })
-//   });
+    socket.to(`suggestionBox-${sendBothData.creator_id}`).emit("addSuggestionBoxCount", {
+      count: 1,
+      sb_id: sendBothData.sb_id,
+      latest_chat: sendBothData.sb_chat,
+      latest_chat_time: sendBothData.sb_timestamp,
+    })
+  });
 
-//   socket.on("sendClose", (sendCloseData) => {
-//     socket.to(sendCloseData.sb_id).emit("receiveClose", sendCloseData);
-//   });
+  socket.on("sendClose", (sendCloseData) => {
+    socket.to(sendCloseData.sb_id).emit("receiveClose", sendCloseData);
+  });
 
-//   socket.on("newSuggestionBox", (newSuggestionBoxData) => {
-//     if (newSuggestionBoxData.hr_id === null) {
-//       socket
-//         .to("newSuggestionBoxAll")
-//         .emit("receiveNewAll", newSuggestionBoxData);
-//       socket
-//         .to(`tickets-all`)
-//         .emit("addTicketCount", { count: 1, newMessage: true });
-//       io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit(
-//         "addNewSuggestion",
-//         newSuggestionBoxData
-//       );
-//     } else {
-//       socket
-//         .to(`newSuggestionBox-${newSuggestionBoxData.hr_id}`)
-//         .emit("receiveNewOnlyMe", newSuggestionBoxData);
-//       socket
-//         .to(`tickets-${newSuggestionBoxData.hr_id}`)
-//         .emit("addTicketCount", { count: 1, newMessage: true });
-//       io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit(
-//         "addNewSuggestion",
-//         newSuggestionBoxData
-//       );
-//     }
-//   });
+  socket.on("newSuggestionBox", (newSuggestionBoxData) => {
+    if (newSuggestionBoxData.hr_id === null) {
+      socket
+        .to("newSuggestionBoxAll")
+        .emit("receiveNewAll", newSuggestionBoxData);
+      socket
+        .to(`tickets-all`)
+        .emit("addTicketCount", { count: 1, newMessage: true });
+      io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit(
+        "addNewSuggestion",
+        newSuggestionBoxData
+      );
+    } else {
+      socket
+        .to(`newSuggestionBox-${newSuggestionBoxData.hr_id}`)
+        .emit("receiveNewOnlyMe", newSuggestionBoxData);
+      socket
+        .to(`tickets-${newSuggestionBoxData.hr_id}`)
+        .emit("addTicketCount", { count: 1, newMessage: true });
+      io.to(`suggestionBox-${newSuggestionBoxData.creator_id}`).emit(
+        "addNewSuggestion",
+        newSuggestionBoxData
+      );
+    }
+  });
 
-//   socket.on("newEmployeeTickets", (newEmployeeTicketsData) => {
-//     io.to(`employeeTicket-${newEmployeeTicketsData.requester_id}`).emit(
-//       "newRequesterTicket",
-//       newEmployeeTicketsData
-//     );
-//   });
+  socket.on("newEmployeeTickets", (newEmployeeTicketsData) => {
+    io.to(`employeeTicket-${newEmployeeTicketsData.requester_id}`).emit(
+      "newRequesterTicket",
+      newEmployeeTicketsData
+    );
+  });
 
-//   socket.on("minusTicketCount", (minusTicketCountData) => {
-//     console.log("ticket count: " + minusTicketCountData.count);
-//     io.to(`tickets-${minusTicketCountData.hr_id}`).emit(
-//       "minusTicketCount",
-//       minusTicketCountData.count
-//     );
-//   });
+  socket.on("minusTicketCount", (minusTicketCountData) => {
+    console.log("ticket count: " + minusTicketCountData.count);
+    io.to(`tickets-${minusTicketCountData.hr_id}`).emit(
+      "minusTicketCount",
+      minusTicketCountData.count
+    );
+  });
 
-//   socket.on("minusSuggestionBoxCount", (minusSbCountData) => {
-//     console.log("SB count: " + minusSbCountData.count);
-//     io.to(`suggestionBox-${minusSbCountData.creator_id}`).emit("minusSuggestionBoxCount", minusSbCountData.count);
-//   });
-// });
+  socket.on("minusSuggestionBoxCount", (minusSbCountData) => {
+    console.log("SB count: " + minusSbCountData.count);
+    io.to(`suggestionBox-${minusSbCountData.creator_id}`).emit("minusSuggestionBoxCount", minusSbCountData.count);
+  });
+
+  socket.on('disconnect', () => {
+    delete socket.id;
+  
+  });
+});
 // ------- end of socket.io ------- //
 
 server.listen(process.env.PORT || 6197, () => {
