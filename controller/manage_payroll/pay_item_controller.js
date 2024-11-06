@@ -1,4 +1,3 @@
-var axios = require("axios");
 var db = require("../../config.js");
 
 function getAllPayItems(req, res) {
