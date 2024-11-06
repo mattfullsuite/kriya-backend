@@ -39,7 +39,10 @@ var imports =  {
     InsertApplicantLockedNotes,
     GetLockedNoteDetails,
     GetApplicantLockedNotes,
-    GetMentionInterviewers
+    GetMentionInterviewers,
+
+    //ATS Duplicate
+    CheckDuplicate
 } = require( "../controller/applicant_tracking_controller.js");
 
 const router = express.Router()
@@ -92,5 +95,8 @@ router.get("/get-all-positions", GetPositions);
 router.get("/get-filteredData-byMonth", GetFilterByMonth);
 router.get("/get-filteredData-byQuarter", GetFilterByQuarter);
 router.get("/get-filteredData-byYear", GetFilterByYear);
+
+//ATS Duplicate Check
+router.get("/ats-checkDuplicate", CheckDuplicate);
 
 module.exports = router;
