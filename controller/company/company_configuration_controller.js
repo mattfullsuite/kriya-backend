@@ -23,7 +23,25 @@ function UpdateCompanyConfiguration(req, res) {
   });
 }
 
+function CreateDefaultCompanyConfiguration(req, res) {
+  const comp_id = req.session.user[0].company_id;
+  const { configurationName } = req.params;
+  var configurationValue = 0;
+  if (configurationName == "Monthly Working Days") {
+    configurationValue = 22;
+  } else if (configurationName == "Monthly Payroll Frequency") {
+    configurationValue = 1;
+  }
+  const q =
+    "INSERT INTO `company_configuration`(`company_id`, `configuration_name`, `configuration_value`) VALUES (?,?,?)";
+  db.query(q, [comp_id, configurationName, configurationValue], (err) => {
+    if (err) return res.json(err);
+    return res.sendStatus(200);
+  });
+}
+
 module.exports = {
   GetCompanyConfiguration,
   UpdateCompanyConfiguration,
+  CreateDefaultCompanyConfiguration,
 };

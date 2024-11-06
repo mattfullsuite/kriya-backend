@@ -43,9 +43,49 @@ function deletePayItem(req, res) {
   });
 }
 
+function CreateDefaultPayItemsForPH(req, res) {
+  var compID = req.session.user[0].company_id;
+
+  const query = `
+    INSERT INTO pay_items (company_id, pay_item_name, pay_item_category, pay_item_type, pay_item_group, pay_item_1601c_tag) VALUES 
+    (${compID}, 'Basic Pay', 'Earnings', 'Fixed', 'Taxable', ''),
+    (${compID}, 'Night Differential', 'Earnings', 'Calculated', 'Taxable', ''),
+    (${compID}, 'Regular OT', 'Earnings', 'Calculated', 'Taxable', ''),
+    (${compID}, 'Regular Holiday OT', 'Earnings', 'Calculated', 'Taxable', ''),
+    (${compID}, 'Special Holiday OT', 'Earnings', 'Calculated', 'Taxable', ''),
+    (${compID}, 'Rest Day OT', 'Earnings', 'Calculated', 'Taxable', ''),
+    (${compID}, 'Special Holiday Premium Pay', 'Earnings', 'Calculated', 'Taxable', ''),
+    (${compID}, 'Regular Holiday Premium Pay', 'Earnings', 'Calculated', 'Taxable', ''),
+    (${compID}, '13th Month Bonus - Taxable', 'Earnings', 'Calculated', 'Taxable', ''),
+    (${compID}, '13th Month Bonus - Non-Taxable', 'Earnings', 'Calculated', 'Non-Taxable', ''),
+    (${compID}, 'Absences', 'Deduction', 'Calculated', 'Pre-Tax Deductions', ''),
+    (${compID}, 'Undertime/Tardiness', 'Deduction', 'Calculated', 'Pre-Tax Deductions', ''),
+    (${compID}, 'SSS (EE)', 'Deduction', 'Calculated', 'Pre-Tax Deductions', ''),
+    (${compID}, 'HDMF (EE)', 'Deduction', 'Calculated', 'Pre-Tax Deductions', ''),
+    (${compID}, 'PHIC (EE)', 'Deduction', 'Calculated', 'Pre-Tax Deductions', ''),
+    (${compID}, 'SSS Provident Fund (EE)', 'Deduction', 'Calculated', 'Pre-Tax Deductions', ''),
+    (${compID}, 'SSS Loan', 'Deduction', 'Fixed', 'Post-Tax Deduction', ''),
+    (${compID}, 'HDMF Loan', 'Deduction', 'Fixed', 'Post-Tax Deduction', ''),
+    (${compID}, 'Salary Loan Repayment', 'Deduction', 'Fixed', 'Post-Tax Deduction', ''),
+    (${compID}, 'SSS (ER)', 'Deduction', 'Calculated', 'Info Only', ''),
+    (${compID}, 'SSS (ECC)', 'Deduction', 'Calculated', 'Info Only', ''),
+    (${compID}, 'PHIC (ER)', 'Deduction', 'Calculated', 'Info Only', ''),
+    (${compID}, 'HDMF (ER)', 'Deduction', 'Calculated', 'Info Only', ''),
+    (${compID}, 'SSS Provident Fund (ER)', 'Deduction', 'Calculated', 'Info Only', ''),
+    (${compID}, 'Tax Withheld', 'Taxes', 'Calculated', 'Taxes', ''),
+    (${compID}, 'Tax Refund', 'Taxes', 'Manual', 'Post-Tax Addition', '')
+  `;
+
+  db.query(query, (err) => {
+    if (err) return res.json(err);
+    return res.sendStatus(200);
+  });
+}
+
 module.exports = {
   getAllPayItems,
   addPayItem,
   updatePayItem,
   deletePayItem,
+  CreateDefaultPayItemsForPH,
 };
