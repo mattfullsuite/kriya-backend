@@ -1,3 +1,4 @@
+const { errorMonitor } = require("nodemailer/lib/xoauth2/index.js");
 var db = require("../config.js");
 
 function CreateHoliday(req, res) {
@@ -8,9 +9,11 @@ function CreateHoliday(req, res) {
 
   db.query(q, [values], (err, data) => {
     if (err) {
-      res.send(err);
+      res.send("err");
+      console.log(err)
     } else {
       res.send("success");
+      console.log(data)
     }
     // if (err) return res.json(err)
     // return res.json("Holiday added!")
@@ -24,8 +27,10 @@ function DeleteHoliday(req, res) {
   db.query(q, [h_id], (err, data) => {
     if (err) {
       console.log(err);
+      res.send("err")
     } else {
-      res.json("Holiday #" + h_id + " has been deleted successfully.");
+      res.json("success");
+      console.log(data)
     }
   });
 }
@@ -192,7 +197,7 @@ function GetAllEmployeeShifts(req, res){
   });
 }
 
-function ChangeEmployeeShift(req, res){
+function AddEmployeeShift(req, res){
     console.log("req body, ", req.body);
   
     const values = [
@@ -211,6 +216,43 @@ function ChangeEmployeeShift(req, res){
     });
 }
 
+function ChangeEmployeeShift(req, res){
+  console.log("req body, ", req.body);
+
+  const values = [
+    req.body.time_in,
+    req.body.time_out,
+    req.body.shift_id,
+  ]
+
+  const q = "UPDATE `emp_shift` SET `start` = ?, `end` = ? WHERE emp_shift_id = ?"
+
+  db.query(q, [req.body.time_in, req.body.time_out, req.body.shift_id], (err, data) => {
+    if (err) {
+      console.log(err)
+      res.send("err");
+    } else {
+      res.send("success")
+      console.log(data);
+    }
+  });
+}
+
+function DeleteDeviceCategory(req, res) {
+  const device_id = req.params.device_id;
+  const q = "DELETE FROM device_category WHERE device_category_id = ?";
+
+  db.query(q, [device_id], (err, data) => {
+    if (err) {
+      console.log(err);
+      res.send("err")
+    } else {
+      res.json("success");
+      console.log(data)
+    }
+  });
+}
+
 module.exports = {
   CreateHoliday,
   DeleteHoliday,
@@ -227,5 +269,9 @@ module.exports = {
   GetAllEmployeesFromCompanyNotHR,
   MakeAnEmployeeHR,
   GetAllEmployeeShifts,
-  ChangeEmployeeShift
+
+  AddEmployeeShift,
+  ChangeEmployeeShift,
+
+  DeleteDeviceCategory
 };

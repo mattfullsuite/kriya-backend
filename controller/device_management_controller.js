@@ -52,6 +52,24 @@ function GetMyDevices(req, res) {
   });
 }
 
+function GetSomeoneDevices(req, res) {
+  const eid = req.params.emp_id
+  const cid = req.session.user[0].company_id
+
+  const values = [cid, eid]
+
+  const q = "SELECT DISTINCT * FROM company_devices AS cd LEFT JOIN device_category AS dc ON cd.company_id = dc.company_id LEFT JOIN device_accountability AS da ON da.device_id = cd.device_id LEFT JOIN emp AS e ON da.assignee_id = e.emp_num WHERE cd.company_id = ? AND e.emp_num = ? AND cd.device_category = dc.device_category" 
+
+  db.query(q, values, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("My Devices: ", data)
+      res.json(data);
+    }
+  });
+}
+
 function AddNewDevice(req, res) {
   const cid = req.session.user[0].company_id;
   const q =
@@ -79,6 +97,8 @@ function AddNewDevice(req, res) {
       const dev_id = data.insertId
       const values2 = [req.body.assignee_name1, dev_id, req.body.assigned_date1]
       const values3 = [req.body.assignee_name2, dev_id, req.body.assigned_date2]
+
+      res.send("success")
 
       if (req.body.assignee_name1) {
         
@@ -239,10 +259,49 @@ function GetUnassignedDevices(req, res) {
   })
 }
 
+function GetDeviceCategoryPerCompany(req, res) {
+  const cid = req.session.user[0].company_id;
+  const q = `SELECT DISTINCT * FROM device_category WHERE company_id = ?`
+
+  db.query(q, [cid], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(data)
+    }
+  })
+}
+
+function AddNewDeviceCategory(req, res){
+  console.log("CATEGORY, ", req.body);
+  const cid = req.session.user[0].company_id;
+
+  const values = [
+    req.body.device_category,
+    req.body.device_image,
+    cid
+  ];
+
+  const q =
+    "INSERT INTO `device_category` (`device_category`, `device_image`, `company_id`) VALUES (?)";
+
+  db.query(q, [values], (err, data) => {
+    if (err) {
+      res.send("err");
+      console.log(err)
+    }
+    else { 
+      res.send("success");
+      console.log("DATA: ", data)
+    }
+  });
+}
+
 module.exports = {
   GetDevicesOfCompany,
   AddNewDevice,
   GetMyDevices,
+  GetSomeoneDevices,
 
   //Retrieve Device Details Using Device Number
   GetDeviceDetails,
@@ -252,5 +311,8 @@ module.exports = {
 
   //Count
   GetAssignedDevices,
-  GetUnassignedDevices
+  GetUnassignedDevices,
+
+  GetDeviceCategoryPerCompany,
+  AddNewDeviceCategory,
 };
