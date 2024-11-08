@@ -38,13 +38,15 @@ function InsertBulkEmployeeData(req, res) {
     db.query(q, [values], (err, data) => {
       if (err) {
         console.log(err);
+        res.send("error")
       } else {
         console.log("Added.");
-        // res.send(data)
-        console.log("DATA: " + data)
+        console.log(data)
       }
     });
+    res.send("success")
   });
+
 
   console.log("Successfully added everything in database!");
 }
