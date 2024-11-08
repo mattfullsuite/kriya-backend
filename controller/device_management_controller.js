@@ -297,6 +297,23 @@ function AddNewDeviceCategory(req, res){
   });
 }
 
+function GetDeviceHistory(req, res){
+  const { deviceNumber = 0} = req.query;
+  let parsedDeviceNumber = deviceNumber;
+
+  const q = "SELECT e.f_name, e.s_name, e.emp_num, cd.*, da.* FROM company_devices AS cd INNER JOIN device_accountability AS da ON cd.device_id = da.device_id INNER JOIN emp e ON da.assignee_id = e.emp_num WHERE cd.device_id = ?"
+
+  db.query(q, [parsedDeviceNumber], (err, data) => {
+    if (err) {
+      res.json(err);
+      console.log(err)
+    } else {
+      res.json(data);
+      console.log(data);
+    }
+  });
+}
+
 module.exports = {
   GetDevicesOfCompany,
   AddNewDevice,
@@ -305,6 +322,8 @@ module.exports = {
 
   //Retrieve Device Details Using Device Number
   GetDeviceDetails,
+  GetDeviceHistory,
+
   GetCategoryOfDevicesPerCompany,
   CountDevicesPerCategory,
   UploadAccountabilityData,
