@@ -6,7 +6,9 @@ var imports =  {
     GetCategoryOfDevicesPerCompany,
     CountDevicesPerCategory,
     UploadAccountabilityData,
+    
     GetMyDevices,
+    GetSomeoneDevices,
 
     //COunt
     GetAssignedDevices,
@@ -19,7 +21,10 @@ var imports =  {
 const router = express.Router()
 
 router.get("/dm-getDevicesOfCompany", GetDevicesOfCompany);
+
 router.get("/dm-getMyDevices", GetMyDevices);
+router.get("/dm-getSomeoneDevices/:emp_id", GetSomeoneDevices);
+
 router.post("/dm-addNewDevice", AddNewDevice);
 router.get("/dm-retrieveDeviceDetails", GetDeviceDetails);
 router.get("/dm-getCategoryOfDevices", GetCategoryOfDevicesPerCompany)

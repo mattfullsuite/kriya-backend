@@ -52,6 +52,24 @@ function GetMyDevices(req, res) {
   });
 }
 
+function GetSomeoneDevices(req, res) {
+  const eid = req.params.emp_id
+  const cid = req.session.user[0].company_id
+
+  const values = [cid, eid]
+
+  const q = "SELECT DISTINCT * FROM company_devices AS cd LEFT JOIN device_category AS dc ON cd.company_id = dc.company_id LEFT JOIN device_accountability AS da ON da.device_id = cd.device_id LEFT JOIN emp AS e ON da.assignee_id = e.emp_num WHERE cd.company_id = ? AND e.emp_num = ? AND cd.device_category = dc.device_category" 
+
+  db.query(q, values, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("My Devices: ", data)
+      res.json(data);
+    }
+  });
+}
+
 function AddNewDevice(req, res) {
   const cid = req.session.user[0].company_id;
   const q =
@@ -283,6 +301,7 @@ module.exports = {
   GetDevicesOfCompany,
   AddNewDevice,
   GetMyDevices,
+  GetSomeoneDevices,
 
   //Retrieve Device Details Using Device Number
   GetDeviceDetails,
