@@ -10,7 +10,10 @@ var imports =  {
 
     //COunt
     GetAssignedDevices,
-    GetUnassignedDevices
+    GetUnassignedDevices,
+
+    GetDeviceCategoryPerCompany,
+    AddNewDeviceCategory,
 } = require( "../controller/device_management_controller.js");
 
 const router = express.Router()
@@ -25,5 +28,8 @@ router.post("/dm-uploadAccountabilityData", UploadAccountabilityData)
 
 router.get("/dm-getAssignedDevices", GetAssignedDevices);
 router.get("/dm-getUnassignedDevices", GetUnassignedDevices);
+
+router.get("/dm-getDeviceCategoryPerCompany", GetDeviceCategoryPerCompany);
+router.post("/dm-addNewDeviceCategory", AddNewDeviceCategory)
 
 module.exports = router;

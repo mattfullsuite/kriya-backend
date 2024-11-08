@@ -80,6 +80,8 @@ function AddNewDevice(req, res) {
       const values2 = [req.body.assignee_name1, dev_id, req.body.assigned_date1]
       const values3 = [req.body.assignee_name2, dev_id, req.body.assigned_date2]
 
+      res.send("success")
+
       if (req.body.assignee_name1) {
         
         const q2 = "INSERT INTO device_accountability (`assignee_id`, `device_id`, `assigned_date`) VALUES (?)";
@@ -239,6 +241,44 @@ function GetUnassignedDevices(req, res) {
   })
 }
 
+function GetDeviceCategoryPerCompany(req, res) {
+  const cid = req.session.user[0].company_id;
+  const q = `SELECT DISTINCT * FROM device_category WHERE company_id = ?`
+
+  db.query(q, [cid], (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(data)
+    }
+  })
+}
+
+function AddNewDeviceCategory(req, res){
+  console.log("CATEGORY, ", req.body);
+  const cid = req.session.user[0].company_id;
+
+  const values = [
+    req.body.device_category,
+    req.body.device_image,
+    cid
+  ];
+
+  const q =
+    "INSERT INTO `device_category` (`device_category`, `device_image`, `company_id`) VALUES (?)";
+
+  db.query(q, [values], (err, data) => {
+    if (err) {
+      res.send("err");
+      console.log(err)
+    }
+    else { 
+      res.send("success");
+      console.log("DATA: ", data)
+    }
+  });
+}
+
 module.exports = {
   GetDevicesOfCompany,
   AddNewDevice,
@@ -252,5 +292,8 @@ module.exports = {
 
   //Count
   GetAssignedDevices,
-  GetUnassignedDevices
+  GetUnassignedDevices,
+
+  GetDeviceCategoryPerCompany,
+  AddNewDeviceCategory,
 };

@@ -3,55 +3,56 @@ var moment = require("moment");
 var nodemailer = require("nodemailer");
 
 function GenerateMemos(req, res) {
+
   const cid = req.session.user[0].company_id;
 
-  const lms = moment()
-    .subtract(1, "months")
-    .startOf("month")
-    .format("YYYY-MM-DD hh:mm");
-  const lme = moment()
-    .subtract(1, "months")
-    .endOf("month")
-    .format("YYYY-MM-DD hh:mm");
-
-  //const q = "SELECT DISTINCT f_name, s_name, emp_num FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id WHERE LEFT(a.hours_worked, 2) < 09 AND ed.company_id = ? GROUP BY f_name, s_name, emp_num"
-
   const q = ` 
-    SELECT e.emp_num, e.f_name, e.s_name FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id INNER JOIN emp_shift AS es ON e.emp_num = es.emp_num WHERE a.status = 'Late Start' AND ed.company_id = ? 
+    SELECT e.emp_num, e.f_name, e.s_name FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id INNER JOIN emp_shift AS es ON e.emp_num = es.emp_num WHERE a.status = 'Late Start' AND ed.company_id = ? AND e.date_separated IS NULL 
 
     UNION 
 
-    SELECT e.emp_num, e.f_name, e.s_name FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id WHERE LEFT(a.hours_worked, 2) 
+    SELECT e.emp_num, e.f_name, e.s_name FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id WHERE LEFT(a.hours_worked, 2) AND ed.company_id = ? AND e.date_separated IS NULL
 
     UNION 
 
-    SELECT e.emp_num, e.f_name, e.s_name FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id LEFT JOIN leaves l ON a.date = l.leave_from WHERE l.leave_from IS NULL AND a.hours_worked IS NULL 
+    SELECT e.emp_num, e.f_name, e.s_name FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id LEFT JOIN leaves l ON a.date = l.leave_from WHERE l.leave_from IS NULL AND a.hours_worked IS NULL AND ed.company_id = ? AND e.date_separated IS NULL
 
     UNION 
 
-    SELECT e.emp_num, e.f_name, e.s_name FROM emp e INNER JOIN leaves l ON l.requester_id = e.emp_id WHERE e.emp_status = "Probationary" AND l.use_pto_points = 0;`;
+    SELECT e.emp_num, e.f_name, e.s_name FROM emp e INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN leaves l ON l.requester_id = e.emp_id WHERE e.emp_status = "Probationary" AND l.use_pto_points = 0 AND ed.company_id = ? AND e.date_separated IS NULL `;
 
-  db.query(q, [cid], (err, data) => {
+  db.query(q, [cid, cid, cid, cid], (err, data) => {
     if (err) {
       // res.send("error");
       console.log(err);
     } else {
       data.map((d) => {
         const q1 =
-          "INSERT INTO generated_memos (`emp_num`, `memo_status`, `company_id`) VALUES (?)";
+          "SELECT violation_severity, memo_status FROM generated_memos WHERE emp_num = ? ORDER BY generated_memos_id DESC LIMIT 1";
 
-        const values = [d.emp_num, 0, cid];
-
-        db.query(q1, [values], (err, data) => {
+        db.query(q1, d.emp_num, (err, data1) => {
           if (err) {
             res.send("error");
             console.log(err);
           } else {
-            // res.send(data);
-            console.log(data);
+            console.log("First Level Data 1:", data1);
+
+            const q2 =
+              "INSERT INTO generated_memos (`emp_num`, `violation_severity`, `memo_status`, `company_id`) VALUES (?)";
+
+            const values = [d.emp_num, checkViolationSeverity(data1[0]?.violation_severity, data1[0]?.memo_status), "Pending", cid];
+
+            db.query(q2, [values], (err, data2) => {
+              if (err) {
+                res.send("error");
+                console.log(err);
+              } else {
+                console.log("Second Level Data:", data2);
+              }
+            });
+
           }
-        }
-        );
+        });
       });
 
       res.send("success");
@@ -59,11 +60,31 @@ function GenerateMemos(req, res) {
   });
 }
 
+function checkViolationSeverity(violation, status){
+  if (status === "Refreshed") {
+    return "First Warning"
+  } else if (violation === "First Warning" && status !== "Ignored"){
+    return "Final Warning"
+  } else if (violation === "Final Warning" && status !== "Ignored"){
+    return "3 Days Suspension"
+  } else if (violation === "3 Days Suspension" && status !== "Ignored"){
+    return "6 Days Suspension"
+  } else if (violation === "6 Days Suspension" && status !== "Ignored"){
+    return "12 Days Suspension"
+  } else if (violation === "12 Days Suspension" && status !== "Ignored"){
+    return "30 Days Suspension"
+  } else if (violation === "30 Days Suspension" && status !== "Ignored"){
+    return "Dismissal"
+  } else {
+    return "First Warning"
+  }
+}
+
 function GetAllNamesOfViolators(req, res) {
   const cid = req.session.user[0].company_id;
 
   const q =
-    "SELECT gm.*, e.f_name, e.s_name, ex.f_name AS executor_f_name, ex.s_name AS executor_s_name FROM generated_memos gm INNER JOIN emp e ON gm.emp_num = e.emp_num LEFT JOIN emp ex ON gm.executor_id = ex.emp_num WHERE gm.company_id = ?";
+    "SELECT gm.*, e.f_name, e.s_name, ex.f_name AS executor_f_name, ex.s_name AS executor_s_name FROM generated_memos gm INNER JOIN emp e ON gm.emp_num = e.emp_num LEFT JOIN emp ex ON gm.executor_id = ex.emp_num WHERE gm.company_id = ? ORDER BY e.s_name";
 
   db.query(q, [cid], (err, data) => {
     if (err) {
@@ -83,7 +104,7 @@ function IgnoreMemo(req, res) {
   console.log("GEN: ", req.body.memo_id)
 
   const q =
-    "UPDATE generated_memos SET `memo_status` = 9, `date_processed` = CURRENT_TIMESTAMP, `executor_id` = ? WHERE generated_memos_id = ?";
+    "UPDATE generated_memos SET `memo_status` = 'Ignored', `date_processed` = CURRENT_TIMESTAMP, `executor_id` = ? WHERE generated_memos_id = ?";
 
   db.query(q, [emp_num, gm_id], (err, data) => {
     if (err) {
@@ -103,7 +124,7 @@ function SentEmailStatus(req, res) {
   console.log("GEN: ", req.body.memo_id)
 
   const q =
-    "UPDATE generated_memos SET `memo_status` = 1, `date_processed` = CURRENT_TIMESTAMP, `executor_id` = ? WHERE generated_memos_id = ?";
+    "UPDATE generated_memos SET `memo_status` = 'Notice Sent', `date_processed` = CURRENT_TIMESTAMP, `executor_id` = ? WHERE generated_memos_id = ?";
 
   db.query(q, [emp_num, gm_id], (err, data) => {
     if (err) {
@@ -172,7 +193,7 @@ function GetLatesOfViolator(req, res) {
   console.log("EMP NO: ", emp_no);
 
   const q =
-    "SELECT a.date, CAST(CAST(a.time_in AS time) - CAST(es.start AS time) AS time) AS late_mins FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id INNER JOIN emp_shift AS es ON e.emp_num = es.emp_num WHERE a.status = 'Late Start' AND a.date > ? AND a.date < ? AND e.emp_num = ?";
+    "SELECT a.date, a.time_in, CAST(CAST(a.time_in AS time) - CAST(es.start AS time) AS time) AS late_mins FROM emp e INNER JOIN attendance a ON e.emp_num = a.employee_id INNER JOIN emp_designation AS ed ON e.emp_id = ed.emp_id INNER JOIN emp_shift AS es ON e.emp_num = es.emp_num WHERE a.status = 'Late Start' AND a.date > ? AND a.date < ? AND e.emp_num = ?";
 
   db.query(q, [lms, lme, emp_no], (err, data) => {
     if (err) {
