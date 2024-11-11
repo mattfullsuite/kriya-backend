@@ -479,7 +479,7 @@ function GetAttendanceOfDownlines(req, res) {
   const uid = req.session.user[0].emp_id;
 
   const q = 
-  `SELECT e1.emp_id, e.emp_pic, a.employee_id, e1.f_name, e1.s_name, es.shift_type, es.start, es.end, p.position_name,
+  `SELECT e1.emp_id, e1.emp_pic, a.employee_id, e1.f_name, e1.s_name, es.shift_type, es.start, es.end, p.position_name,
   COUNT(case when a.status = 'Data Incomplete' then 1 else null end) AS data_incomplete, 
   COUNT(case when a.status = 'Late Start' then 1 else null end) AS late_start, 
   COUNT(case when a.status = 'Early Start' then 1 else null end) AS early_start,  
@@ -492,7 +492,7 @@ function GetAttendanceOfDownlines(req, res) {
      LEFT JOIN emp_shift es ON es.emp_num = a.employee_id 
     LEFT JOIN position p ON p.position_id = ed.position_id
       WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e1.f_name IS NOT NULL
-    GROUP BY e1.emp_id, e.emp_pic, a.employee_id, e.f_name, e.s_name, es.shift_type, es.start, es.end, p.position_name
+    GROUP BY e1.emp_id, e1.emp_pic, a.employee_id, e.f_name, e.s_name, es.shift_type, es.start, es.end, p.position_name
   
   UNION
   
