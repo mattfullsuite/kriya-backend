@@ -475,6 +475,92 @@ function ModifiedTeamOOOToday(req, res) {
   });
 }
 
+function GetAttendanceOfDownlines(req, res) {
+  const uid = req.session.user[0].emp_id;
+
+  const q = 
+  `SELECT e1.emp_id, e.emp_pic, a.employee_id, e1.f_name, e1.s_name, es.shift_type, es.start, es.end, p.position_name,
+  COUNT(case when a.status = 'Data Incomplete' then 1 else null end) AS data_incomplete, 
+  COUNT(case when a.status = 'Late Start' then 1 else null end) AS late_start, 
+  COUNT(case when a.status = 'Early Start' then 1 else null end) AS early_start,  
+  COUNT(case when a.undertime = 'Undertime' then 1 else null end) AS undertime, 
+  COUNT(case when a.undertime = 'Completed' then 1 else null end) AS completed
+  FROM emp e
+     LEFT JOIN emp AS e1 ON  e.emp_id = e1.superior_id
+     LEFT JOIN attendance a ON a.employee_id = e1.emp_num 
+     LEFT JOIN emp_designation ed ON e1.emp_id = ed.emp_id 
+     LEFT JOIN emp_shift es ON es.emp_num = a.employee_id 
+    LEFT JOIN position p ON p.position_id = ed.position_id
+      WHERE e.emp_id = ? AND e1.date_separated IS NULL AND e1.f_name IS NOT NULL
+    GROUP BY e1.emp_id, e.emp_pic, a.employee_id, e.f_name, e.s_name, es.shift_type, es.start, es.end, p.position_name
+  
+  UNION
+  
+  SELECT e2.emp_id, e2.emp_pic, a.employee_id, e2.f_name, e2.s_name, es.shift_type, es.start, es.end, p.position_name,
+  COUNT(case when a.status = 'Data Incomplete' then 1 else null end) AS data_incomplete, 
+  COUNT(case when a.status = 'Late Start' then 1 else null end) AS late_start, 
+  COUNT(case when a.status = 'Early Start' then 1 else null end) AS early_start,  
+  COUNT(case when a.undertime = 'Undertime' then 1 else null end) AS undertime, 
+  COUNT(case when a.undertime = 'Completed' then 1 else null end) AS completed
+  FROM emp e
+     LEFT JOIN emp AS e1 ON  e.emp_id = e1.superior_id
+    LEFT JOIN emp AS e2 ON  e1.emp_id = e2.superior_id
+     LEFT JOIN attendance a ON a.employee_id = e2.emp_num 
+     LEFT JOIN emp_designation ed ON e2.emp_id = ed.emp_id 
+     LEFT JOIN emp_shift es ON es.emp_num = a.employee_id 
+    LEFT JOIN position p ON p.position_id = ed.position_id
+      WHERE e.emp_id = ? AND e2.date_separated IS NULL AND e2.f_name IS NOT NULL
+    GROUP BY e2.emp_id, e2.emp_pic, a.employee_id, e2.f_name, e2.s_name, es.shift_type, es.start, es.end, p.position_name
+  
+  UNION
+  
+  SELECT e3.emp_id, e3.emp_pic, a.employee_id, e3.f_name, e3.s_name, es.shift_type, es.start, es.end, p.position_name,
+  COUNT(case when a.status = 'Data Incomplete' then 1 else null end) AS data_incomplete, 
+  COUNT(case when a.status = 'Late Start' then 1 else null end) AS late_start, 
+  COUNT(case when a.status = 'Early Start' then 1 else null end) AS early_start,  
+  COUNT(case when a.undertime = 'Undertime' then 1 else null end) AS undertime, 
+  COUNT(case when a.undertime = 'Completed' then 1 else null end) AS completed
+  FROM emp e
+     LEFT JOIN emp AS e1 ON  e.emp_id = e1.superior_id
+    LEFT JOIN emp AS e2 ON  e1.emp_id = e2.superior_id
+      LEFT JOIN emp AS e3 ON  e2.emp_id = e3.superior_id
+     LEFT JOIN attendance a ON a.employee_id = e3.emp_num 
+     LEFT JOIN emp_designation ed ON e3.emp_id = ed.emp_id 
+     LEFT JOIN emp_shift es ON es.emp_num = a.employee_id 
+    LEFT JOIN position p ON p.position_id = ed.position_id
+      WHERE e.emp_id = ? AND e3.date_separated IS NULL AND e3.f_name IS NOT NULL
+    GROUP BY e3.emp_id, e3.emp_pic, a.employee_id, e3.f_name, e3.s_name, es.shift_type, es.start, es.end, p.position_name
+  
+  UNION
+  
+  SELECT e4.emp_id, e4.emp_pic, a.employee_id, e4.f_name, e4.s_name, es.shift_type, es.start, es.end, p.position_name,
+  COUNT(case when a.status = 'Data Incomplete' then 1 else null end) AS data_incomplete, 
+  COUNT(case when a.status = 'Late Start' then 1 else null end) AS late_start, 
+  COUNT(case when a.status = 'Early Start' then 1 else null end) AS early_start,  
+  COUNT(case when a.undertime = 'Undertime' then 1 else null end) AS undertime, 
+  COUNT(case when a.undertime = 'Completed' then 1 else null end) AS completed
+  FROM emp e
+     LEFT JOIN emp AS e1 ON  e.emp_id = e1.superior_id
+    LEFT JOIN emp AS e2 ON  e1.emp_id = e2.superior_id
+      LEFT JOIN emp AS e3 ON  e2.emp_id = e3.superior_id
+      LEFT JOIN emp AS e4 ON  e2.emp_id = e4.superior_id
+     LEFT JOIN attendance a ON a.employee_id = e4.emp_num 
+     LEFT JOIN emp_designation ed ON e4.emp_id = ed.emp_id 
+     LEFT JOIN emp_shift es ON es.emp_num = a.employee_id 
+    LEFT JOIN position p ON p.position_id = ed.position_id
+      WHERE e.emp_id = ? AND e4.date_separated IS NULL AND e4.f_name IS NOT NULL
+    GROUP BY e4.emp_id, e4.emp_pic, a.employee_id, e4.f_name, e4.s_name, es.shift_type, es.start, es.end, p.position_name
+  `
+
+  db.query(q, [uid, uid, uid, uid], (err, data) => {
+    if (err) {
+      return res.json(err);
+    }
+    return res.json(data);
+  });
+}
+
+
 module.exports = {
   GetDepartmentLeaves,
   GetDepartmentLeavesToday,
@@ -494,4 +580,5 @@ module.exports = {
 
   ModifiedShowAllDownlineLeaves,
   ModifiedTeamOOOToday,
+  GetAttendanceOfDownlines,
 };
