@@ -18,7 +18,9 @@ var imports =  {
 
 
     ModifiedShowAllDownlineLeaves,
-    ModifiedTeamOOOToday
+    ModifiedTeamOOOToday,
+
+    GetAttendanceOfDownlines
 } = require("../controller/myteam_controller.js");
 
 const router = express.Router()
@@ -50,5 +52,8 @@ router.get("/mt-checkDownline", CheckIfDownline);
 //Modified Routes
 router.get("/mt-getAllDownlineLeaves", ModifiedShowAllDownlineLeaves);
 router.get("/mt-getTeamOOOToday", ModifiedTeamOOOToday);
+
+//My team attendance
+router.get("/mt-getDownlineAttendance", GetAttendanceOfDownlines)
 
 module.exports = router;

@@ -3,6 +3,8 @@ var imports =  {
     GetDevicesOfCompany,
     AddNewDevice,
     GetDeviceDetails,
+    GetDeviceHistory,
+
     GetCategoryOfDevicesPerCompany,
     CountDevicesPerCategory,
     UploadAccountabilityData,
@@ -23,6 +25,7 @@ const router = express.Router()
 router.get("/dm-getDevicesOfCompany", GetDevicesOfCompany);
 
 router.get("/dm-getMyDevices", GetMyDevices);
+router.get("/dm-getDeviceHistory", GetDeviceHistory)
 router.get("/dm-getSomeoneDevices/:emp_id", GetSomeoneDevices);
 
 router.post("/dm-addNewDevice", AddNewDevice);
