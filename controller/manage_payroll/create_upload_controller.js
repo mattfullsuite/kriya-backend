@@ -1,8 +1,9 @@
 var db = require("../../config.js");
+const { v7: uuidv7 } = require("uuid");
 
 // --------------------Payroll Notification--------------------
 // Get the required information of the employee
-const GetPayrollNotifRecordInfo = (req, res) => {
+exports.GetPayrollNotifRecordInfo = (req, res) => {
   const empID = req.params.empID;
   const compID = req.session.user[0].company_id;
   const query =
@@ -13,6 +14,49 @@ const GetPayrollNotifRecordInfo = (req, res) => {
   });
 };
 
-module.exports = {
-  GetPayrollNotifRecordInfo,
+// Create payroll notification draft
+exports.CreatePayrollNotifDraft = (req, res) => {
+  console.log(req.body);
+  const { recordList, dateUUID } = req.body;
+
+  // Flatten the values for binding to the placeholders
+  const values = recordList.reduce((acc, record) => {
+    return acc.concat([
+      record.empID,
+      record.payItemID,
+      record.amount,
+      dateUUID,
+    ]);
+  }, []);
+  const query =
+    "INSERT INTO `payroll_notif`(`payroll_notif_id`, `emp_num`, `pay_item_id`, `amount`, date_id) VALUES " +
+    recordList.map(() => "(UUID(), ?, ?, ?, ?)").join(", ");
+  db.query(query, values, (error, result) => {
+    console.log("ERRor", error);
+    console.log("Result", result);
+    if (error) return res.json(error);
+    return res.status(200).json(result);
+  });
+};
+
+exports.CreatePayrollNotifDraftDate = (req, res, next) => {
+  console.log(req.body);
+  const dateUUID = uuidv7();
+  const { datePeriod } = req.body;
+  console.log("UUID:", dateUUID);
+  console.log("Date Period:", datePeriod);
+  const query =
+    "INSERT INTO `payroll_notif_dates`(`payroll_notif_date_id`, `date_from`, `date_to`, `date_payment`) VALUES (?, ?, ?, ?)";
+  db.query(
+    query,
+    [dateUUID, datePeriod.From, datePeriod.To, datePeriod.Payment],
+    (error, result) => {
+      console.log("ERRor", error);
+      console.log("Result", result);
+      if (error) return res.json(error);
+      req.body.dateUUID = dateUUID;
+      next();
+      // return res.json(result);
+    }
+  );
 };
