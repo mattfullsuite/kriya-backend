@@ -18,22 +18,22 @@ function InsertBulkEmployeeData(req, res) {
     return randomString;
   }
 
-  const tempPassword = generateRandomString(20);
-
-  const empKey = generateRandomString(30);
-
-  //----- HASHING ALGO -----//
-  const salt = bcrypt.genSaltSync(10);
-  const hashed = bcrypt.hashSync(tempPassword, salt);
-
-  const data = req.body;
-  console.log(JSON.stringify(data));
-
   //const q = "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `position_applied`, `status`) VALUES (?)"
   const q =
     "INSERT INTO emp (`f_name`, `m_name`, `s_name`, `emp_num`, `work_email`, `emp_role`, `personal_email`, `contact_num`, `dob`, `c_address`, `p_address`, `date_hired`, `date_regularization`, `date_offboarding`, `date_separated`, `emp_status`, `sex`, `password`, `emp_key`) VALUES (?)";
 
+  const data = req.body;
+
   data.map((d) => {
+
+    const tempPassword = generateRandomString(20);
+
+    const empKey = generateRandomString(30);
+
+    //----- HASHING ALGO -----//
+    const salt = bcrypt.genSaltSync(10);
+    const hashed = bcrypt.hashSync(tempPassword, salt);
+
     const values = [
       d[0],
       d[1],
@@ -55,18 +55,20 @@ function InsertBulkEmployeeData(req, res) {
       hashed,
       empKey,
     ];
+
     db.query(q, [values], (err, data) => {
       if (err) {
-        console.log(err);
-        res.send("error");
+        console.log("ERROR: " + err);
+        //res.send("error");
       } else {
         console.log("Added.");
         // res.send(data)
-        console.log("DATA: " + data);
+        console.log("DATA: " + JSON.stringify(data));
       }
     });
-    res.send("success");
   });
+
+  res.send("success");
 
   console.log("Successfully added everything in database!");
 }
