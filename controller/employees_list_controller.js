@@ -56,14 +56,24 @@ function InsertBulkEmployeeData(req, res) {
       empKey,
     ];
 
-    db.query(q, [values], (err, data) => {
+    db.query(q, [values], (err, result) => {
       if (err) {
         console.log("ERROR: " + err);
         //res.send("error");
       } else {
         console.log("Added.");
-        // res.send(data)
-        console.log("DATA: " + JSON.stringify(data));
+        console.log("DATA: " + JSON.stringify(result));
+
+        const q1 = "INSERT INTO emp_designation (`emp_id`, `company_id`, `client_id` ,`position_id`) VALUES (?, ?, 1, 33)"
+
+        db.query(q1, [result.insertId, cid], (err, data) => {
+          if (err) {
+            console.log("Level 2: ", err)
+          } else {
+            console.log("Added designation for new employee!")
+            console.log(data)
+          }
+        });
       }
     });
   });
