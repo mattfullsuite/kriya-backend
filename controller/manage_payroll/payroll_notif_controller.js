@@ -16,7 +16,6 @@ exports.GetPayrollNotifRecordInfo = (req, res) => {
 
 // Create payroll notification draft
 exports.CreatePayrollNotifDraft = (req, res) => {
-  console.log(req.body);
   const { recordList, dateUUID } = req.body;
 
   // Flatten the values for binding to the placeholders
@@ -32,15 +31,12 @@ exports.CreatePayrollNotifDraft = (req, res) => {
     "INSERT INTO `payroll_notif`(`payroll_notif_id`, `emp_num`, `pay_item_id`, `amount`, date_id) VALUES " +
     recordList.map(() => "(UUID(), ?, ?, ?, ?)").join(", ");
   db.query(query, values, (error, result) => {
-    console.log("ERRor", error);
-    console.log("Result", result);
     if (error) return res.status(500).json(error);
     return res.sendStatus(200);
   });
 };
 
 exports.CreatePayrollNotifDraftDate = (req, res, next) => {
-  console.log(req.body);
   const dateUUID = uuidv7();
   const compID = req.session.user[0].company_id;
   const { datePeriod } = req.body;
@@ -50,8 +46,6 @@ exports.CreatePayrollNotifDraftDate = (req, res, next) => {
     query,
     [dateUUID, compID, datePeriod.From, datePeriod.To, datePeriod.Payment],
     (error, result) => {
-      console.log("ERRor", error);
-      console.log("Result", result);
       if (error) return res.json(error);
       req.body.dateUUID = dateUUID;
       next();
@@ -61,9 +55,8 @@ exports.CreatePayrollNotifDraftDate = (req, res, next) => {
 };
 
 // Check for Drafted Payroll Notif
-exports.CheckPayrollNotifRecords = (req, res, next) => {
+exports.CheckPayrollNotifRecords = (req, res) => {
   const compID = req.session.user[0].company_id;
-  const { action } = req.params;
 
   const query =
     "SELECT e.`emp_num` AS 'Employee ID', e.work_email as `Email`, e.`s_name` AS 'Last Name', e.`f_name` AS 'First Name', e.`m_name` AS 'Middle Name', p.`position_name` AS 'Job Title', 	e.`date_hired` AS 'Hire Date',      pn.emp_num,      pn.pay_item_id,      pn.amount,      pnd.date_from,      pnd.date_to,      pnd.date_payment  FROM `payroll_notif_dates` pnd INNER JOIN `payroll_notif` pn ON pnd.payroll_notif_date_id = pn.date_id INNER JOIN emp e ON pn.emp_num = e.emp_num INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id INNER JOIN `position` p ON p.position_id = ed.position_id  WHERE ed.company_id = ?";
@@ -75,10 +68,15 @@ exports.CheckPayrollNotifRecords = (req, res, next) => {
 
 exports.DeletePayrollNotifDraft = (req, res, next) => {
   const compID = req.session.user[0].company_id;
+  const { action } = req.query;
   const query = "DELETE FROM `payroll_notif_dates` WHERE `comp_id` = ?";
   db.query(query, [compID], (error) => {
     if (error) return res.json(error);
-    next();
+    if (action == "finalize") {
+      return res.sendStatus(200);
+    } else {
+      next();
+    }
   });
 };
 

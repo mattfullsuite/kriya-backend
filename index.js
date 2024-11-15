@@ -83,7 +83,7 @@ var employee_contributions = require("./routes/employee/employee_contribution.js
 var employee_salaries = require("./routes/employee/employee_salary.js");
 
 // payrun management
-var create_upload = require("./routes/manage_payroll/create_upload.js");
+var payroll_notif = require("./routes/manage_payroll/payroll_notif.js");
 
 var Slack = require("@slack/bolt");
 var dotenv = require("dotenv");
@@ -403,7 +403,7 @@ app.use(device_management);
 app.use(memo_generation);
 
 app.use(recurring_pay);
-app.use(create_upload);
+app.use(payroll_notif);
 
 //app.use(ai)
 

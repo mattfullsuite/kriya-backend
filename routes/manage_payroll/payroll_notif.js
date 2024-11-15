@@ -20,6 +20,9 @@ router.post(
   CreatePayrollNotifDraft
 );
 router.get("/mp-pn-CheckPayrollNotifDraft/:action", CheckPayrollNotifRecords);
-router.delete("/mp-pn-DeletePayrollNotifDraft", DeletePayrollNotifDraft);
+router.delete(
+  "/mp-pn-DeletePayrollNotifDraft/:action",
+  DeletePayrollNotifDraft
+);
 
 module.exports = router;
