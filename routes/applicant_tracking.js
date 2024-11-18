@@ -42,7 +42,11 @@ var imports =  {
     GetMentionInterviewers,
 
     //ATS Duplicate
-    CheckDuplicate
+    CheckDuplicate,
+
+    //ATS Notifs
+    ATSNotifs,
+
 } = require( "../controller/applicant_tracking_controller.js");
 
 const router = express.Router()
@@ -98,5 +102,8 @@ router.get("/get-filteredData-byYear", GetFilterByYear);
 
 //ATS Duplicate Check
 router.get("/ats-checkDuplicate", CheckDuplicate);
+
+//ATS Notifications
+router.get("/atsNotifs", ATSNotifs)
 
 module.exports = router;
