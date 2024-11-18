@@ -82,6 +82,9 @@ var company_department = require("./routes/company/company_departments.js");
 var employee_contributions = require("./routes/employee/employee_contribution.js");
 var employee_salaries = require("./routes/employee/employee_salary.js");
 
+// payrun management
+var payroll_notif = require("./routes/manage_payroll/payroll_notif.js");
+
 var Slack = require("@slack/bolt");
 var dotenv = require("dotenv");
 
@@ -175,7 +178,7 @@ const io = new Server(server, {
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
   timeout: 20000,
-  pingTimeout: 60000,  // 60 seconds
+  pingTimeout: 60000, // 60 seconds
   pingInterval: 25000, // 25 seconds - time between pings
   cors: {
     origin: [process.env.ORIGIN_URL, "https://app.kriyahr.com"],
@@ -267,12 +270,14 @@ io.on("connection", (socket) => {
     console.log(sendBothData.hr_id);
     console.log(sendBothData.creator_id);
 
-    socket.to(`suggestionBox-${sendBothData.creator_id}`).emit("addSuggestionBoxCount", {
-      count: 1,
-      sb_id: sendBothData.sb_id,
-      latest_chat: sendBothData.sb_chat,
-      latest_chat_time: sendBothData.sb_timestamp,
-    })
+    socket
+      .to(`suggestionBox-${sendBothData.creator_id}`)
+      .emit("addSuggestionBoxCount", {
+        count: 1,
+        sb_id: sendBothData.sb_id,
+        latest_chat: sendBothData.sb_chat,
+        latest_chat_time: sendBothData.sb_timestamp,
+      });
   });
 
   socket.on("sendClose", (sendCloseData) => {
@@ -322,12 +327,14 @@ io.on("connection", (socket) => {
 
   socket.on("minusSuggestionBoxCount", (minusSbCountData) => {
     console.log("SB count: " + minusSbCountData.count);
-    io.to(`suggestionBox-${minusSbCountData.creator_id}`).emit("minusSuggestionBoxCount", minusSbCountData.count);
+    io.to(`suggestionBox-${minusSbCountData.creator_id}`).emit(
+      "minusSuggestionBoxCount",
+      minusSbCountData.count
+    );
   });
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     delete socket.id;
-  
   });
 });
 // ------- end of socket.io ------- //
@@ -396,6 +403,7 @@ app.use(device_management);
 app.use(memo_generation);
 
 app.use(recurring_pay);
+app.use(payroll_notif);
 
 //app.use(ai)
 
