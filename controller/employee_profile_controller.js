@@ -172,12 +172,19 @@ function AddEmployee(req, res, next) {
 
       const designationValues = [
         employeeInfo.company_id,
-        employeeInfo.client_id,
-        employeeInfo.position_id,
+        employeeInfo.div_id == null || employeeInfo.div_id === ""
+          ? null
+          : employeeInfo.div_id,
+        employeeInfo.dep_id == null || employeeInfo.dep_id === ""
+          ? null
+          : employeeInfo.dep_id,
+        employeeInfo.position_id == null || employeeInfo.position_id === ""
+          ? null
+          : employeeInfo.position_id,
       ];
 
       const q3 =
-        "INSERT INTO `emp_designation` (`emp_id`, `company_id`,`client_id`,`position_id`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), ?)";
+        "INSERT INTO `emp_designation` (`emp_id`, `company_id`, `division_id`, `department_id`, `position_id`) VALUES ((SELECT `emp_id` FROM `emp` ORDER BY emp_id DESC LIMIT 1), ?)";
 
       db.query(q3, [designationValues], (err, data3) => {
         if (err) {
