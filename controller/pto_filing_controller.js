@@ -374,7 +374,7 @@ async function ApproveLeave(req, res) {
                   secure: true,
                   auth: {
                     user: "tech@kriyahr.com",
-                    pass: "hbip byni lolx dyfs",
+                    pass: "faew yxtz hkhb njnm",
                   },
                 });
 
@@ -544,7 +544,7 @@ async function RejectLeave(req, res) {
                   secure: true,
                   auth: {
                     user: "tech@kriyahr.com",
-                    pass: "hbip byni lolx dyfs",
+                    pass: "faew yxtz hkhb njnm",
                   },
                 });
 
@@ -708,7 +708,7 @@ async function EscalateLeaves(req, res) {
                                 secure: true,
                                 auth: {
                                   user: "tech@kriyahr.com",
-                                  pass: "hbip byni lolx dyfs",
+                                  pass: "faew yxtz hkhb njnm",
                                 },
                               });
                   
