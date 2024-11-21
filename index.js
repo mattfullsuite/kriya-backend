@@ -155,13 +155,10 @@ app.use(
     proxy: true,
     name: "HRISUserCookie",
     cookie: {
+      httpOnly: true,
       secure: process.env.JAWSDB_URL ? true : false,
-      httpOnly: process.env.JAWSDB_URL ? false : true,
-      secure: process.env.JAWSDB_URL ? true : false,
-      httpOnly: process.env.JAWSDB_URL ? false : true,
       expires: 60 * 60 * 24 * 1000,
-      sameSite: process.env.JAWSDB_URL ? "none" : null,
-      sameSite: process.env.JAWSDB_URL ? "none" : null,
+      sameSite: process.env.JAWSDB_URL ? "strict" : null,
     },
   })
 );
