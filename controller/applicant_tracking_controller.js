@@ -885,23 +885,35 @@ function CheckDuplicate(req, res) {
 
 //For ATS Notifs - Anthony
 function ATSNotifs(req, res) {
-  const query = `SELECT 
-    CONCAT(f_name, " ", s_name) as name, 
-    app_start_date, 
-    status,
+  const query = `SELECT
+    at.app_id,
+    CONCAT(at.f_name, " ", at.s_name) as name,
+    ai.recent_interview_date AS app_start_date,
+    at.status,
     CASE 
-        WHEN status = "Final Interview Stage" AND TIMESTAMPDIFF(HOUR, app_start_date, NOW()) > 48 THEN CONCAT(f_name, " ", s_name, " has finished all four rounds of interview, please update status.")
-        WHEN status = "For Hiring Decision" AND TIMESTAMPDIFF(DAY, app_start_date, NOW()) > 3 THEN CONCAT(f_name, " ", s_name, " is waiting for a job offer, please confirm status.")
-        WHEN status = "Job Offer Sent" AND TIMESTAMPDIFF(DAY, app_start_date, NOW()) > 5 THEN CONCAT(f_name, " ", s_name, "'s job offer has been sent over 5 days ago, please check status.")
-        WHEN (status = "First Interview Stage" OR status = "Second Interview Stage" OR status = "Third Interview Stage" OR status = "Fourth Interview Stage") AND TIMESTAMPDIFF(DAY, app_start_date, NOW()) > 5 THEN CONCAT(f_name, " ", s_name, "'s last interview was over five days ago, please provide an update.")
+        WHEN at.status = "Final Interview Stage" AND TIMESTAMPDIFF(HOUR, ai.recent_interview_date, NOW()) > 48 THEN CONCAT(at.f_name, " ", at.s_name, " has finished all four rounds of interview, please update status.")
+        WHEN at.status = "For Hiring Decision" AND TIMESTAMPDIFF(DAY, ai.recent_interview_date, NOW()) > 3 THEN CONCAT(at.f_name, " ", at.s_name, " is waiting for a job offer, please confirm status.")
+        WHEN at.status = "Job Offer Sent" AND TIMESTAMPDIFF(DAY, ai.recent_interview_date, NOW()) > 5 THEN CONCAT(at.f_name, " ", at.s_name, "'s job offer has been sent over 5 days ago, please check status.")
+        WHEN (at.status = "First Interview Stage" OR at.status = "Second Interview Stage" OR at.status = "Third Interview Stage" OR at.status = "Fourth Interview Stage") AND TIMESTAMPDIFF(DAY, ai.recent_interview_date, NOW()) > 5 THEN CONCAT(at.f_name, " ", at.s_name, "'s last interview was over five days ago, please provide an update.")
         ELSE NULL
     END AS notification
-FROM \`applicant_tracking\`
+FROM 
+    applicant_tracking at
+JOIN 
+    (SELECT 
+         applicant_id, 
+         MAX(date_of_interview) AS recent_interview_date
+     FROM 
+         applicant_interview
+     GROUP BY 
+         applicant_id) ai 
+ON 
+    at.app_id = ai.applicant_id
 WHERE 
-    (status = "Final Interview Stage" AND TIMESTAMPDIFF(HOUR, app_start_date, NOW()) > 48)
-    OR (status = "For Hiring Decision" AND TIMESTAMPDIFF(DAY, app_start_date, NOW()) > 3)
-    OR (status = "Job Offer Sent" AND TIMESTAMPDIFF(DAY, app_start_date, NOW()) > 5)
-    OR ((status = "First Interview Stage" OR status = "Second Interview Stage" OR status = "Third Interview Stage" OR status = "Fourth Interview Stage") AND TIMESTAMPDIFF(DAY, app_start_date, NOW()) > 5);
+    (at.status = "Final Interview Stage" AND TIMESTAMPDIFF(HOUR, ai.recent_interview_date, NOW()) > 48)
+    OR (at.status = "For Hiring Decision" AND TIMESTAMPDIFF(DAY, ai.recent_interview_date, NOW()) > 3)
+    OR (at.status = "Job Offer Sent" AND TIMESTAMPDIFF(DAY, ai.recent_interview_date, NOW()) > 5)
+    OR ((at.status = "First Interview Stage" OR at.status = "Second Interview Stage" OR at.status = "Third Interview Stage" OR at.status = "Fourth Interview Stage") AND TIMESTAMPDIFF(DAY, ai.recent_interview_date, NOW()) > 5);
     `;
 
 db.query(query, (err, data) => {
