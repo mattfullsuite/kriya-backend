@@ -296,6 +296,25 @@ function GetUnpaidLeavesOfProbationary(req, res) {
   });
 }
 
+function GetAllMemosOfViolator(req, res) {
+  const cid = req.session.user[0].company_id;
+  const { emp_no = "" } = req.query;
+
+  const q =
+    "SELECT gm.*, e.f_name, e.s_name, ex.f_name AS executor_f_name, ex.s_name AS executor_s_name FROM generated_memos gm INNER JOIN emp e ON gm.emp_num = e.emp_num LEFT JOIN emp ex ON gm.executor_id = ex.emp_num WHERE gm.company_id = ? AND gm.emp_num = ?";
+
+  db.query(q, [cid, emp_no], (err, data) => {
+    if (err) {
+      res.send("error");
+      console.log(err);
+    } else {
+      res.send(data);
+      console.log("MEMO: ", data)
+      // console.log(data);
+    }
+  });
+}
+
 async function SendEmailToViolator(req, res) {
   const work_email = req.session.user[0].work_email;
   const emp_num = req.body.emp_num;
@@ -372,4 +391,5 @@ module.exports = {
   GetLatesOfViolator,
 
   SendEmailToViolator,
+  GetAllMemosOfViolator
 };

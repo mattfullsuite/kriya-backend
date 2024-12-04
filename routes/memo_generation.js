@@ -12,6 +12,7 @@ var imports =  {
     GetUnpaidLeavesOfProbationary,
     GetLatesOfViolator,
 
+    GetAllMemosOfViolator,
     SendEmailToViolator
 } = require( "../controller/memo_generation_controller.js");
 
@@ -19,8 +20,9 @@ const router = express.Router()
 
 router.post("/mg-generateMemos", GenerateMemos);
 router.post("/mg-ignoreMemo", IgnoreMemo);
-router.post("/mg-sentEmailStatus", SentEmailStatus)
+router.post("/mg-sentEmailStatus", SentEmailStatus);
 
+router.get("/mg-getAllMemosOfViolators", GetAllMemosOfViolator);
 router.get("/mg-getAllViolators", GetAllNamesOfViolators);
 router.get("/mg-getUndertimesOfUser", GetUndertimesOfViolator);
 router.get("/mg-getAWOLsOfUser", GetAWOLsOfViolator);
