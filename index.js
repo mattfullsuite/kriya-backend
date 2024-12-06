@@ -1521,6 +1521,8 @@ app.post("/reset-password/:user_key", (req, res) => {
   });
 });
 
+// --------------- BIRTHDAYS AND WORK ANNIVERSARY ----------------- //
+
 const birthdays_app = new Slack.App({
   signingSecret: process.env.SLACK_SIGNING_SECRET_BDAYS,
   token: process.env.SLACK_BOT_TOKEN_BDAYS,
@@ -1529,7 +1531,7 @@ const birthdays_app = new Slack.App({
 function mentionBirthdays() {
   const q = `SELECT work_email FROM emp e INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id 
   WHERE MONTH(e.dob) = MONTH(NOW()) AND DAY(e.dob) = DAY(NOW())
-  AND ed.company_id = 1`;
+  AND ed.company_id = 1 AND e.date_separated IS NULL`;
 
   db.query(q, (err, data) => {
     if (err) {
@@ -1540,6 +1542,25 @@ function mentionBirthdays() {
       data.map((d) => {
         console.log("D: ", d);
         wishBirthday(d.work_email);
+      });
+    }
+  });
+}
+
+function mentionAnniversaries() {
+  const q = `SELECT work_email FROM emp e INNER JOIN emp_designation ed ON e.emp_id = ed.emp_id 
+  WHERE MONTH(e.date_hired) = MONTH(NOW()) AND DAY(e.date_hired) = DAY(NOW())
+  AND ed.company_id = 1 AND e.date_separated IS NULL`;
+
+  db.query(q, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("Anniversaries Today: ", data);
+
+      data.map((d) => {
+        console.log("D: ", d);
+        greetWorkAnniversary(d.work_email);
       });
     }
   });
@@ -1566,6 +1587,28 @@ async function wishBirthday(email) {
   });
 }
 
+async function greetWorkAnniversary(email) {
+  const e = email.substring(0, email.indexOf("@"));
+
+  const blocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `It's <@${e}>'s work anniversary today! Make sure to greet them!`,
+      },
+    },
+  ];
+
+  await birthdays_app.client.chat.postMessage({
+    token: process.env.SLACK_BOT_TOKEN_BDAYS,
+    channel: process.env.SLACK_CHANNEL_BDAYS,
+    text: `Someone has an anniversary today! Make sure to greet them.`,
+    blocks,
+  });
+}
+
 cron.schedule("0 0 * * *", async function () {
   mentionBirthdays();
+  mentionAnniversaries();
 });
