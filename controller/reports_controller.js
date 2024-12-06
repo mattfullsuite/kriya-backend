@@ -180,7 +180,7 @@ function GetAllCompanyAttendance(req, res){
 
     //const q = "SELECT * FROM leaves AS l INNER JOIN emp AS e ON l.requester_id = e.emp_id INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id WHERE em.company_id = ? AND l.use_pto_points >= ? AND (l.leave_from > ?) AND (l.leave_from < ?) AND CONCAT(e.emp_num, e.f_name, e.s_name, l.leave_type) LIKE ?"
 
-    const q = `SELECT DISTINCT * FROM attendance AS a 
+    const q = `SELECT * FROM attendance AS a 
     INNER JOIN emp AS e ON a.employee_id = e.emp_num 
     INNER JOIN emp_designation AS em ON e.emp_id = em.emp_id 
     LEFT JOIN leaves AS l ON (e.emp_id = l.requester_id AND a.date = l.leave_from)
