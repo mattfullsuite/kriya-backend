@@ -129,7 +129,7 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
     query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ${cid}`;
   } else if (filter !== "" && active == 0) {
     const placeholders = filters.map(() => "status = ?").join(" OR ");
-    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ${cid}  AND ${placeholders}`;
+    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ${cid} AND ${placeholders}`;
   } else if (filter == "" && active == 1) {
     query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE
       status != 'Withdrawn Application' 
@@ -138,7 +138,7 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
       AND status != 'Abandoned' 
       AND status != 'No Show' 
       AND status != 'Blacklisted' 
-      AND status != 'Started Work'
+      AND status != 'Started Work' 
       AND company_id = ${cid}`;
   } else if (filter !== "" && active == 1) {
     const placeholders = filters.map(() => "status = ?").join(" OR ");
@@ -181,16 +181,16 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         AND status != 'No Show' 
         AND status != 'Blacklisted' 
         AND status != 'Started Work' 
-        WHERE company_id = ? 
+        WHERE company_id = ${cid} 
         ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-        values2 = [cid, parsedLimit, offset];
+        values2 = [parsedLimit, offset];
       } else if (filter !== "" && active == 0) {
         const placeholders = filters.map(() => "status = ?").join(" OR ");
-        query2 = `SELECT * FROM applicant_tracking WHERE ${placeholders} AND company_id = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-        values2 = [...filters, cid, parsedLimit, offset];
+        query2 = `SELECT * FROM applicant_tracking WHERE ${placeholders} AND company_id = ${cid} ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+        values2 = [...filters, parsedLimit, offset];
       } else if (filter == "" && active == 1) {
-        query2 = `SELECT * FROM applicant_tracking WHERE company_id = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-        values2 = [cid, parsedLimit, offset];
+        query2 = `SELECT * FROM applicant_tracking WHERE company_id = ${cid} ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+        values2 = [parsedLimit, offset];
       } else if (filter !== "" && active == 1) {
         const placeholders = filters.map(() => "status = ?").join(" OR ");
         query2 = `SELECT * FROM applicant_tracking WHERE (${placeholders}) 
@@ -201,9 +201,9 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         AND status != 'No Show' 
         AND status != 'Blacklisted' 
         AND status != 'Started Work' 
-        AND company_id = ? 
+        AND company_id = ${cid} 
         ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-        values2 = [...filters, cid, parsedLimit, offset];
+        values2 = [...filters, parsedLimit, offset];
       }
 
       db.query(query2, values2, (err, data2) => {
