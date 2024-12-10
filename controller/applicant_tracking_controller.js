@@ -83,10 +83,10 @@ function InsertApplicantsData(req, res) {
 
   //const q = "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `position_applied`, `status`) VALUES (?)"
   const q =
-    "INSERT INTO applicant_tracking (`app_start_date`, `position_applied`, `s_name`, `f_name`, `m_name`, `status`, `reason_for_rejection`, `reason_for_blacklist`, `email`, `contact_no`, `test_result`, `cv_link`, `source`, `referrer_name`) VALUES (?)";
+    "INSERT INTO applicant_tracking (`app_start_date`, `position_applied`, `s_name`, `f_name`, `m_name`, `status`, `reason_for_rejection`, `reason_for_blacklist`, `email`, `contact_no`, `test_result`, `cv_link`, `source`, `referrer_name`, `company_id`) VALUES (?)";
 
   data.map((d) => {
-    db.query(q, [d], (err, data) => {
+    db.query(q, [d, cid], (err, data) => {
       if (err) {
         console.log(err);
       } else {
@@ -113,6 +113,7 @@ function GetApplicantsFromDatabase(req, res) {
 
 function GetPaginatedApplicantsFromDatabase(req, res) {
   const unum = req.session.user[0].emp_num;
+  const cid = req.session.user[0].company_id;
   const { limit = 10, page = 1, active = 0, filter = "" } = req.query;
 
   console.log("Active: ", active);
@@ -178,15 +179,16 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         AND status != 'No Show' 
         AND status != 'Blacklisted' 
         AND status != 'Started Work' 
+        WHERE company_id = ? 
         ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-        values2 = [parsedLimit, offset];
+        values2 = [cid, parsedLimit, offset];
       } else if (filter !== "" && active == 0) {
         const placeholders = filters.map(() => "status = ?").join(" OR ");
-        query2 = `SELECT * FROM applicant_tracking WHERE ${placeholders} ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-        values2 = [...filters, parsedLimit, offset];
+        query2 = `SELECT * FROM applicant_tracking WHERE ${placeholders} AND company_id = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+        values2 = [...filters, cid, parsedLimit, offset];
       } else if (filter == "" && active == 1) {
-        query2 = `SELECT * FROM applicant_tracking ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-        values2 = [parsedLimit, offset];
+        query2 = `SELECT * FROM applicant_tracking WHERE company_id = ? ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
+        values2 = [cid, parsedLimit, offset];
       } else if (filter !== "" && active == 1) {
         const placeholders = filters.map(() => "status = ?").join(" OR ");
         query2 = `SELECT * FROM applicant_tracking WHERE (${placeholders}) 
@@ -197,8 +199,9 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         AND status != 'No Show' 
         AND status != 'Blacklisted' 
         AND status != 'Started Work' 
+        AND company_id = ? 
         ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
-        values2 = [...filters, parsedLimit, offset];
+        values2 = [...filters, cid, parsedLimit, offset];
       }
 
       db.query(query2, values2, (err, data2) => {
@@ -230,8 +233,9 @@ function AddNewApplicant(req, res) {
 }
 
 function ModifiedAddNewApplicant(req, res) {
+  const cid = req.session.user[0].company_id;
   const q =
-    "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `position_applied`, `status`) VALUES (?)";
+    "INSERT INTO applicant_tracking (`app_start_date`, `s_name`, `f_name`, `m_name`, `email`, `contact_no`, `cv_link`, `source`, `position_applied`, `status`, `company_id`) VALUES (?)";
 
   const values = [
     moment(req.body.app_start_date).format("YYYY-MM-DD"),
@@ -244,6 +248,7 @@ function ModifiedAddNewApplicant(req, res) {
     req.body.source,
     req.body.position_applied,
     req.body.status,
+    cid,
   ];
 
   db.query(q, [values], (err, data) => {
