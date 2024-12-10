@@ -126,10 +126,10 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
   const filters = filter.split(',').map(f => f.trim());
 
   if (filter == "" && active == 0) {
-    query1 = "SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ?";
+    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ${cid}`;
   } else if (filter !== "" && active == 0) {
     const placeholders = filters.map(() => "status = ?").join(" OR ");
-    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ? AND ${placeholders}`;
+    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ${cid}  AND ${placeholders}`;
   } else if (filter == "" && active == 1) {
     query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE
       status != 'Withdrawn Application' 
@@ -139,10 +139,10 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
       AND status != 'No Show' 
       AND status != 'Blacklisted' 
       AND status != 'Started Work'
-      AND company_id = ?`;
+      AND company_id = ${cid}`;
   } else if (filter !== "" && active == 1) {
     const placeholders = filters.map(() => "status = ?").join(" OR ");
-    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ? 
+    query1 = `SELECT COUNT(*) AS count FROM applicant_tracking WHERE company_id = ${cid} 
       AND (${placeholders}) 
       AND status != 'Withdrawn Application' 
       AND status != 'Job Offer Rejected' 
@@ -153,7 +153,7 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
       AND status != 'Started Work'`;
   }
 
-  db.query(query1, [cid, filters], (err, data1) => {
+  db.query(query1, filters, (err, data1) => {
     if (err) {
       return res.json(err);
     } else {
