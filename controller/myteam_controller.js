@@ -3,10 +3,11 @@ var moment = require("moment");
 
 function GetDepartmentLeaves(req, res) {
   const uid = req.session.user[0].emp_id;
+  const cid = req.session.user[0].company_id;
   const q =
-    "SELECT * FROM `leave_credits` AS l INNER JOIN `emp` AS e ON l.emp_id = e.emp_id WHERE e.emp_id = ?";
+    "SELECT * FROM `leave_credits` AS l INNER JOIN `emp` AS e ON l.emp_id = e.emp_id WHERE e.emp_id = ? AND company_id = ?";
 
-  db.query(q, [uid], (err, data) => {
+  db.query(q, [uid, cid], (err, data) => {
     if (err) {
       return res.json(err);
     }
@@ -17,6 +18,7 @@ function GetDepartmentLeaves(req, res) {
 
 function GetDepartmentLeavesToday(req, res) {
   const uid = req.session.user[0].emp_id;
+  const cid = req.session.user[0].company_id;
   const today = moment().format("YYYY/MM/DD");
 
   const q =
@@ -404,6 +406,7 @@ function CheckIfDownline(req, res) {
 
 function ModifiedTeamOOOToday(req, res) {
   const uid = req.session.user[0].emp_id;
+  const cid = req.session.user[0].company_id;
 
   const q = `(SELECT  e1.*, l1.*
         FROM    emp e
@@ -411,10 +414,10 @@ function ModifiedTeamOOOToday(req, res) {
                     ON  e.emp_id = e1.superior_id
                 LEFT JOIN leaves AS l1
                     ON e1.emp_id = l1.requester_id
-        WHERE e.emp_id = ? AND l1.leave_from = CURDATE() || l1.leave_to = CURDATE())
-        
-        UNION
-        
+                LEFT JOIN emp_designation AS ed1
+                    ON e1.emp_id = ed1.emp_id
+        WHERE e.emp_id = ? AND l1.leave_from = CURDATE() || l1.leave_to = CURDATE() AND ed1.company_id = ${cid}) 
+        UNION 
         (SELECT  e2.*, l2.*
         FROM    emp e
                 LEFT JOIN emp AS e1
@@ -425,10 +428,10 @@ function ModifiedTeamOOOToday(req, res) {
                             ON  e1.emp_id = e2.superior_id
                         LEFT JOIN leaves AS l2
                             ON e2.emp_id = l2.requester_id
-        WHERE e.emp_id = ? AND l2.leave_from = CURDATE() || l2.leave_to = CURDATE())
-        
+                            LEFT JOIN emp_designation AS ed2
+                                ON e2.emp_id = ed2.emp_id
+        WHERE e.emp_id = ? AND l2.leave_from = CURDATE() || l2.leave_to = CURDATE() AND ed2.company_id = ${cid}) 
         UNION 
-        
         (SELECT  e3.*, l3.*
         FROM    emp e
                 LEFT JOIN emp AS e1
@@ -443,10 +446,10 @@ function ModifiedTeamOOOToday(req, res) {
                                 ON  e2.emp_id = e3.superior_id
                             LEFT JOIN leaves AS l3
                                 ON e3.emp_id = l3.requester_id
-        WHERE e.emp_id = ? AND l3.leave_from = CURDATE() || l3.leave_to = CURDATE())
-        
+                                LEFT JOIN emp_designation AS ed3
+                                ON e3.emp_id = ed3.emp_id
+        WHERE e.emp_id = ? AND l3.leave_from = CURDATE() || l3.leave_to = CURDATE() AND ed3.company_id = ${cid}) 
         UNION 
-        
         (SELECT  e4.*, l4.*
         FROM    emp e
                 LEFT JOIN emp AS e1
@@ -465,12 +468,16 @@ function ModifiedTeamOOOToday(req, res) {
                                         ON  e3.emp_id = e4.superior_id
                                     LEFT JOIN leaves AS l4
                                         ON e4.emp_id = l4.requester_id
-        WHERE e.emp_id = ? AND l4.leave_from = CURDATE() || l4.leave_to = CURDATE())`;
+                                        LEFT JOIN emp_designation AS ed4
+                                            ON e4.emp_id = ed4.emp_id
+        WHERE e.emp_id = ? AND l4.leave_from = CURDATE() || l4.leave_to = CURDATE() AND ed4.company_id = ${cid})`;
 
   db.query(q, [uid, uid, uid, uid], (err, data) => {
     if (err) {
+      console.log("TEAM ERR: ", err)
       return res.json(err);
     }
+    console.log("TEAM Data: ", data)
     return res.json(data);
   });
 }
