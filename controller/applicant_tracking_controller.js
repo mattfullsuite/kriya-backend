@@ -100,9 +100,10 @@ function InsertApplicantsData(req, res) {
 }
 
 function GetApplicantsFromDatabase(req, res) {
-  const q = "SELECT * FROM applicant_tracking ORDER BY app_start_date ASC";
+  const cid = req.session.user[0].company_id;
+  const q = "SELECT * FROM applicant_tracking WHERE company_id = ? ORDER BY app_start_date ASC";
 
-  db.query(q, (err, data) => {
+  db.query(q, cid, (err, data) => {
     if (err) {
       console.log(err);
     } else {         
@@ -173,6 +174,8 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         offset,
       };
 
+      console.log("TOTAL: ", pagination.total)
+
       if (filter == "" && active == 0) {
         query2 = `SELECT * FROM applicant_tracking WHERE status != 'Withdrawn Application' 
         AND status != 'Job Offer Rejected' 
@@ -181,7 +184,7 @@ function GetPaginatedApplicantsFromDatabase(req, res) {
         AND status != 'No Show' 
         AND status != 'Blacklisted' 
         AND status != 'Started Work' 
-        WHERE company_id = ${cid} 
+        AND company_id = ${cid} 
         ORDER BY app_start_date DESC LIMIT ? OFFSET ?`;
         values2 = [parsedLimit, offset];
       } else if (filter !== "" && active == 0) {
@@ -273,7 +276,6 @@ function GetPositionsFromCompany(req, res) {
       console.log(err);
     } else {
       res.json(data);
-      // console.log("Retrieved all positions from company " + cid)
     }
   });
 }
@@ -351,11 +353,10 @@ function GetListOfPositions(req, res) {
 }
 
 function GetApplicantStatusStatistics(req, res) {
+  const cid = req.session.user[0].company_id;
   const { position = "" } = req.query;
 
   let jobApplied = position;
-  console.log("JA: ", jobApplied);
-
   let query;
 
   jobApplied !== ""
@@ -379,7 +380,7 @@ function GetApplicantStatusStatistics(req, res) {
       COUNT(case when status = 'Sent Interview Invitation' then 1 else null end) as sent_interview,
       COUNT(case when status = 'AWOL' then 1 else null end) as awol,
       COUNT(case when status = 'For Hiring Decision' then 1 else null end) as for_hiring_decision
-      FROM applicant_tracking WHERE position_applied = ?`)
+      FROM applicant_tracking WHERE company_id = ${cid} AND position_applied = ?`)
     : (query = `SELECT 
       COUNT(case when status = 'Sent Test' then 1 else null end) as sent_test,
       COUNT(case when status = 'First Interview Stage' then 1 else null end) as first_interview_stage,
@@ -400,7 +401,7 @@ function GetApplicantStatusStatistics(req, res) {
       COUNT(case when status = 'Sent Interview Invitation' then 1 else null end) as sent_interview,
       COUNT(case when status = 'AWOL' then 1 else null end) as awol,
       COUNT(case when status = 'For Hiring Decision' then 1 else null end) as for_hiring_decision
-      FROM applicant_tracking`);
+      FROM applicant_tracking WHERE company_id = ${cid}`);
 
   db.query(query, jobApplied, (err, data) => {
     if (err) return res.json(err);
@@ -414,8 +415,6 @@ function GetApplicantStatusStatistics(req, res) {
 //View Applicant
 function ViewApplicantData(req, res) {
   const app_id = req.params.app_id;
-
-  //console.log("APP ID: ", app_id)
 
   const q = "SELECT * FROM applicant_tracking WHERE app_id = ?";
 
@@ -462,8 +461,6 @@ function GetApplicantNotesFromInterview(req, res) {
   const app_id = req.params.app_id;
   const { interviewNo = 1 } = req.query;
   let parsedNumber = parseInt(interviewNo);
-  // console.log("APP: ", app_id)
-  // console.log("No: ", parsedNumber)
 
   const q = `SELECT an.*, ai.*, e.emp_pic, e.f_name, e.s_name FROM applicant_notes an INNER JOIN applicant_interview ai ON an.interview_id = ai.applicant_interview_id LEFT JOIN emp e ON an.noter_id = e.emp_id WHERE ai.applicant_id = ? AND ai.applicant_interview_id = ?`;
 
@@ -523,8 +520,6 @@ async function InsertApplicantNotes(req, res) {
     },
   ];
 
-  console.log(req.body);
-
   const values = [req.body.interview_id, 2, uid, req.body.note_body];
 
   db.query(q, [values], (err, data) => {
@@ -550,12 +545,6 @@ function AddNewInterview(req, res) {
   const app_id = req.params.app_id;
   const q =
     "INSERT INTO applicant_interview (`applicant_id`, `interviewer_id`, `interview_status`, `date_of_interview`) VALUES (?)";
-
-  console.log("REQ BODY: ", req.body);
-
-  console.log("APP_ID: ", app_id);
-  console.log("INTERVIEWER_ID: ", req.body.interviewer_id);
-  console.log("DATE INTERVIEW: ", req.body.date_of_interview);
 
   const values = [
     app_id,
@@ -715,14 +704,16 @@ function GetApplicantLockedNotes(req, res) {
 // requisition stats
 
 function GetApplicants(req, res) {
-  db.query("SELECT * FROM applicant_tracking", (error, result, fields) => {
+  const cid = req.session.user[0].company_id;
+  db.query(`SELECT * FROM applicant_tracking WHERE company_id = ${cid}`, (error, result, fields) => {
     res.status(200).json(result);
   });
 }
 
 function GetPositions(req, res) {
+  const cid = req.session.user[0].company_id;
   db.query(
-    "SELECT DISTINCT position_applied FROM applicant_tracking",
+    `SELECT DISTINCT position_applied FROM applicant_tracking WHERE company_id = ${cid}`,
     (error, result, fields) => {
       res.status(200).json(result);
     }
@@ -730,6 +721,7 @@ function GetPositions(req, res) {
 }
 
 function GetFilterByMonth(req, res) {
+  const cid = req.session.user[0].company_id;
   const position = req.query.position;
   const query = `
       SELECT 
@@ -751,7 +743,7 @@ function GetFilterByMonth(req, res) {
       FROM 
           applicant_tracking
       WHERE 
-          position_applied = ?
+          position_applied = ? AND company_id = ${cid} 
       GROUP BY 
           position_applied, 
           YEAR(app_start_date), 
@@ -768,6 +760,7 @@ function GetFilterByMonth(req, res) {
 }
 
 function GetFilterByQuarter(req, res) {
+  const cid = req.session.user[0].company_id;
   const position = req.query.position;
   const query = `
       SELECT 
@@ -789,7 +782,7 @@ function GetFilterByQuarter(req, res) {
       FROM 
           applicant_tracking
       WHERE 
-          position_applied = ?
+          position_applied = ? AND company_id = ${cid} 
       GROUP BY 
           position_applied, 
           YEAR(app_start_date), 
@@ -806,7 +799,9 @@ function GetFilterByQuarter(req, res) {
 }
 
 function GetFilterByYear(req, res) {
+  const cid = req.session.user[0].company_id;
   const position = req.query.position;
+
   const query = `
       SELECT 
           position_applied,
@@ -826,7 +821,7 @@ function GetFilterByYear(req, res) {
       FROM 
           applicant_tracking
       WHERE 
-          position_applied = ?
+          position_applied = ? AND company_id = ${cid} 
       GROUP BY 
           position_applied, 
           YEAR(app_start_date);
@@ -843,6 +838,7 @@ function GetFilterByYear(req, res) {
 
 //for clicking the 'Add New' in the ATS, this will check if there's a duplicate applicant
 function CheckDuplicate(req, res) {
+  const cid = req.session.user[0].company_id;
   const { f_name = "", m_name = "", s_name = "", email = "", contact_no = "" } = req.query;  
   let conditions = [];
   let values = [];
@@ -871,11 +867,11 @@ function CheckDuplicate(req, res) {
     values.push("%" + contact_no + "%");
   }
 
-  const whereClause = conditions.length ? `WHERE ${conditions.join(" OR ")}` : "";
+  const whereClause = conditions.length ? ` AND ${conditions.join(" OR ")}` : "";
 
   const query = 
   `SELECT app_id, s_name, f_name, m_name, email, contact_no, app_start_date, position_applied, status
-  FROM applicant_tracking a 
+  FROM applicant_tracking a WHERE company_id = ${cid}
   ${whereClause} 
   GROUP BY app_id, s_name, f_name, m_name, email, contact_no;`
 
@@ -892,6 +888,7 @@ function CheckDuplicate(req, res) {
 
 //For ATS Notifs - Anthony
 function ATSNotifs(req, res) {
+  const cid = req.session.user[0].company_id;
   const query = `SELECT
     at.app_id,
     CONCAT(at.f_name, " ", at.s_name) as name,
@@ -905,7 +902,7 @@ function ATSNotifs(req, res) {
         ELSE NULL
     END AS notification
 FROM 
-    applicant_tracking at
+    applicant_tracking at WHERE at.company_id = ${cid} 
 JOIN 
     (SELECT 
          applicant_id, 
@@ -916,7 +913,7 @@ JOIN
          applicant_id) ai 
 ON 
     at.app_id = ai.applicant_id
-WHERE 
+    WHERE 
     (at.status = "Final Interview Stage" AND TIMESTAMPDIFF(HOUR, ai.recent_interview_date, NOW()) > 48)
     OR (at.status = "For Hiring Decision" AND TIMESTAMPDIFF(DAY, ai.recent_interview_date, NOW()) > 3)
     OR (at.status = "Job Offer Sent" AND TIMESTAMPDIFF(DAY, ai.recent_interview_date, NOW()) > 5)
