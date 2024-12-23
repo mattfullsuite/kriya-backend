@@ -116,12 +116,12 @@ SELECT e.emp_num AS 'Employee ID',
             CASE
                 WHEN (
                     (
-                        IFNULL(deductible_absences.unpaid_leave, 0) + IFNULL(deductible_absences.awol, 0) + IFNULL(deductible_absences.absent_special_holiday, 0) - IFNULL(weekend_days.weekend_rendered, 0) - IFNULL(weekend_days.weekend_pto, 0)
+                        IFNULL(deductible_absences.unpaid_leave, 0) + IFNULL(deductible_absences.awol, 0) + IFNULL(deductible_absences.absent_special_holiday, 0) - IFNULL(weekend_days.weekend_rendered, 0) - IFNULL(weekend_days.weekend_pto, 0) + IFNULL(ab.non_pto, 0)
                     ) * (IFNULL(es.base_pay, 0) / cc.monthly_working_days) * -1
                 ) > 0 THEN 0
                 ELSE (
                     (
-                        IFNULL(deductible_absences.unpaid_leave, 0) + IFNULL(deductible_absences.awol, 0) + IFNULL(deductible_absences.absent_special_holiday, 0) - IFNULL(weekend_days.weekend_rendered, 0) - IFNULL(weekend_days.weekend_pto, 0)
+                        IFNULL(deductible_absences.unpaid_leave, 0) + IFNULL(deductible_absences.awol, 0) + IFNULL(deductible_absences.absent_special_holiday, 0) - IFNULL(weekend_days.weekend_rendered, 0) - IFNULL(weekend_days.weekend_pto, 0) + IFNULL(ab.non_pto, 0)
                     ) * (IFNULL(es.base_pay, 0) / cc.monthly_working_days) * -1
                 )
             END
@@ -136,9 +136,31 @@ SELECT e.emp_num AS 'Employee ID',
     IFNULL(rr.net_salary_2, '0.00') AS 'Net Pay (PP-2)',
     IFNULL(rr.net_salary_3, '0.00') AS 'Net Pay (PP-3)',
     IFNULL(und.undertime, 0) AS 'Undertime/Tardiness Hours',
+    ROUND(
+        (
+            CASE
+                WHEN (
+                    (
+                        IFNULL(deductible_absences.unpaid_leave, 0) + IFNULL(deductible_absences.awol, 0) + IFNULL(deductible_absences.absent_special_holiday, 0) - IFNULL(weekend_days.weekend_rendered, 0) - IFNULL(weekend_days.weekend_pto, 0)
+                    ) * (IFNULL(es.base_pay, 0) / cc.monthly_working_days) * -1
+                ) > 0 THEN 0
+                ELSE (
+                    (
+                        IFNULL(deductible_absences.awol, 0) + IFNULL(deductible_absences.absent_special_holiday, 0) - IFNULL(weekend_days.weekend_rendered, 0) - IFNULL(weekend_days.weekend_pto, 0)
+                    )
+                )
+            END
+        ),
+        2
+    ) AS 'AWOL',
     IFNULL(ab.non_pto, 0) AS 'Unpaid Leaves',
     IFNULL(ab.pto_used, 0) AS 'Filed PTO Days',
-    IFNULL(ab.total_absences, 0) AS 'Total Absences'
+    IFNULL(
+        ab.total_absences + (
+            IFNULL(deductible_absences.awol, 0) + IFNULL(deductible_absences.absent_special_holiday, 0) - IFNULL(weekend_days.weekend_rendered, 0) - IFNULL(weekend_days.weekend_pto, 0)
+        ),
+        0
+    ) AS 'Total Absences'
 FROM emp e
     INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id
     INNER JOIN position p ON p.position_id = ed.position_id
