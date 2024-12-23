@@ -75,7 +75,6 @@ SELECT e.emp_num AS 'Employee ID',
         ),
         2
     ) AS 'Night Differential',
-    IFNULL(ab.non_pto, 0) + IFNULL(und.undertime, 0) AS 'Unpaid Leaves',
     ROUND(
         IFNULL(ot.regular_ot, 0) * (
             IFNULL(es.base_pay, 0) / cc.monthly_working_days / 8 * 1.25
@@ -136,8 +135,10 @@ SELECT e.emp_num AS 'Employee ID',
     IFNULL(rr.net_salary_1, '0.00') AS 'Net Pay (PP-1)',
     IFNULL(rr.net_salary_2, '0.00') AS 'Net Pay (PP-2)',
     IFNULL(rr.net_salary_3, '0.00') AS 'Net Pay (PP-3)',
+    IFNULL(und.undertime, 0) AS 'Undertime/Tardiness Hours',
+    IFNULL(ab.non_pto, 0) AS 'Unpaid Leaves',
     IFNULL(ab.pto_used, 0) AS 'Filed PTO Days',
-    IFNULL(ab.total_absences, 0) + IFNULL(und.undertime, 0) AS 'Total Absences'
+    IFNULL(ab.total_absences, 0) AS 'Total Absences'
 FROM emp e
     INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id
     INNER JOIN position p ON p.position_id = ed.position_id
