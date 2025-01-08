@@ -114,7 +114,7 @@ const getAllPaySlip = (req, res) => {
 const getEmployeeListUsingFilter = (req, res) => {
   const queryPath = path.join(
     __dirname,
-    "./../../sql/payroll/generate_payroll_list.sql"
+    "./../../sql/payroll/generate_payroll_list_test.sql"
   );
   const sqlQuery = fs.readFileSync(queryPath, "utf-8");
   const compID = req.session.user[0].company_id;
@@ -132,32 +132,22 @@ const getEmployeeListUsingFilter = (req, res) => {
     from,
     to,
     compID,
+    from,
+    to,
+    compID,
+    from,
+    to,
+    compID,
+    from,
+    to,
+    compID,
+    compID,
+    from,
+    to,
+    from,
+    to,
+    compID,
     payment,
-    compID,
-    from,
-    to,
-    compID,
-    from,
-    to,
-    compID,
-    from,
-    to,
-    compID,
-    from,
-    to,
-    compID,
-    from,
-    to,
-    compID,
-    from,
-    to,
-    compID,
-    from,
-    to,
-    compID,
-    compID,
-    from,
-    to,
     compID,
   ];
 
