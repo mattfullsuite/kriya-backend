@@ -1088,7 +1088,7 @@ final_table AS (
                 IFNULL(es.base_pay, 0) / cc.monthly_working_days / 8 * 1.25
             ),
             2
-        ) AS 'Regulary OT',
+        ) AS 'Regular OT',
         ROUND(
             IFNULL(mt.rest_day_ot_hours, 0) * (
                 IFNULL(es.base_pay, 0) / cc.monthly_working_days / 8 * 1.3
