@@ -6,12 +6,14 @@ function CreateRecurrringPay(req, res) {
     req.body.empID,
     req.body.payItemID,
     req.body.amount,
-    req.body.dateFrom,
-    req.body.dateTo,
+    req.body.continuous,
+    req.body.dateFrom === "" ? null : req.body.dateFrom,
+    req.body.dateTo === "" ? null : req.body.dateTo,
   ];
+  console.log(values);
 
   const q =
-    "INSERT INTO `recurring_pay`(`recurring_pay_id`, `emp_id`, `pay_item_id`, `amount`, `date_start`, `date_end`) VALUES (UUID(), ?, ?, ?, ?, ?)";
+    "INSERT INTO `recurring_pay`(`recurring_pay_id`, `emp_id`, `pay_item_id`, `amount`, `continuous`, `date_start`, `date_end`) VALUES (UUID(), ?, ?, ?, ?, ?, ?)";
   db.query(q, values, (err) => {
     if (err) return res.json(err);
     return res.sendStatus(200);
@@ -22,13 +24,14 @@ function UpdateRecurringPay(req, res) {
   const values = [
     req.body.payItemID,
     req.body.amount,
-    req.body.dateFrom,
-    req.body.dateTo,
+    req.body.continuous,
+    req.body.dateFrom === "" ? null : req.body.dateFrom,
+    req.body.dateTo === "" ? null : req.body.dateTo,
     req.body.id,
   ];
 
   const q =
-    "UPDATE `recurring_pay` SET `pay_item_id`=?, `amount`=?, `date_start`=?, `date_end`=? WHERE `recurring_pay_id` = ?";
+    "UPDATE `recurring_pay` SET `pay_item_id`=?, `amount`=?, `continuous`=?, `date_start`=?, `date_end`=? WHERE `recurring_pay_id` = ?";
 
   db.query(q, values, (err) => {
     if (err) {
@@ -42,10 +45,15 @@ function UpdateRecurringPay(req, res) {
 function GetAllRecurrringPay(req, res) {
   var cID = req.session.user[0].company_id;
   const q =
-    "SELECT rp.recurring_pay_id AS ID, e.emp_id AS 'Employee ID', CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL AND e.m_name != '', CONCAT(LEFT(e.m_name, 1), '.'), ''), ' ', e.s_name) AS 'Name',rp.pay_item_id AS 'Pay Item ID', pi.pay_item_name AS 'Pay Item', rp.amount AS 'Amount', rp.date_start AS 'Date Start', rp.date_end AS 'Date End', rp.created_at AS 'Date and Time Created' FROM `recurring_pay` rp INNER JOIN emp e ON e.emp_id = rp.emp_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN pay_items pi ON pi.pay_items_id = rp.pay_item_id WHERE ed.company_id = ?";
+    "SELECT rp.recurring_pay_id AS ID, e.emp_id AS 'Employee ID', CONCAT(e.f_name, ' ', IF(e.m_name IS NOT NULL AND e.m_name != '', CONCAT(LEFT(e.m_name, 1), '.'), ''), ' ', e.s_name) AS 'Name',rp.pay_item_id AS 'Pay Item ID', pi.pay_item_name AS 'Pay Item', rp.amount AS 'Amount', rp.continuous AS 'Continuous', rp.date_start AS 'Date Start', rp.date_end AS 'Date End', rp.created_at AS 'Date and Time Created' FROM `recurring_pay` rp INNER JOIN emp e ON e.emp_id = rp.emp_id INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id INNER JOIN pay_items pi ON pi.pay_items_id = rp.pay_item_id WHERE ed.company_id = ?";
   db.query(q, [cID], (err, data) => {
     if (err) return res.json(err);
-    return res.json(data);
+    // Transform `continuous` column to boolean
+    const transformedData = data.map((row) => ({
+      ...row,
+      Continuous: row.Continuous === 1, // Convert 1 to true and 0 to false
+    }));
+    return res.json(transformedData);
   });
 }
 
