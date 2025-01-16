@@ -91,6 +91,21 @@ function GetRecurringPayItems(req, res) {
   });
 }
 
+// Regular Payroll
+function RegularPayrollGetAllRecurrringPay(req, res) {
+  var compID = req.session.user[0].company_id;
+  const { dateFrom, dateTo } = req.body;
+  const q = `SELECT e.emp_id, e.emp_num, pi.pay_items_id, pi.pay_item_name, rp.amount, rp.continuous, rp.date_start, rp.date_end FROM emp e INNER JOIN emp_designation ed ON ed.emp_id = e.emp_id AND ed.company_id = ? LEFT JOIN recurring_pay rp ON rp.emp_id = ed.emp_id INNER JOIN pay_items pi ON pi.pay_items_id = rp.pay_item_id AND pi.company_id = ? WHERE ( rp.continuous = 1 AND rp.date_start IS NULL AND rp.date_end IS NULL ) OR ( rp.continuous = 0 AND ( rp.date_start BETWEEN ? AND ? ) OR ( rp.date_end BETWEEN ? AND ? ) ) ORDER BY e.emp_num`;
+  db.query(
+    q,
+    [compID, compID, dateFrom, dateTo, dateFrom, dateTo],
+    (err, data) => {
+      if (err) return res.json(err);
+      return res.json(data);
+    }
+  );
+}
+
 module.exports = {
   CreateRecurrringPay,
   GetAllRecurrringPay,
@@ -98,4 +113,6 @@ module.exports = {
   UpdateRecurringPay,
   GetActiveEmployeesRP,
   GetRecurringPayItems,
+  // Regular Payroll
+  RegularPayrollGetAllRecurrringPay,
 };
