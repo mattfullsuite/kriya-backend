@@ -836,12 +836,14 @@ deductible_absences AS(
             AND catlh.h_name IS NULL
             AND catlh.h_type IS NULL THEN 1
             WHEN (
-                catlh.time_in IS NULL
-                AND catlh.time_out IS NULL
-            )
-            AND (
-                catlh.time_in IS NOT NULL
-                AND catlh.time_out IS NOT NULL
+                (
+                    catlh.time_in IS NULL
+                    AND catlh.time_out IS NULL
+                )
+                OR (
+                    catlh.time_in IS NOT NULL
+                    AND catlh.time_out IS NOT NULL
+                )
             )
             AND catlh.use_pto_points = 0
             AND (
@@ -931,7 +933,9 @@ deductible_absences AS(
         catlh.use_pto_points,
         catlh.leave_status,
         catlh.h_type,
-        DAYOFWEEK(ed.att_date)
+        DAYOFWEEK(ed.att_date),
+        WEEKOFYEAR(ed.att_date) AS week_of_year,
+        catlh.leave_type
     FROM employee_dates ed
         LEFT JOIN consolidated_att_leaves_holidays catlh ON ed.employee_id = catlh.employee_id
         AND ed.att_date = catlh.att_date
